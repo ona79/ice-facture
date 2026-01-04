@@ -15,7 +15,7 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// --- 2. SAUVEGARDE DU PROFIL ---
+// --- 2. SAUVEGARDE DU PROFIL (Infos générales) ---
 router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
@@ -32,7 +32,28 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
-// --- 3. VÉRIFICATION DU MOT DE PASSE (C'est la route qui te manque !) ---
+// --- 3. MISE À JOUR DU MOT DE PASSE (Nouvelle Route intégrée) ---
+router.put('/update-password', auth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user);
+
+    // Vérifier si l'ancien mot de passe est correct
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) return res.status(400).json({ msg: "L'ancien mot de passe est incorrect" });
+
+    // Hachage du nouveau mot de passe
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    
+    await user.save();
+    res.json({ msg: "Mot de passe mis à jour avec succès" });
+  } catch (err) {
+    res.status(500).json({ msg: "Erreur lors de la modification du mot de passe" });
+  }
+});
+
+// --- 4. VÉRIFICATION DU MOT DE PASSE (Pour suppressions sécurisées) ---
 router.post('/verify-password', auth, async (req, res) => {
   try {
     const { password } = req.body;
@@ -52,7 +73,7 @@ router.post('/verify-password', auth, async (req, res) => {
   }
 });
 
-// --- 4. CONNEXION (LOGIN) ---
+// --- 5. CONNEXION (LOGIN) ---
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;

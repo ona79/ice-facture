@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast'; // Import de la bibliothèque de notifications
+import { Toaster } from 'react-hot-toast'; 
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import NewInvoice from './pages/NewInvoice';
-import History from './pages/History';
+import History from './pages/History'; // C'est ici que se trouve ton historique/factures
 import Settings from './pages/Settings';
 
 function App() {
@@ -13,16 +13,14 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Le Toaster est placé ici pour être disponible partout.
-          J'ai configuré un style "Glass" sombre pour correspondre à tes captures.
-      */}
+      {/* Configuration fidèle de ton Toaster style "Glass" */}
       <Toaster 
         position="top-right"
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#161b22', // Fond sombre
-            color: '#fff',         // Texte blanc
+            background: '#161b22', 
+            color: '#fff',         
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '16px',
             fontSize: '14px',
@@ -41,6 +39,7 @@ function App() {
       />
 
       <Routes>
+        {/* ROUTES PUBLIQUES */}
         <Route 
           path="/login" 
           element={!token ? <Login /> : <Navigate to="/dashboard" />} 
@@ -50,6 +49,7 @@ function App() {
           element={!token ? <Register /> : <Navigate to="/dashboard" />} 
         />
 
+        {/* ROUTES PRIVÉES (TOKEN REQUIS) */}
         <Route 
           path="/dashboard" 
           element={token ? <Dashboard /> : <Navigate to="/login" />} 
@@ -62,15 +62,19 @@ function App() {
           path="/new-invoice" 
           element={token ? <NewInvoice /> : <Navigate to="/login" />} 
         />
+        
+        {/* C'est cette route qui affiche l'historique des factures */}
         <Route 
           path="/history" 
           element={token ? <History /> : <Navigate to="/login" />} 
         />
+        
         <Route 
           path="/settings" 
           element={token ? <Settings /> : <Navigate to="/login" />} 
         />
 
+        {/* REDIRECTION PAR DÉFAUT */}
         <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
     </BrowserRouter>
