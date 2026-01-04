@@ -4,7 +4,8 @@ const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// --- 1. INSCRIPTION (REGISTER) - AJOUTÉ ---
+// --- 1. INSCRIPTION (REGISTER) ---
+// Cette route manquait dans votre code précédent, causant l'erreur 404
 router.post('/register', async (req, res) => {
   try {
     const { shopName, email, password } = req.body;
@@ -16,13 +17,13 @@ router.post('/register', async (req, res) => {
     // Créer le nouvel utilisateur
     user = new User({ shopName, email, password });
 
-    // Hachage du mot de passe
+    // Hachage du mot de passe avant sauvegarde
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
 
-    // Créer le token JWT
+    // Génération du token JWT pour connecter l'utilisateur immédiatement
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.json({
@@ -39,14 +40,22 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // Recherche de l'utilisateur par email
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé" });
 
+    // Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Mot de passe incorrect" });
 
+    // Génération du token JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token, user: { id: user._id, shopName: user.shopName } });
+    
+    res.json({ 
+      token, 
+      user: { id: user._id, shopName: user.shopName } 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -63,7 +72,7 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// --- 4. SAUVEGARDE DU PROFIL ---
+// --- 4. MISE À JOUR DU PROFIL ---
 router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
@@ -86,9 +95,11 @@ router.put('/update-password', auth, async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     const user = await User.findById(req.user);
 
+    // Comparaison avec l'ancien mot de passe
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ msg: "L'ancien mot de passe est incorrect" });
 
+    // Hachage du nouveau mot de passe
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     
