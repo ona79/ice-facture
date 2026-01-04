@@ -9,19 +9,21 @@ import {
   Settings as SettingsIcon,
   Trash2,
   X,
-  Lock
+  Lock,
+  AlertTriangle, // Ajouté pour les alertes
+  Package // Ajouté pour l'icône produit
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import SalesChart from '../components/SalesChart';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
-// --- CONFIGURATION DE L'URL API ---
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Dashboard() {
   const [allInvoices, setAllInvoices] = useState([]);
   const [products, setProducts] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]); // Pour stocker les alertes
   const [stats, setStats] = useState({ totalSales: 0, count: 0 });
   const [recentInvoices, setRecentInvoices] = useState([]);
   
@@ -38,23 +40,25 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      // Modification de l'URL pour les factures
       const resInv = await axios.get(`${API_URL}/api/invoices`, config);
       const invoices = resInv.data;
-      
-      const sortedInvoices = [...invoices].sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
+      const sortedInvoices = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
       setAllInvoices(invoices);
-      const total = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
-      setStats({ totalSales: total, count: invoices.length });
-      
+      setStats({ 
+        totalSales: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0), 
+        count: invoices.length 
+      });
       setRecentInvoices(sortedInvoices.slice(0, 3));
 
-      // Modification de l'URL pour les produits
+      // RÉCUPÉRATION ET FILTRAGE DES PRODUITS
       const resProd = await axios.get(`${API_URL}/api/products`, config);
       setProducts(resProd.data);
+      
+      // On filtre les produits dont le stock est <= 5
+      const lowStock = resProd.data.filter(p => p.stock <= 5);
+      setLowStockProducts(lowStock);
+
     } catch (err) {
       console.error("Erreur fetchData:", err);
     }
@@ -108,22 +112,17 @@ export default function Dashboard() {
     if(e) e.preventDefault();
     const loadingToast = toast.loading("Suppression en cours...");
     try {
-      // Modification de l'URL pour la suppression
       await axios.delete(`${API_URL}/api/invoices/${modal.invoiceId}`, {
         headers: config.headers,
         data: { password: password } 
       });
-      
       toast.dismiss(loadingToast);
-      toast.success("Vente annulée avec succès");
+      toast.success("Vente annulée");
       setModal({ show: false, invoiceId: null, invoiceNum: '' });
-      setPassword('');
-      
       await fetchData(); 
     } catch (err) {
       toast.dismiss(loadingToast);
       toast.error(err.response?.data?.message || "Mot de passe incorrect");
-      setPassword('');
     }
   };
 
@@ -150,13 +149,7 @@ export default function Dashboard() {
                 />
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <button type="button" onClick={() => setModal({show: false})} className="py-4 rounded-2xl font-bold text-[10px] uppercase bg-white/5 hover:bg-white/10">Retour</button>
-                  <button 
-                    type="submit"
-                    disabled={!password}
-                    className={`py-4 rounded-2xl font-black text-[10px] uppercase transition-all ${password ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-white/5 text-white/20'}`}
-                  >
-                    Confirmer
-                  </button>
+                  <button type="submit" disabled={!password} className={`py-4 rounded-2xl font-black text-[10px] uppercase transition-all ${password ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-white/5 text-white/20'}`}>Confirmer</button>
                 </div>
               </form>
             </div>
@@ -186,9 +179,12 @@ export default function Dashboard() {
           <p className="text-ice-100/50 text-[10px] font-black uppercase tracking-widest mb-2">Ventes effectuées</p>
           <h2 className="text-4xl font-black text-white">{stats.count}</h2>
         </div>
-        <Link to="/products" className="glass-card p-6 rounded-3xl border-white/5 hover:border-ice-400 transition-all flex items-center justify-between group shadow-xl">
-          <span className="font-black text-lg uppercase tracking-tighter italic">Catalogue</span>
-          <div className="p-2 bg-ice-400/10 text-ice-400 rounded-xl group-hover:bg-ice-400 group-hover:text-ice-900 transition-all"><ChevronRight size={24} /></div>
+        <Link to="/products" className="glass-card p-6 rounded-3xl border-white/5 hover:border-ice-400 transition-all flex items-center justify-between group shadow-xl relative overflow-hidden">
+          <span className="font-black text-lg uppercase tracking-tighter italic z-10">Catalogue</span>
+          {lowStockProducts.length > 0 && (
+            <span className="absolute top-2 right-12 bg-red-500 text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse">STOCK !</span>
+          )}
+          <div className="p-2 bg-ice-400/10 text-ice-400 rounded-xl group-hover:bg-ice-400 group-hover:text-ice-900 transition-all z-10"><ChevronRight size={24} /></div>
         </Link>
       </div>
 
@@ -203,6 +199,31 @@ export default function Dashboard() {
           <span className="font-black text-2xl uppercase tracking-tighter italic">Historique</span>
         </button>
       </div>
+
+      {/* ALERTES STOCK FAIBLE (AJOUTÉ) */}
+      {lowStockProducts.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-black italic uppercase text-red-500/50 ml-2 tracking-widest mb-4 flex items-center gap-2">
+            <AlertTriangle size={16} /> Alertes Inventaire
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {lowStockProducts.map(p => (
+              <div key={p._id} className="glass-card p-4 rounded-2xl border-red-500/20 bg-red-500/5 flex items-center justify-between group hover:bg-red-500/10 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><Package size={16}/></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-tight">{p.name}</p>
+                    <p className="text-[9px] font-bold text-red-500/60 uppercase">Reste: {p.stock}</p>
+                  </div>
+                </div>
+                <button onClick={() => navigate('/products')} className="p-2 text-white/20 hover:text-white transition-colors">
+                  <ChevronRight size={14}/>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* GRAPHIQUE */}
       <div className="glass-card p-6 rounded-[2.5rem] border-white/5 mb-12 shadow-2xl">
@@ -240,7 +261,6 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-              
             );
           })
         ) : (

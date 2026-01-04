@@ -8,7 +8,8 @@ import { IceInput } from '../components/IceInput';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
-  const [formData, setFormData] = useState({ shopName: '', email: '', password: '' });
+  // Ajout de 'phone' dans le formData
+  const [formData, setFormData] = useState({ shopName: '', email: '', password: '', phone: '' });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
@@ -25,7 +26,7 @@ export default function Register() {
   const validate = () => {
     let tempErrors = {};
     
-    // Validation Boutique : Pas de chiffre au début
+    // Validation Boutique
     if (!formData.shopName.trim()) {
       tempErrors.shopName = "Le nom est requis.";
     } else if (/^\d/.test(formData.shopName.trim())) {
@@ -34,7 +35,15 @@ export default function Register() {
       tempErrors.shopName = "Minimum 3 caractères.";
     }
 
-    // Validation Email : @ et .com
+    // Validation Téléphone (14 chiffres avec indicatif)
+    // On autorise le '+' au début mais on vérifie la longueur totale
+    if (!formData.phone) {
+      tempErrors.phone = "Le numéro est requis.";
+    } else if (formData.phone.length !== 14) {
+      tempErrors.phone = "Le numéro doit faire exactement 14 caractères (Ex: +221770000000).";
+    }
+
+    // Validation Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
     if (!formData.email) {
       tempErrors.email = "L'email est requis.";
@@ -42,7 +51,7 @@ export default function Register() {
       tempErrors.email = "Email invalide (doit finir par .com)";
     }
 
-    // Validation Mot de passe : min 6 car.
+    // Validation Mot de passe
     if (formData.password.length < 6) {
       tempErrors.password = "Le mot de passe doit faire au moins 6 caractères.";
     }
@@ -55,7 +64,6 @@ export default function Register() {
     e.preventDefault();
     if (validate()) {
       try {
-        // Modification de l'URL pour pointer vers le backend de production
         await axios.post(`${API_URL}/api/auth/register`, formData);
         alert("Inscription réussie !");
         navigate('/login'); 
@@ -85,7 +93,7 @@ export default function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* CHAMP NOM BOUTIQUE */}
+          {/* NOM BOUTIQUE */}
           <div className="relative">
             <IceInput 
               label="Nom de la Boutique" 
@@ -100,7 +108,23 @@ export default function Register() {
             )}
           </div>
 
-          {/* CHAMP EMAIL */}
+          {/* CHAMP TÉLÉPHONE (AJOUTÉ) */}
+          <div className="relative">
+            <IceInput 
+              label="Numéro de Téléphone" 
+              placeholder="+221770000000"
+              maxLength={14}
+              value={formData.phone}
+              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+            />
+            {errors.phone && (
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+                <AlertCircle size={10} /> {errors.phone}
+              </p>
+            )}
+          </div>
+
+          {/* EMAIL */}
           <div className="relative">
             <IceInput 
               label="Email Professionnel" 
@@ -116,7 +140,7 @@ export default function Register() {
             )}
           </div>
 
-          {/* CHAMP MOT DE PASSE */}
+          {/* MOT DE PASSE */}
           <div className="relative">
             <IceInput 
               label="Mot de passe" 

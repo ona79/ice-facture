@@ -5,30 +5,38 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // --- 1. INSCRIPTION (REGISTER) ---
-// Cette route manquait dans votre code précédent, causant l'erreur 404
 router.post('/register', async (req, res) => {
   try {
-    const { shopName, email, password } = req.body;
+    const { shopName, email, password, phone } = req.body;
 
-    // Vérifier si l'utilisateur existe déjà
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: "Cet email est déjà utilisé" });
+    // --- SÉCURITÉ STRICTE SUR LE TÉLÉPHONE (14 CARACTÈRES) ---
+    if (!phone || phone.length !== 14) {
+      return res.status(400).json({ msg: "Le numéro de téléphone doit comporter exactement 14 caractères." });
+    }
 
-    // Créer le nouvel utilisateur
-    user = new User({ shopName, email, password });
+    // Vérifier si l'email existe déjà
+    let userEmail = await User.findOne({ email });
+    if (userEmail) return res.status(400).json({ msg: "Cet email est déjà utilisé" });
 
-    // Hachage du mot de passe avant sauvegarde
+    // Vérifier si le numéro de téléphone existe déjà
+    let userPhone = await User.findOne({ phone });
+    if (userPhone) return res.status(400).json({ msg: "Ce numéro de téléphone est déjà utilisé" });
+
+    // Créer le nouvel utilisateur avec le champ phone
+    const user = new User({ shopName, email, password, phone });
+
+    // Hachage du mot de passe
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
 
-    // Génération du token JWT pour connecter l'utilisateur immédiatement
+    // Génération du token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.json({
       token,
-      user: { id: user._id, shopName: user.shopName, email: user.email }
+      user: { id: user._id, shopName: user.shopName, email: user.email, phone: user.phone }
     });
   } catch (err) {
     console.error(err.message);
@@ -41,15 +49,12 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Recherche de l'utilisateur par email
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé" });
 
-    // Vérification du mot de passe
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Mot de passe incorrect" });
 
-    // Génération du token JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     
     res.json({ 
@@ -76,6 +81,12 @@ router.get('/profile', auth, async (req, res) => {
 router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
+
+    // Validation du téléphone aussi lors de la mise à jour
+    if (phone && phone.length !== 14) {
+      return res.status(400).json({ msg: "Le numéro doit faire 14 caractères." });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user,
       { $set: { shopName, address, phone, footerMessage } },
@@ -95,11 +106,9 @@ router.put('/update-password', auth, async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     const user = await User.findById(req.user);
 
-    // Comparaison avec l'ancien mot de passe
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ msg: "L'ancien mot de passe est incorrect" });
 
-    // Hachage du nouveau mot de passe
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     
