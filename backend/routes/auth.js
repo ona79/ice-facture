@@ -4,7 +4,55 @@ const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// --- 1. RÉCUPÉRATION DU PROFIL ---
+// --- 1. INSCRIPTION (REGISTER) - AJOUTÉ ---
+router.post('/register', async (req, res) => {
+  try {
+    const { shopName, email, password } = req.body;
+
+    // Vérifier si l'utilisateur existe déjà
+    let user = await User.findOne({ email });
+    if (user) return res.status(400).json({ msg: "Cet email est déjà utilisé" });
+
+    // Créer le nouvel utilisateur
+    user = new User({ shopName, email, password });
+
+    // Hachage du mot de passe
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    await user.save();
+
+    // Créer le token JWT
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    res.json({
+      token,
+      user: { id: user._id, shopName: user.shopName, email: user.email }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Erreur serveur lors de l'inscription" });
+  }
+});
+
+// --- 2. CONNEXION (LOGIN) ---
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ msg: "Mot de passe incorrect" });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    res.json({ token, user: { id: user._id, shopName: user.shopName } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- 3. RÉCUPÉRATION DU PROFIL ---
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user).select('-password');
@@ -15,7 +63,7 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// --- 2. SAUVEGARDE DU PROFIL (Infos générales) ---
+// --- 4. SAUVEGARDE DU PROFIL ---
 router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
@@ -32,17 +80,15 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
-// --- 3. MISE À JOUR DU MOT DE PASSE (Nouvelle Route intégrée) ---
+// --- 5. MISE À JOUR DU MOT DE PASSE ---
 router.put('/update-password', auth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     const user = await User.findById(req.user);
 
-    // Vérifier si l'ancien mot de passe est correct
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ msg: "L'ancien mot de passe est incorrect" });
 
-    // Hachage du nouveau mot de passe
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     
@@ -53,7 +99,7 @@ router.put('/update-password', auth, async (req, res) => {
   }
 });
 
-// --- 4. VÉRIFICATION DU MOT DE PASSE (Pour suppressions sécurisées) ---
+// --- 6. VÉRIFICATION DU MOT DE PASSE ---
 router.post('/verify-password', auth, async (req, res) => {
   try {
     const { password } = req.body;
@@ -70,23 +116,6 @@ router.post('/verify-password', auth, async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ success: false, msg: "Erreur serveur" });
-  }
-});
-
-// --- 5. CONNEXION (LOGIN) ---
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Mot de passe incorrect" });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token, user: { id: user._id, shopName: user.shopName } });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 
