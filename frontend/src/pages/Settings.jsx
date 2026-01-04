@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function Settings() {
   const [formData, setFormData] = useState({ 
     shopName: '', 
@@ -33,7 +36,8 @@ export default function Settings() {
   // Chargement des données au déverrouillage
   useEffect(() => {
     if (!isLocked) {
-      axios.get('http://localhost:5000/api/auth/profile', config)
+      // URL mise à jour
+      axios.get(`${API_URL}/api/auth/profile`, config)
         .then(res => {
           setFormData({
             shopName: res.data.shopName || '',
@@ -49,7 +53,8 @@ export default function Settings() {
   const handleVerifyAccess = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/auth/verify-password', { password: accessPassword }, config);
+      // URL mise à jour
+      await axios.post(`${API_URL}/api/auth/verify-password`, { password: accessPassword }, config);
       setIsLocked(false);
       toast.success("Accès autorisé");
     } catch (err) {
@@ -67,7 +72,8 @@ export default function Settings() {
 
     setIsSaving(true);
     try {
-      await axios.put('http://localhost:5000/api/auth/profile', formData, config);
+      // URL mise à jour
+      await axios.put(`${API_URL}/api/auth/profile`, formData, config);
       toast.success("Profil enregistré");
     } catch (err) {
       toast.error("Erreur lors de la sauvegarde");
@@ -91,7 +97,8 @@ export default function Settings() {
     }
 
     try {
-      await axios.put('http://localhost:5000/api/auth/update-password', passData, config);
+      // URL mise à jour
+      await axios.put(`${API_URL}/api/auth/update-password`, passData, config);
       toast.success("Mot de passe mis à jour");
       setPassData({ oldPassword: '', newPassword: '' }); // Reset total après succès
     } catch (err) {

@@ -16,6 +16,9 @@ import SalesChart from '../components/SalesChart';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function Dashboard() {
   const [allInvoices, setAllInvoices] = useState([]);
   const [products, setProducts] = useState([]);
@@ -35,11 +38,10 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      // On force le rafraîchissement en appelant l'API
-      const resInv = await axios.get('http://localhost:5000/api/invoices', config);
+      // Modification de l'URL pour les factures
+      const resInv = await axios.get(`${API_URL}/api/invoices`, config);
       const invoices = resInv.data;
       
-      // Tri rigoureux du plus récent au plus ancien
       const sortedInvoices = [...invoices].sort((a, b) => {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
@@ -48,10 +50,10 @@ export default function Dashboard() {
       const total = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
       setStats({ totalSales: total, count: invoices.length });
       
-      // On prend les 3 premières factures après le tri
       setRecentInvoices(sortedInvoices.slice(0, 3));
 
-      const resProd = await axios.get('http://localhost:5000/api/products', config);
+      // Modification de l'URL pour les produits
+      const resProd = await axios.get(`${API_URL}/api/products`, config);
       setProducts(resProd.data);
     } catch (err) {
       console.error("Erreur fetchData:", err);
@@ -106,8 +108,8 @@ export default function Dashboard() {
     if(e) e.preventDefault();
     const loadingToast = toast.loading("Suppression en cours...");
     try {
-      // Correction technique : On passe le mot de passe en headers ou on s'assure que le backend l'accepte en data
-      await axios.delete(`http://localhost:5000/api/invoices/${modal.invoiceId}`, {
+      // Modification de l'URL pour la suppression
+      await axios.delete(`${API_URL}/api/invoices/${modal.invoiceId}`, {
         headers: config.headers,
         data: { password: password } 
       });
@@ -117,7 +119,6 @@ export default function Dashboard() {
       setModal({ show: false, invoiceId: null, invoiceNum: '' });
       setPassword('');
       
-      // On rafraîchit immédiatement les données
       await fetchData(); 
     } catch (err) {
       toast.dismiss(loadingToast);

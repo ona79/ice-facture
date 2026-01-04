@@ -4,6 +4,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { IceInput } from '../components/IceInput';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
@@ -11,7 +14,8 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+      // Modification de l'URL pour pointer vers Render ou Localhost
+      const res = await axios.post(`${API_URL}/api/auth/login`, formData);
       
       // Stockage
       localStorage.setItem('token', res.data.token);
@@ -21,6 +25,7 @@ export default function Login() {
       navigate('/dashboard');
       window.location.reload(); 
     } catch (err) {
+      console.error("Détails erreur login:", err.response);
       alert(err.response?.data?.msg || "Identifiants incorrects");
     }
   };

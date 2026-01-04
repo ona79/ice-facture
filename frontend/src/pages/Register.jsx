@@ -4,6 +4,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, AlertCircle } from 'lucide-react'; 
 import { IceInput } from '../components/IceInput';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function Register() {
   const [formData, setFormData] = useState({ shopName: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
@@ -14,7 +17,7 @@ export default function Register() {
     if (Object.keys(errors).length > 0) {
       const timer = setTimeout(() => {
         setErrors({});
-      }, 3000); // 3000ms = 3 secondes
+      }, 3000); 
       return () => clearTimeout(timer);
     }
   }, [errors]);
@@ -52,7 +55,8 @@ export default function Register() {
     e.preventDefault();
     if (validate()) {
       try {
-        await axios.post('http://localhost:5000/api/auth/register', formData);
+        // Modification de l'URL pour pointer vers le backend de production
+        await axios.post(`${API_URL}/api/auth/register`, formData);
         alert("Inscription réussie !");
         navigate('/login'); 
       } catch (err) {

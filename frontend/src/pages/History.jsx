@@ -9,6 +9,9 @@ import { generatePDF } from '../utils/generatePDF';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function History() {
   const [invoices, setInvoices] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,7 +25,8 @@ export default function History() {
 
   const fetchInvoices = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/invoices', config);
+      // Modification de l'URL pour charger l'historique
+      const res = await axios.get(`${API_URL}/api/invoices`, config);
       const sortedData = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setInvoices(sortedData);
     } catch (err) {
@@ -35,12 +39,14 @@ export default function History() {
   const handleVerifyAndAction = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/auth/verify-password', { password }, config);
+      // Modification de l'URL pour la vérification du mot de passe
+      await axios.post(`${API_URL}/api/auth/verify-password`, { password }, config);
       
       if (isVerifyingForDetails) {
         setIsVerifyingForDetails(false);
       } else {
-        await axios.delete(`http://localhost:5000/api/invoices/${modalDelete.id}`, {
+        // Modification de l'URL pour la suppression définitive
+        await axios.delete(`${API_URL}/api/invoices/${modalDelete.id}`, {
           headers: config.headers,
           data: { password: password }
         });
@@ -165,7 +171,6 @@ export default function History() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
-          {/* Titre diminué de 5xl à 4xl */}
           <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Historique</h1>
           <p className="text-ice-400 text-[9px] font-black uppercase tracking-[0.4em] mt-2 italic opacity-50">Gestion des archives</p>
         </div>
@@ -181,7 +186,6 @@ export default function History() {
         </div>
       </div>
 
-      {/* Cartes diminuées : p-3 et rounded-[1.2rem] */}
       <div className="grid grid-cols-1 gap-2.5">
         {filteredInvoices.length > 0 ? (
           filteredInvoices.map(inv => {
@@ -195,7 +199,6 @@ export default function History() {
                     <Calendar size={18} />
                   </div>
                   <div>
-                    {/* Taille du texte facture diminuée */}
                     <p className="font-black text-base italic tracking-tighter uppercase leading-none mb-1">{displayNum}</p>
                     <p className="text-[8px] text-white/20 font-black uppercase tracking-widest">
                       {dateObj.toLocaleDateString('fr-FR')} • {dateObj.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}

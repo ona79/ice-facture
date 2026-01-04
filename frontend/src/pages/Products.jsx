@@ -4,6 +4,9 @@ import { ArrowLeft, Plus, Trash2, Package, Lock, AlertCircle } from 'lucide-reac
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '' });
@@ -32,7 +35,8 @@ export default function Products() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/products', config);
+      // Modification de l'URL pour l'API
+      const res = await axios.get(`${API_URL}/api/products`, config);
       setProducts(res.data);
     } catch (err) {
       toast.error("Erreur de chargement");
@@ -51,7 +55,8 @@ export default function Products() {
   const confirmAdd = async () => {
     const loading = toast.loading("Ajout en cours...");
     try {
-      await axios.post('http://localhost:5000/api/products', { ...newProduct, adminPassword: addModal.password }, config);
+      // Modification de l'URL pour l'API
+      await axios.post(`${API_URL}/api/products`, { ...newProduct, adminPassword: addModal.password }, config);
       toast.dismiss(loading);
       toast.success("Produit ajouté !");
       setNewProduct({ name: '', price: '', stock: '' });
@@ -66,7 +71,8 @@ export default function Products() {
   const confirmDelete = async () => {
     const loading = toast.loading("Suppression...");
     try {
-      await axios.delete(`http://localhost:5000/api/products/${deleteModal.id}`, {
+      // Modification de l'URL pour l'API
+      await axios.delete(`${API_URL}/api/products/${deleteModal.id}`, {
         headers: config.headers,
         data: { adminPassword: deleteModal.password }
       });
@@ -168,7 +174,7 @@ export default function Products() {
             <label className="text-[10px] uppercase font-black text-white/20 ml-2">Prix</label>
             <input 
               required 
-              type="text" // Changé en text pour mieux contrôler la validation des lettres
+              type="text" 
               value={newProduct.price} 
               onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} 
               className={`w-full bg-white/5 border ${isPriceInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400`}

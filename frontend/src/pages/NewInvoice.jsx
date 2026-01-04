@@ -4,6 +4,9 @@ import { ArrowLeft, Plus, CheckCircle, Calculator, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+// --- CONFIGURATION DE L'URL API ---
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function NewInvoice() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,7 +16,10 @@ export default function NewInvoice() {
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/products', config).then(res => setProducts(res.data));
+    // Modification de l'URL pour charger les produits du catalogue
+    axios.get(`${API_URL}/api/products`, config)
+      .then(res => setProducts(res.data))
+      .catch(err => console.error("Erreur chargement produits:", err));
   }, []);
 
   useEffect(() => {
@@ -32,8 +38,8 @@ export default function NewInvoice() {
 
   const addItem = (productId) => {
     const product = products.find(p => p._id === productId);
-    if (product.stock <= 0) {
-      toast.error(`Rupture de stock : ${product.name}`);
+    if (!product || product.stock <= 0) {
+      toast.error(`Rupture de stock : ${product?.name || 'Produit'}`);
       return;
     }
     const existing = items.find(i => i.productId === productId);
@@ -59,7 +65,6 @@ export default function NewInvoice() {
     setItems(items.map(i => i.productId === id ? { ...i, quantity: Number(q) } : i));
   };
 
-  // FONCTION MODIFIÉE : ENCAISSEMENT SEULEMENT
   const handleCheckout = async () => {
     if (items.length === 0) return toast.error("Le panier est vide");
 
@@ -67,7 +72,8 @@ export default function NewInvoice() {
     const invoiceNum = createInvoiceID();
 
     try {
-      await axios.post('http://localhost:5000/api/invoices', { 
+      // Modification de l'URL pour enregistrer la facture sur Render
+      await axios.post(`${API_URL}/api/invoices`, { 
         invoiceNumber: invoiceNum, 
         items, 
         totalAmount: total 
@@ -76,8 +82,6 @@ export default function NewInvoice() {
       toast.dismiss(loadingToast);
       toast.success(`Vente ${invoiceNum} réussie !`);
       
-      // On redirige vers le dashboard ou l'historique sans télécharger le PDF
-      // Le PDF pourra être téléchargé dans l'historique si besoin
       navigate('/dashboard'); 
 
     } catch (err) { 
@@ -167,7 +171,7 @@ export default function NewInvoice() {
         </div>
       </div>
 
-      {/* BOUTON ENCAISSER SANS PDF AUTOMATIQUE */}
+      {/* BOUTON ENCAISSER */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
         <button 
           onClick={handleCheckout} 
