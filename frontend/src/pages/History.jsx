@@ -101,7 +101,7 @@ export default function History() {
                   type="password" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
-                  autoComplete="new-password" // Bloque le remplissage automatique
+                  autoComplete="new-password" 
                   required
                 />
                 <button type="submit" className="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-ice-400 text-ice-900 shadow-lg hover:bg-white transition-all tracking-widest">
@@ -113,7 +113,7 @@ export default function History() {
         </div>
       )}
 
-      {/* 2. MODAL DÉTAILS DÉVERROUILLÉE (Correction décalage Quantité) */}
+      {/* 2. MODAL DÉTAILS DÉVERROUILLÉE */}
       {modalDetails.show && !isVerifyingForDetails && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in zoom-in duration-300">
           <div className="glass-card w-full max-w-2xl p-8 rounded-[3rem] border-white/10 shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -122,7 +122,6 @@ export default function History() {
             <p className="text-[10px] font-black text-white/20 mb-8 uppercase tracking-[0.3em]">{modalDetails.invoice.invoiceNumber}</p>
             
             <div className="space-y-3">
-              {/* En-tête de colonnes avec grille alignée */}
               <div className="grid grid-cols-4 text-[9px] font-black uppercase tracking-widest text-ice-400/40 px-4 mb-2">
                 <span className="col-span-2">Article</span>
                 <span className="text-center">Qté</span>
@@ -135,7 +134,6 @@ export default function History() {
                     <p className="font-black text-sm uppercase tracking-tight">{item.name}</p>
                     <p className="text-[9px] font-bold text-white/20 uppercase italic">{item.price.toLocaleString()} F / unité</p>
                   </div>
-                  {/* Quantité centrée proprement */}
                   <div className="text-center">
                     <p className="font-black text-ice-400 italic text-lg">x{item.quantity}</p>
                   </div>
@@ -160,64 +158,66 @@ export default function History() {
         </div>
       )}
 
-      {/* --- INTERFACE PRINCIPALE (Cartes réduites en taille) --- */}
-      <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-ice-100/30 mb-8 font-black uppercase text-[10px] tracking-widest hover:text-ice-400 transition-colors">
+      {/* --- INTERFACE PRINCIPALE --- */}
+      <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-ice-100/30 mb-6 font-black uppercase text-[10px] tracking-widest hover:text-ice-400 transition-colors">
         <ArrowLeft size={14} /> Retour Dashboard
       </button>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
-          <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none">Historique</h1>
-          <p className="text-ice-400 text-[10px] font-black uppercase tracking-[0.4em] mt-2 italic opacity-50">Gestion des archives</p>
+          {/* Titre diminué de 5xl à 4xl */}
+          <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Historique</h1>
+          <p className="text-ice-400 text-[9px] font-black uppercase tracking-[0.4em] mt-2 italic opacity-50">Gestion des archives</p>
         </div>
-        <div className="relative w-full md:w-80 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ice-100/20 group-focus-within:text-ice-400 transition-colors" size={18} />
+        <div className="relative w-full md:w-72 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ice-100/20 group-focus-within:text-ice-400 transition-colors" size={16} />
           <input 
             type="text" 
-            placeholder="N° FACTURE OU DATE..." 
+            placeholder="N° FACTURE..." 
             value={searchTerm} 
             onChange={(e) => setSearchTerm(e.target.value)} 
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:border-ice-400 focus:bg-white/10 outline-none text-xs font-black uppercase transition-all tracking-widest placeholder:text-white/10" 
+            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:border-ice-400 outline-none text-[11px] font-black uppercase transition-all tracking-widest placeholder:text-white/10" 
           />
         </div>
       </div>
 
-      {/* Cartes plus compactes : passage de p-5 à p-4 */}
-      <div className="grid grid-cols-1 gap-3">
+      {/* Cartes diminuées : p-3 et rounded-[1.2rem] */}
+      <div className="grid grid-cols-1 gap-2.5">
         {filteredInvoices.length > 0 ? (
           filteredInvoices.map(inv => {
             const displayNum = formatInvoiceDisplay(inv);
             const dateObj = new Date(inv.createdAt);
 
             return (
-              <div key={inv._id} className="glass-card p-4 rounded-[1.5rem] flex flex-wrap justify-between items-center gap-4 border border-white/5 hover:border-ice-400/30 transition-all group hover:translate-x-1 shadow-md">
+              <div key={inv._id} className="glass-card p-3 rounded-[1.2rem] flex flex-wrap justify-between items-center gap-3 border border-white/5 hover:border-ice-400/20 transition-all group shadow-sm">
                 <div className="flex items-center gap-4">
-                  <div className="bg-white/5 p-3 rounded-xl text-ice-100/20 group-hover:text-ice-400 group-hover:bg-ice-400/10 transition-all">
-                    <Calendar size={20} />
+                  <div className="bg-white/5 p-2.5 rounded-xl text-ice-100/20 group-hover:text-ice-400 transition-all">
+                    <Calendar size={18} />
                   </div>
                   <div>
-                    <p className="font-black text-lg italic tracking-tighter uppercase leading-none mb-1.5">{displayNum}</p>
-                    <p className="text-[9px] text-white/20 font-black uppercase tracking-widest">
+                    {/* Taille du texte facture diminuée */}
+                    <p className="font-black text-base italic tracking-tighter uppercase leading-none mb-1">{displayNum}</p>
+                    <p className="text-[8px] text-white/20 font-black uppercase tracking-widest">
                       {dateObj.toLocaleDateString('fr-FR')} • {dateObj.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 ml-auto w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0">
+                <div className="flex items-center gap-5 ml-auto w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-white/5 pt-2.5 sm:pt-0">
                   <div className="text-right">
-                    <p className="text-[8px] font-black uppercase text-ice-400/40 tracking-widest mb-0.5 italic">Montant</p>
-                    <p className="text-xl font-black italic tracking-tighter">{Math.round(inv.totalAmount).toLocaleString()} F</p>
+                    <p className="text-[7px] font-black uppercase text-ice-400/40 tracking-widest italic">Montant</p>
+                    <p className="text-lg font-black italic tracking-tighter">{Math.round(inv.totalAmount).toLocaleString()} F</p>
                   </div>
                   
                   <div className="flex gap-1.5">
-                    <button onClick={() => openDetailsProtected({...inv, invoiceNumber: displayNum})} className="p-3 bg-white/5 text-white/20 hover:text-ice-400 hover:bg-ice-400/10 rounded-xl transition-all active:scale-90 shadow-lg">
-                      <Eye size={18} />
+                    <button onClick={() => openDetailsProtected({...inv, invoiceNumber: displayNum})} className="p-2.5 bg-white/5 text-white/20 hover:text-ice-400 rounded-lg transition-all active:scale-95">
+                      <Eye size={16} />
                     </button>
-                    <button onClick={() => generatePDF({...inv, invoiceNumber: displayNum})} className="p-3 bg-white/5 text-ice-400 hover:bg-ice-400 hover:text-ice-900 rounded-xl transition-all active:scale-90 shadow-lg">
-                      <Download size={18} />
+                    <button onClick={() => generatePDF({...inv, invoiceNumber: displayNum})} className="p-2.5 bg-white/5 text-ice-400 hover:bg-ice-400 hover:text-ice-900 rounded-lg transition-all active:scale-95">
+                      <Download size={16} />
                     </button>
-                    <button onClick={() => setModalDelete({show: true, id: inv._id, num: displayNum})} className="p-3 bg-red-500/5 text-red-500/20 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all active:scale-90 shadow-lg">
-                      <Trash2 size={18} />
+                    <button onClick={() => setModalDelete({show: true, id: inv._id, num: displayNum})} className="p-2.5 bg-red-500/5 text-red-500/20 hover:text-red-500 rounded-lg transition-all active:scale-95">
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
@@ -225,9 +225,9 @@ export default function History() {
             );
           })
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 bg-white/[0.01] rounded-[3.5rem] border border-dashed border-white/5">
-            <FilterX size={64} className="text-white/[0.02] mb-6" />
-            <p className="font-black text-white/10 uppercase tracking-[0.5em] text-xs italic">Aucune archive correspondante</p>
+          <div className="flex flex-col items-center justify-center py-20 bg-white/[0.01] rounded-[2rem] border border-dashed border-white/5 opacity-30">
+            <FilterX size={48} className="mb-4" />
+            <p className="font-black text-white uppercase tracking-widest text-[10px]">Aucune archive</p>
           </div>
         )}
       </div>
