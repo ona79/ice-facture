@@ -7,7 +7,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Correction de l'URL pour Render
+const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
 
 export default function NewInvoice() {
   const [products, setProducts] = useState([]);
@@ -16,13 +17,14 @@ export default function NewInvoice() {
   const [total, setTotal] = useState(0);
   const [amountPaid, setAmountPaid] = useState(""); 
   const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState(""); // NOUVEAU
+  const [customerPhone, setCustomerPhone] = useState(""); 
   const [isProfileComplete, setIsProfileComplete] = useState(true);
 
   const navigate = useNavigate();
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
 
   useEffect(() => {
+    // Vérification du profil
     axios.get(`${API_URL}/api/auth/profile`, config)
       .then(res => {
         if (!res.data.address || !res.data.phone) {
@@ -33,15 +35,16 @@ export default function NewInvoice() {
       })
       .catch(err => console.error("Erreur profil:", err));
 
+    // Chargement des produits
     axios.get(`${API_URL}/api/products`, config)
       .then(res => setProducts(res.data))
       .catch(err => console.error("Erreur produits:", err));
   }, []);
 
+  // Recalcul du total
   useEffect(() => {
     const sum = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     setTotal(sum);
-    setAmountPaid("");
   }, [items]);
 
   const createInvoiceID = () => {
@@ -71,15 +74,11 @@ export default function NewInvoice() {
     setItems(items.map(i => i.productId === id ? { ...i, quantity: Number(q) } : i));
   };
 
+  // --- VALIDATION DE LA VENTE (CORRIGÉ : PAS DE REDIRECTION WHATSAPP) ---
   const handleCheckout = async () => {
     if (!isProfileComplete) return toast.error("Profil incomplet : Remplissez les paramètres");
     if (items.length === 0) return toast.error("Panier vide");
     if (!customerName.trim()) return toast.error("NOM DU CLIENT OBLIGATOIRE");
-
-    // VALIDATION TÉLÉPHONE (Optionnelle mais si remplie, doit faire 9 chiffres)
-    if (customerPhone && customerPhone.length !== 9) {
-      return toast.error("Le numéro doit comporter exactement 9 chiffres");
-    }
 
     const finalPaid = amountPaid === "" ? total : parseFloat(amountPaid);
 
@@ -87,34 +86,28 @@ export default function NewInvoice() {
       return toast.error("L'ENCAISSEMENT NE PEUT PAS DÉPASSER LE TOTAL");
     }
 
-    const loadingToast = toast.loading("Enregistrement...");
+    const loadingToast = toast.loading("Enregistrement de la vente...");
     const invoiceNum = createInvoiceID();
 
     try {
+      // On envoie les données au serveur pour enregistrement
       await axios.post(`${API_URL}/api/invoices`, { 
         invoiceNumber: invoiceNum, 
         items, 
         totalAmount: total,
         amountPaid: finalPaid,
         customerName: customerName.trim().toUpperCase(),
-        customerPhone: customerPhone, // ENVOI DU NUMÉRO
-        status: finalPaid >= total ? 'Payé' : 'Dette'
+        customerPhone: customerPhone, // Le numéro est juste sauvegardé ici
       }, config);
 
       toast.dismiss(loadingToast);
-      toast.success(`Vente réussie !`);
-
-      // REDIRECTION WHATSAPP SI NUMÉRO PRÉSENT
-      if (customerPhone.length === 9) {
-        const message = `Bonjour ${customerName.toUpperCase()}, voici votre facture ${invoiceNum} de ${total.toLocaleString()} F.`;
-        const formattedPhone = `221${customerPhone}`;
-        window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
-      }
-
+      toast.success(`Vente enregistrée : ${invoiceNum}`);
+      
+      // Retour au dashboard directement après la réussite
       navigate('/dashboard'); 
     } catch (err) { 
       toast.dismiss(loadingToast);
-      toast.error("Erreur lors de la vente"); 
+      toast.error("Erreur serveur lors de la vente"); 
     }
   };
 
@@ -132,7 +125,7 @@ export default function NewInvoice() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
             <input 
-              type="text" placeholder="RECHERCHER..." value={searchTerm} 
+              type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-[11px] font-black uppercase" 
             />
@@ -156,12 +149,12 @@ export default function NewInvoice() {
         </div>
 
         {/* PANIER */}
-        <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
+        <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-white/[0.02] backdrop-blur-md">
           
           {!isProfileComplete && (
             <div className="bg-red-500/20 border-b border-red-500/20 py-2 px-4 flex items-center justify-between animate-pulse">
               <span className="text-[9px] font-black uppercase text-red-400 tracking-tighter">
-                Veuillez remplir le paramètre en cliquant sur l'icône du parametre.
+                Profil incomplet : Configurez votre adresse et téléphone
               </span>
               <button onClick={() => navigate('/settings')} className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 transition-colors">
                 <SettingsIcon size={12} />
@@ -204,7 +197,6 @@ export default function NewInvoice() {
                 />
               </div>
 
-              {/* CHAMPS NUMÉRO WHATSAPP (9 CHIFFRES MAX) */}
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">WhatsApp (9 chiffres)</label>
                 <input 
@@ -213,7 +205,7 @@ export default function NewInvoice() {
                   placeholder="7..." 
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-green-400"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-ice-400"
                 />
               </div>
             </div>
@@ -222,7 +214,6 @@ export default function NewInvoice() {
               <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Encaissé (Max: {total})</label>
               <input 
                 type="text" 
-                inputMode="numeric"
                 placeholder="0" 
                 value={amountPaid}
                 onChange={(e) => {
@@ -242,7 +233,7 @@ export default function NewInvoice() {
                 <p className="text-[9px] font-black uppercase text-white/30">Net à payer</p>
                 {amountPaid !== "" && parseInt(amountPaid, 10) < total && (
                   <p className="text-[9px] font-black text-orange-500 uppercase mt-1 italic animate-pulse">
-                    Dette: {(total - parseInt(amountPaid, 10)).toLocaleString()} F
+                    Reste: {(total - parseInt(amountPaid, 10)).toLocaleString()} F
                   </p>
                 )}
               </div>
@@ -254,7 +245,7 @@ export default function NewInvoice() {
             <button 
               onClick={handleCheckout} 
               disabled={items.length === 0 || !isProfileComplete} 
-              className={`w-full font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all ${!isProfileComplete ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 hover:scale-[1.02] active:scale-95'}`}
+              className={`w-full font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 hover:scale-[1.02] active:scale-95'}`}
             >
               <CheckCircle size={20} /> 
               <span className="uppercase tracking-widest text-[11px]">
@@ -267,4 +258,3 @@ export default function NewInvoice() {
     </div>
   );
 }
-// --- FIN DU COMPOSANT NEWINVOICE ---

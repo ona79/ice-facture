@@ -5,29 +5,29 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 
-// --- RÉCUPÉRER TOUTES LES FACTURES ---
+// --- 1. RÉCUPÉRER TOUTES LES FACTURES ---
 router.get('/', auth, async (req, res) => {
   try {
-    const invoices = await Invoice.find({ userId: req.user.id || req.user }).sort({ createdAt: -1 });
+    // Utilisation stricte de req.user.id
+    const invoices = await Invoice.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ error: "Erreur lors de la récupération des factures" });
   }
 });
 
-// --- CRÉER UNE NOUVELLE VENTE (CORRIGÉ POUR LE NOM DU CLIENT) ---
+// --- 2. CRÉER UNE NOUVELLE VENTE ---
 router.post('/', auth, async (req, res) => {
   try {
-    // AJOUT DE customerName DANS LA DÉSTRUCTURATION
     const { items, totalAmount, amountPaid, invoiceNumber, customerName } = req.body;
 
     const newInvoice = new Invoice({
-      userId: req.user.id || req.user,
+      userId: req.user.id,
       invoiceNumber: invoiceNumber,
-      customerName: customerName || "Client Passager", // SAUVEGARDE DU NOM
+      customerName: customerName || "Client Passager",
       items,
       totalAmount,
-      amountPaid: amountPaid || 0,
+      amountPaid: Number(amountPaid) || 0,
     });
 
     const savedInvoice = await newInvoice.save();
@@ -49,18 +49,25 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// --- RÉGLER UNE DETTE (PATCH) ---
+// --- 3. RÉGLER UNE DETTE (PATCH) - CORRIGÉ POUR LE RÈGLEMENT MALICK ---
 router.patch('/:id/pay', auth, async (req, res) => {
   try {
     const { amount } = req.body; 
-    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id || req.user });
+    
+    // On cherche la facture appartenant à l'utilisateur
+    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id });
 
     if (!invoice) {
       return res.status(404).json({ msg: "Facture introuvable" });
     }
 
+    // On ajoute le nouveau montant payé au montant déjà existant
     invoice.amountPaid += Number(amount);
-    await invoice.save(); // Déclenche le recalcul du statut (Payé/Dette)
+
+    // Sécurité : Si le montant payé dépasse le total, on peut le plafonner (optionnel)
+    // if (invoice.amountPaid > invoice.totalAmount) invoice.amountPaid = invoice.totalAmount;
+
+    await invoice.save(); 
 
     res.json(invoice);
   } catch (err) {
@@ -69,23 +76,27 @@ router.patch('/:id/pay', auth, async (req, res) => {
   }
 });
 
-// --- SUPPRIMER UNE VENTE (SÉCURISÉ) ---
+// --- 4. SUPPRIMER UNE VENTE (SÉCURISÉ PAR MOT DE PASSE) ---
 router.delete('/:id', auth, async (req, res) => {
   try {
     const { password } = req.body;
 
     if (!password) {
-      return res.status(400).json({ msg: "Mot de passe requis" });
+      return res.status(400).json({ msg: "Mot de passe requis pour annuler une vente" });
     }
 
-    const user = await User.findById(req.user.id || req.user);
+    // Vérification du mot de passe de l'utilisateur
+    const user = await User.findById(req.user.id);
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ msg: "Mot de passe incorrect" });
+    
+    if (!isMatch) {
+      return res.status(401).json({ msg: "Mot de passe incorrect" });
+    }
 
-    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id || req.user });
+    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id });
     if (!invoice) return res.status(404).json({ msg: "Facture introuvable" });
 
-    // Restauration du stock
+    // Restauration du stock avant suppression
     for (const item of invoice.items) {
       const idToUpdate = item.productId || item._id;
       if (idToUpdate) {
