@@ -147,7 +147,7 @@ export default function NewInvoice() {
           {!isProfileComplete && (
             <div className="bg-red-500/20 border-b border-red-500/20 py-2 px-4 flex items-center justify-between animate-pulse">
               <span className="text-[9px] font-black uppercase text-red-400 tracking-tighter">
-                Veuillez remplir le paramètre
+                Veuillez remplir le paramètre en cliquant sur l'icône du parametre.
               </span>
               <button 
                 onClick={() => navigate('/settings')}
