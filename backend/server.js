@@ -1,13 +1,18 @@
-require('dotenv').config({ path: __dirname + '/.env' }); // Garantit la lecture du .env dans le dossier backend
+require('dotenv').config({ path: __dirname + '/.env' }); 
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
 
-// --- MIDDLEWARES ---
-app.use(cors()); // Autorise ton frontend à communiquer avec ce backend
-app.use(express.json()); // Indispensable pour recevoir les données JSON des formulaires
+// --- MIDDLEWARES (CORRIGÉ POUR ÉVITER LE BLOCAGE CORS) ---
+app.use(cors({
+  origin: '*', // Autorise toutes les origines pour éviter le blocage navigateur
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json()); 
 
 // Log des requêtes pour faciliter le débogage sur Render
 app.use((req, res, next) => {
@@ -23,7 +28,6 @@ app.use('/api/invoices', require('./routes/invoices'));
 // --- CONNEXION MONGODB ---
 const uri = process.env.MONGO_URI;
 
-// Configuration Mongoose
 mongoose.set('strictQuery', false);
 
 if (!uri) {
@@ -34,9 +38,10 @@ if (!uri) {
 mongoose.connect(uri)
   .then(() => {
     console.log("✅ CONNEXION RÉUSSIE : Base de données liée.");
-    // Render définit automatiquement le PORT, sinon on utilise 5000 par défaut
+    
+    // Correction Render : On écoute sur 0.0.0.0 pour être accessible de l'extérieur
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 SERVEUR : Lancé sur le port ${PORT}`);
     });
   })

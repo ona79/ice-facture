@@ -4,7 +4,8 @@ import { ArrowLeft, Plus, Trash2, Package, Lock, Unlock, AlertCircle } from 'luc
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Remplace par ton URL Render réelle si nécessaire
+const API_URL = import.meta.env.VITE_API_URL || "https://ton-api-backend.onrender.com";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -13,7 +14,11 @@ export default function Products() {
   const [accessPassword, setAccessPassword] = useState('');
   
   const navigate = useNavigate();
-  const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+
+  // Fonction pour récupérer le header avec le token à jour
+  const getAuthHeader = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+  });
 
   const isNameInvalid = newProduct.name !== "" && /^\d+$/.test(newProduct.name);
   const isPriceInvalid = newProduct.price !== "" && (isNaN(newProduct.price) || Number(newProduct.price) <= 0);
@@ -26,47 +31,52 @@ export default function Products() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/products`, config);
+      const res = await axios.get(`${API_URL}/api/products`, getAuthHeader());
       setProducts(res.data);
     } catch (err) {
-      toast.error("Erreur de chargement");
+      toast.error("Erreur de chargement des produits");
     }
   };
 
+  // --- GESTION DU MOT DE PASSE DE DÉVERROUILLAGE ---
   const handleUnlock = async (e) => {
     e.preventDefault();
     const loading = toast.loading("Vérification...");
     try {
-      await axios.post(`${API_URL}/api/auth/verify-password`, { password: accessPassword }, config);
+      // Appel à ton backend pour vérifier le mot de passe admin
+      await axios.post(`${API_URL}/api/auth/verify-password`, { password: accessPassword }, getAuthHeader());
       setIsUnlocked(true);
       toast.dismiss(loading);
       toast.success("Catalogue déverrouillé");
     } catch (err) {
       toast.dismiss(loading);
       toast.error("Mot de passe incorrect");
-      setAccessPassword(''); // Vide le champ en cas d'erreur
+      setAccessPassword('');
     }
   };
 
+  // --- AJOUT DE PRODUIT (CORRIGÉ POUR RENDER) ---
   const addProduct = async (e) => {
     e.preventDefault();
     const loading = toast.loading("Ajout en cours...");
     try {
-      await axios.post(`${API_URL}/api/products`, newProduct, config);
+      // On envoie newProduct vers la route API
+      await axios.post(`${API_URL}/api/products`, newProduct, getAuthHeader());
       toast.dismiss(loading);
       toast.success("Produit ajouté !");
       setNewProduct({ name: '', price: '', stock: '' });
       fetchProducts();
     } catch (err) {
       toast.dismiss(loading);
-      toast.error("Erreur lors de l'ajout");
+      console.error(err);
+      toast.error(err.response?.data?.error || "Erreur lors de l'ajout");
     }
   };
 
   const deleteProduct = async (id, name) => {
     if (!window.confirm(`Supprimer définitivement ${name} ?`)) return;
     try {
-      await axios.delete(`${API_URL}/api/products/${id}`, config);
+      await axios.delete(`${API_URL}/api/products/${id}`, getAuthHeader());
       toast.success("Produit supprimé");
       fetchProducts();
     } catch (err) {
@@ -74,24 +84,19 @@ export default function Products() {
     }
   };
 
+  // --- AFFICHAGE DE L'ÉCRAN DE VERROUILLAGE ---
   if (!isUnlocked) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black p-4">
-        <div className="glass-card w-full max-w-sm p-10 rounded-[2.5rem] border-white/10 text-center shadow-2xl">
+        <div className="glass-card w-full max-w-sm p-10 rounded-[2.5rem] border-white/10 text-center shadow-2xl bg-white/5">
           <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6"><Lock size={40}/></div>
           <h2 className="text-xl font-black uppercase italic mb-2 text-white tracking-tighter">Catalogue Protégé</h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest mb-8 leading-relaxed">Saisie manuelle du mot de passe admin</p>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest mb-8 leading-relaxed">Saisir votre mot de passe</p>
           
-          <form onSubmit={handleUnlock} className="space-y-4" autoComplete="off">
-            {/* Champ invisible pour tromper l'autofill du navigateur */}
-            <input type="text" style={{display:'none'}} aria-hidden="true"></input>
-            <input type="password" style={{display:'none'}} aria-hidden="true"></input>
-
+          <form onSubmit={handleUnlock} className="space-y-4">
             <input 
               autoFocus
               type="password" 
-              name="admin-password-unique" // Nom unique pour éviter la détection
-              autoComplete="new-password" // Force le navigateur à ne pas suggérer
               placeholder="Mot de passe..."
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center"
               value={accessPassword}
@@ -107,6 +112,7 @@ export default function Products() {
     );
   }
 
+  // --- AFFICHAGE DE L'INVENTAIRE UNE FOIS DÉVERROUILLÉ ---
   return (
     <div className="p-4 max-w-5xl mx-auto min-h-screen text-white">
       <div className="flex justify-between items-center mb-8">
@@ -120,7 +126,7 @@ export default function Products() {
 
       <h1 className="text-2xl font-black italic mb-8 uppercase tracking-widest text-white">Inventaire</h1>
 
-      <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl">
+      <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
         <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
@@ -145,7 +151,7 @@ export default function Products() {
 
       <div className="space-y-2">
         {products.map((p) => (
-          <div key={p._id} className="glass-card p-4 rounded-2xl flex justify-between items-center border-white/5 hover:bg-white/5 transition-all">
+          <div key={p._id} className="glass-card p-4 rounded-2xl flex justify-between items-center border-white/5 hover:bg-white/5 transition-all bg-white/5">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-ice-400/10 text-ice-400 rounded-lg"><Package size={18} /></div>
               <div>

@@ -9,7 +9,7 @@ router.post('/register', async (req, res) => {
   try {
     const { shopName, email, password, phone } = req.body;
 
-    // Conversion de l'email en minuscules pour éviter les erreurs de saisie
+    // Conversion de l'email en minuscules
     const cleanEmail = email.toLowerCase().trim();
 
     if (!phone || phone.length !== 9) {
@@ -36,7 +36,7 @@ router.post('/register', async (req, res) => {
 
     await user.save();
 
-    // RECONNAISSANCE : On utilise la clé 'user: { id }' pour être compatible avec la plupart des middlewares auth
+    // Payload structuré pour correspondre au middleware
     const payload = { user: { id: user._id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
@@ -55,7 +55,6 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // On cherche toujours en minuscules
     const cleanEmail = email.toLowerCase().trim();
     
     const user = await User.findOne({ email: cleanEmail });
@@ -64,7 +63,6 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Mot de passe incorrect" });
 
-    // RECONNAISSANCE : Structure identique au Register
     const payload = { user: { id: user._id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
     
@@ -80,7 +78,6 @@ router.post('/login', async (req, res) => {
 // --- 3. RÉCUPÉRATION DU PROFIL ---
 router.get('/profile', auth, async (req, res) => {
   try {
-    // Le middleware 'auth' injecte l'id dans req.user.id
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ msg: "Session expirée ou utilisateur introuvable" });
     res.json(user);
@@ -98,7 +95,6 @@ router.put('/profile', auth, async (req, res) => {
       return res.status(400).json({ msg: "Le numéro doit comporter exactement 9 chiffres." });
     }
 
-    // Sécurité pour ne pas écraser avec un numéro déjà utilisé par un autre
     if (phone) {
         const existing = await User.findOne({ phone, _id: { $ne: req.user.id } });
         if (existing) return res.status(400).json({ msg: "Ce numéro est déjà utilisé" });
@@ -117,7 +113,7 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
-// --- 5. MISE À JOUR DU MOT DE PASSE ---
+// --- 5. MISE À JOUR DU MOT DE PASSE (SÉCURITÉ) ---
 router.put('/update-password', auth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -145,25 +141,28 @@ router.put('/update-password', auth, async (req, res) => {
   }
 });
 
-// --- 6. VÉRIFICATION DU MOT DE PASSE ---
+// --- 6. VÉRIFICATION POUR DÉVERROUILLAGE (FIXED) ---
 router.post('/verify-password', auth, async (req, res) => {
   try {
     const { password } = req.body;
     if (!password) return res.status(400).json({ msg: "Mot de passe requis" });
 
+    // On récupère l'utilisateur en base pour comparer les hashs
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "Utilisateur non trouvé" });
 
     const isMatch = await bcrypt.compare(password, user.password);
+    
     if (isMatch) {
-      res.json({ success: true });
+      // On renvoie success true pour débloquer le frontend
+      return res.json({ success: true, msg: "Accès autorisé" });
     } else {
-      res.status(401).json({ success: false, msg: "Mot de passe incorrect" });
+      return res.status(401).json({ success: false, msg: "Mot de passe incorrect" });
     }
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, msg: "Erreur serveur" });
   }
 });
 
 module.exports = router;
-//backend/routes/auth.js

@@ -5,22 +5,22 @@ const auth = require('../middleware/auth');
 // --- 1. VOIR LES PRODUITS ---
 router.get('/', auth, async (req, res) => {
   try {
-    // Récupère uniquement les produits appartenant à l'utilisateur connecté
-    const products = await Product.find({ userId: req.user });
+    // CORRECTION : Utilisation de req.user.id pour filtrer les produits
+    const products = await Product.find({ userId: req.user.id });
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- 2. AJOUTER UN PRODUIT (SANS MOT DE PASSE ADMIN) ---
+// --- 2. AJOUTER UN PRODUIT ---
 router.post('/', auth, async (req, res) => {
   try {
     const { name, price, stock } = req.body;
     
-    // Création simple sans vérification de mot de passe supplémentaire
+    // CORRECTION : Attribution de l'ID via req.user.id
     const newProduct = new Product({
-      userId: req.user,
+      userId: req.user.id, 
       name,
       price: Number(price),
       stock: Number(stock) || 0
@@ -29,17 +29,18 @@ router.post('/', auth, async (req, res) => {
     const savedProduct = await newProduct.save();
     res.json(savedProduct);
   } catch (err) {
+    console.error("Erreur Backend Ajout:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- 3. SUPPRIMER UN PRODUIT (SANS MOT DE PASSE ADMIN) ---
+// --- 3. SUPPRIMER UN PRODUIT ---
 router.delete('/:id', auth, async (req, res) => {
   try {
-    // On vérifie que le produit appartient bien à l'utilisateur avant de supprimer
+    // CORRECTION : Vérification stricte via req.user.id
     const product = await Product.findOneAndDelete({ 
       _id: req.params.id, 
-      userId: req.user 
+      userId: req.user.id 
     });
 
     if (!product) {
