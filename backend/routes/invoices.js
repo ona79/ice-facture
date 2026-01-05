@@ -8,7 +8,6 @@ const bcrypt = require('bcryptjs');
 // --- RÉCUPÉRER TOUTES LES FACTURES ---
 router.get('/', auth, async (req, res) => {
   try {
-    // On utilise req.user.id (ou req.user selon ton middleware) pour filtrer
     const invoices = await Invoice.find({ userId: req.user.id || req.user }).sort({ createdAt: -1 });
     res.json(invoices);
   } catch (err) {
@@ -16,18 +15,19 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// --- CRÉER UNE NOUVELLE VENTE (MAJ AVEC DETTES) ---
+// --- CRÉER UNE NOUVELLE VENTE (CORRIGÉ POUR LE NOM DU CLIENT) ---
 router.post('/', auth, async (req, res) => {
   try {
-    const { items, totalAmount, amountPaid, invoiceNumber } = req.body;
+    // AJOUT DE customerName DANS LA DÉSTRUCTURATION
+    const { items, totalAmount, amountPaid, invoiceNumber, customerName } = req.body;
 
     const newInvoice = new Invoice({
       userId: req.user.id || req.user,
-      invoiceNumber: invoiceNumber, // Reçoit le numéro généré par le frontend
+      invoiceNumber: invoiceNumber,
+      customerName: customerName || "Client Passager", // SAUVEGARDE DU NOM
       items,
       totalAmount,
-      amountPaid: amountPaid || 0, // Enregistre le montant versé initialement
-      // Le statut est géré automatiquement par le middleware .pre('save') du modèle
+      amountPaid: amountPaid || 0,
     });
 
     const savedInvoice = await newInvoice.save();
@@ -49,23 +49,18 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// --- NOUVEAU : RÉGLER UNE DETTE (PATCH) ---
-// C'est cette route qui manquait et causait l'erreur "Erreur lors du règlement"
+// --- RÉGLER UNE DETTE (PATCH) ---
 router.patch('/:id/pay', auth, async (req, res) => {
   try {
-    const { amount } = req.body; // Le montant envoyé depuis la modale orange
+    const { amount } = req.body; 
     const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id || req.user });
 
     if (!invoice) {
       return res.status(404).json({ msg: "Facture introuvable" });
     }
 
-    // On ajoute le nouveau versement au cumul déjà payé
     invoice.amountPaid += Number(amount);
-
-    // .save() déclenche le middleware .pre('save') du modèle Invoice
-    // qui va recalculer si le status doit passer de "Dette" à "Payé"
-    await invoice.save();
+    await invoice.save(); // Déclenche le recalcul du statut (Payé/Dette)
 
     res.json(invoice);
   } catch (err) {
@@ -80,7 +75,7 @@ router.delete('/:id', auth, async (req, res) => {
     const { password } = req.body;
 
     if (!password) {
-      return res.status(400).json({ msg: "Mot de passe requis pour supprimer" });
+      return res.status(400).json({ msg: "Mot de passe requis" });
     }
 
     const user = await User.findById(req.user.id || req.user);
@@ -90,7 +85,7 @@ router.delete('/:id', auth, async (req, res) => {
     const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id || req.user });
     if (!invoice) return res.status(404).json({ msg: "Facture introuvable" });
 
-    // Restauration du stock (Ré-incrémentation)
+    // Restauration du stock
     for (const item of invoice.items) {
       const idToUpdate = item.productId || item._id;
       if (idToUpdate) {

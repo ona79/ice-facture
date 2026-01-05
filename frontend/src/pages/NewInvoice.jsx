@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ArrowLeft, Plus, CheckCircle, Calculator, Search, AlertCircle, Banknote } from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, Calculator, Search, AlertCircle, Banknote, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { IceInput } from '../components/IceInput';
@@ -12,23 +12,22 @@ export default function NewInvoice() {
   const [searchTerm, setSearchTerm] = useState("");
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [amountPaid, setAmountPaid] = useState(""); // Montant versé par le client
+  const [amountPaid, setAmountPaid] = useState(""); 
+  const [customerName, setCustomerName] = useState(""); // NOUVEAU : État pour le nom du client
   const [isProfileComplete, setIsProfileComplete] = useState(true);
 
   const navigate = useNavigate();
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
 
   useEffect(() => {
-    // 1. Vérification du profil (Obligatoire pour vendre)
     axios.get(`${API_URL}/api/auth/profile`, config)
       .then(res => {
         if (!res.data.address || !res.data.phone) {
           setIsProfileComplete(false);
-          toast.error("PROFIL INCOMPLET : Remplissez votre adresse et téléphone dans les réglages.");
+          toast.error("PROFIL INCOMPLET");
         }
       });
 
-    // 2. Chargement des produits
     axios.get(`${API_URL}/api/products`, config)
       .then(res => setProducts(res.data))
       .catch(err => console.error("Erreur produits:", err));
@@ -37,8 +36,6 @@ export default function NewInvoice() {
   useEffect(() => {
     const sum = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     setTotal(sum);
-    // Par défaut, on considère que tout est payé si l'utilisateur ne touche pas au champ
-    if (!amountPaid) setAmountPaid(""); 
   }, [items]);
 
   const createInvoiceID = () => {
@@ -69,13 +66,11 @@ export default function NewInvoice() {
   };
 
   const handleCheckout = async () => {
-    if (!isProfileComplete) return toast.error("Veuillez compléter votre profil d'abord");
-    if (items.length === 0) return toast.error("Le panier est vide");
+    if (!isProfileComplete) return toast.error("Profil incomplet");
+    if (items.length === 0) return toast.error("Panier vide");
 
     const loadingToast = toast.loading("Enregistrement...");
     const invoiceNum = createInvoiceID();
-    
-    // Si le champ est vide, on considère que tout est payé
     const finalPaid = amountPaid === "" ? total : Number(amountPaid);
 
     try {
@@ -83,7 +78,8 @@ export default function NewInvoice() {
         invoiceNumber: invoiceNum, 
         items, 
         totalAmount: total,
-        amountPaid: finalPaid, // On envoie le montant versé
+        amountPaid: finalPaid,
+        customerName: customerName.trim() || "Client Passager", // ENVOI DU NOM AU SERVEUR
         status: finalPaid >= total ? 'Payé' : 'Dette'
       }, config);
 
@@ -103,19 +99,19 @@ export default function NewInvoice() {
       </button>
 
       {!isProfileComplete && (
-        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl mb-6 flex items-center gap-3 animate-pulse">
+        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl mb-6 flex items-center gap-3">
           <AlertCircle className="text-red-500" />
-          <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">Action requise : Complétez vos infos dans Paramètres avant de vendre.</p>
+          <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">Complétez vos infos dans Paramètres.</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* CATALOGUE (GAUCHE) */}
+        {/* CATALOGUE */}
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
             <input 
-              type="text" placeholder="Rechercher..." value={searchTerm} 
+              type="text" placeholder="Rechercher un produit..." value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-sm" 
             />
@@ -138,7 +134,7 @@ export default function NewInvoice() {
           </div>
         </div>
 
-        {/* PANIER & ENCAISSEMENT (DROITE) */}
+        {/* PANIER & ENCAISSEMENT */}
         <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 shadow-2xl backdrop-blur-md flex flex-col justify-between">
           <div>
             <h2 className="font-black mb-8 text-ice-400 text-[10px] uppercase tracking-widest flex items-center gap-2">
@@ -151,9 +147,9 @@ export default function NewInvoice() {
                   <div className="w-2/3">
                     <p className="text-xs font-black uppercase">{item.name}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <div className="flex items-center bg-white/5 rounded-lg border border-white/10">
+                      <div className="flex items-center bg-white/5 rounded-lg border border-white/10 font-black text-xs">
                         <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="px-3 py-1">-</button>
-                        <span className="px-2 text-xs font-black text-ice-400">{item.quantity}</span>
+                        <span className="px-2 text-ice-400">{item.quantity}</span>
                         <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="px-3 py-1">+</button>
                       </div>
                     </div>
@@ -165,9 +161,25 @@ export default function NewInvoice() {
           </div>
 
           <div className="space-y-6">
-            {/* GESTION DU PAIEMENT / DETTE */}
+            {/* --- SECTION CLIENT & PAIEMENT --- */}
             <div className="bg-ice-400/5 p-6 rounded-[2rem] border border-ice-400/10">
               <div className="flex items-center gap-2 mb-4 text-ice-400">
+                <User size={16}/>
+                <span className="text-[9px] font-black uppercase tracking-widest">Informations Client</span>
+              </div>
+              
+              {/* NOUVEAU : CHAMP NOM DU CLIENT */}
+              <div className="mb-4">
+                <IceInput 
+                  label="Nom du Client" 
+                  type="text" 
+                  placeholder="Ex: Mr Diop (Optionnel)"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center gap-2 mb-4 text-ice-400 pt-2 border-t border-white/5">
                 <Banknote size={16}/>
                 <span className="text-[9px] font-black uppercase tracking-widest">Règlement</span>
               </div>
@@ -196,7 +208,6 @@ export default function NewInvoice() {
         </div>
       </div>
 
-      {/* BOUTON ENCAISSER */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
         <button 
           onClick={handleCheckout} 

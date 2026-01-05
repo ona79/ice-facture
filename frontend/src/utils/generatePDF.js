@@ -5,13 +5,15 @@ import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// --- FONCTION DE PARTAGE WHATSAPP ---
+// --- FONCTION DE PARTAGE WHATSAPP MODIFIÉE ---
 export const shareOnWhatsApp = (invoice, userData) => {
   const reste = invoice.totalAmount - (invoice.amountPaid || 0);
   const statusText = reste <= 0 ? "✅ PAYÉ" : `⚠️ DETTE (Reste: ${reste} F)`;
+  const clientName = invoice.customerName || "Client Passager"; // Récupération du nom
   
   const message = `*${userData.shopName.toUpperCase()}*%0A` +
     `--------------------------%0A` +
+    `*CLIENT :* ${clientName.toUpperCase()}%0A` + // Ajout du client dans WhatsApp
     `*FACTURE :* ${invoice.invoiceNumber}%0A` +
     `*DATE :* ${new Date(invoice.createdAt).toLocaleDateString('fr-FR')}%0A` +
     `*TOTAL :* ${invoice.totalAmount} FCFA%0A` +
@@ -71,12 +73,15 @@ export const generatePDF = async (invoice) => {
   doc.text(`Adresse: ${userData.address}`, 20, 35);
   doc.text(`Tel: ${userData.phone}`, 20, 42);
 
+  // --- BLOC CLIENT DANS LE PDF ---
   doc.setFont("helvetica", "bold");
+  doc.text(`CLIENT : ${ (invoice.customerName || "Client Passager").toUpperCase() }`, 20, 52); // Nouveau : Nom du client
+  
   doc.text(finalInvoiceNumber, 140, 35); 
   doc.setFont("helvetica", "normal");
   doc.text(`DATE : ${new Date(invoice.createdAt || new Date()).toLocaleDateString('fr-FR')}`, 140, 42);
 
-  // --- TABLEAU ---
+  // --- TABLEAU (Ajusté pour laisser de la place au nom du client) ---
   const tableRows = invoice.items.map(item => [
     item.name,
     `${Math.round(item.price)} F`,
@@ -85,7 +90,7 @@ export const generatePDF = async (invoice) => {
   ]);
 
   autoTable(doc, {
-    startY: 55,
+    startY: 60, // Descendu un peu pour le nom du client
     head: [["Produit", "Prix Unitaire", "Qté", "Total"]],
     body: tableRows,
     theme: 'plain',
@@ -95,11 +100,10 @@ export const generatePDF = async (invoice) => {
     columnStyles: { 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'right', fontStyle: 'bold' } }
   });
 
-  // --- BLOC RÉCAPITULATIF (TOTAL & DETTES) ---
+  // --- BLOC RÉCAPITULATIF ---
   const finalY = doc.lastAutoTable.finalY + 15;
   const reste = invoice.totalAmount - (invoice.amountPaid || 0);
 
-  // Boîte récapitulative
   doc.setLineWidth(0.5);
   doc.rect(120, finalY - 8, 75, 28); 
 
@@ -111,24 +115,24 @@ export const generatePDF = async (invoice) => {
   doc.text(`VERSÉ :`, 125, finalY + 8);
   doc.text(formatFCFA(invoice.amountPaid || 0), 190, finalY + 8, { align: "right" });
 
-  // Reste à payer (en gras si dette)
   if (reste > 0) {
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(200, 0, 0); // Texte rouge pour la dette
+    doc.setTextColor(200, 0, 0); 
     doc.text(`RESTE À PAYER :`, 125, finalY + 16);
     doc.text(formatFCFA(reste), 190, finalY + 16, { align: "right" });
   } else {
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(0, 150, 0); // Vert pour payé
+    doc.setTextColor(0, 150, 0); 
     doc.text(`STATUT :`, 125, finalY + 16);
     doc.text("PAYÉ", 190, finalY + 16, { align: "right" });
   }
 
-  // --- PIED DE PAGE ---
   doc.setTextColor(100);
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
   doc.text(userData.footerMessage || "Merci de votre confiance !", 105, 285, { align: "center" });
 
-  doc.save(`${finalInvoiceNumber}.pdf`);
+  // Sauvegarde avec le nom du client dans le titre du fichier
+  const fileName = `${finalInvoiceNumber}_${(invoice.customerName || "client").replace(/\s+/g, '_')}`;
+  doc.save(`${fileName}.pdf`);
 };

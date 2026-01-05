@@ -12,6 +12,12 @@ const InvoiceSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  // --- NOUVEAU : NOM DU CLIENT ---
+  customerName: { 
+    type: String, 
+    default: "Client Passager",
+    trim: true 
+  },
   // Liste des produits vendus (Détails pour le PDF et les stats)
   items: [
     {
