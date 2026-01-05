@@ -30,8 +30,9 @@ export default function Register() {
     if (!formData.shopName.trim()) tempErrors.shopName = "Le nom est requis.";
     if (!formData.phone || formData.phone.length !== 9) tempErrors.phone = "9 chiffres requis.";
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
-    if (!emailRegex.test(formData.email)) tempErrors.email = "Email invalide (.com)";
+    // Validation email plus flexible mais toujours avec .com
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) tempErrors.email = "Format email invalide.";
 
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
     if (!passwordRegex.test(formData.password)) tempErrors.password = "6-8 car. (Lettres+Chiffres)";
@@ -47,17 +48,27 @@ export default function Register() {
     if (validate()) {
       try {
         const { confirmPassword, ...dataToSend } = formData;
-        await axios.post(`${API_URL}/api/auth/register`, dataToSend);
+        
+        // RECONNAISSANCE : On force l'email en minuscules avant l'envoi au backend
+        const finalData = {
+          ...dataToSend,
+          email: dataToSend.email.toLowerCase().trim()
+        };
+
+        await axios.post(`${API_URL}/api/auth/register`, finalData);
         
         toast.success("COMPTE CRÉÉ !", {
           style: { background: '#09090b', color: '#00f2ff', border: '1px solid #00f2ff', fontSize: '10px', fontWeight: '900' }
         });
+        
+        // Redirection après succès
         setTimeout(() => navigate('/login'), 2000);
 
       } catch (err) {
-        // NOTIFICATION STYLISÉE (Pas rouge, style ICE)
         const msg = err.response?.data?.msg || "ERREUR SERVEUR";
-        toast(msg, {
+        
+        // Notification stylisée ICE si l'email ou le téléphone existe déjà
+        toast(msg.toUpperCase(), {
           icon: <AlertCircle size={16} color="#00f2ff" />,
           style: {
             background: 'rgba(0, 242, 255, 0.05)',
@@ -76,7 +87,6 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
-      {/* MAX-W-4XL pour la posture horizontale sur PC */}
       <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
         
         <div className="text-center mb-10">
@@ -88,7 +98,6 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* GRILLE 2 COLONNES SUR PC */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
             
             {/* COLONNE GAUCHE */}
@@ -99,7 +108,7 @@ export default function Register() {
               </div>
 
               <div className="relative">
-                <IceInput label="Email (.com)" icon={<Mail size={16}/>} type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}/>
+                <IceInput label="Email" icon={<Mail size={16}/>} type="email" placeholder="boutique@exemple.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}/>
                 {errors.email && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.email}</p>}
               </div>
 
@@ -122,14 +131,13 @@ export default function Register() {
               </div>
 
               <div className="hidden md:block p-4 bg-white/5 rounded-2xl border border-white/5">
-                <p className="text-[8px] text-ice-100/30 uppercase font-black leading-relaxed">Sécurité : Utilisez un mélange de lettres et de chiffres (Max 8 car.).</p>
+                <p className="text-[8px] text-ice-100/30 uppercase font-black leading-relaxed">Sécurité : Utilisez un mélange de lettres et de chiffres (6 à 8 car.).</p>
               </div>
             </div>
           </div>
 
-          {/* BOUTON CENTRÉ AU MILIEU */}
           <div className="flex flex-col items-center pt-4">
-            <button className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs">
+            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs">
               Valider l'inscription →
             </button>
 
@@ -142,4 +150,3 @@ export default function Register() {
     </div>
   );
 }
-// --- FIN DU COMPOSANT REGISTER ---

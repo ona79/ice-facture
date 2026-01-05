@@ -23,10 +23,17 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({}); // Réinitialise les erreurs à chaque tentative
+    setErrors({}); 
+
+    // NETTOYAGE CRUCIAL : On force l'email en minuscules avant l'envoi
+    const cleanData = {
+      ...formData,
+      email: formData.email.toLowerCase().trim()
+    };
 
     try {
-      const res = await axios.post(`${API_URL}/api/auth/login`, formData);
+      // Utilisation des données nettoyées pour éviter l'erreur 500 ou "Utilisateur non trouvé"
+      const res = await axios.post(`${API_URL}/api/auth/login`, cleanData);
       
       // Stockage des informations
       localStorage.setItem('token', res.data.token);
@@ -42,15 +49,21 @@ export default function Login() {
         }
       });
 
-      // Redirection
+      // Redirection et rafraîchissement pour charger le token partout
       navigate('/dashboard');
       window.location.reload(); 
 
     } catch (err) {
+      // Gestion des erreurs robuste
       const errorMsg = err.response?.data?.msg || "Erreur de connexion";
+      
+      // LOG pour déboguer si c'est une 500
+      if (err.response?.status === 500) {
+        console.error("ERREUR SERVEUR 500 : Vérifiez les logs Render et le JWT_SECRET");
+      }
 
       // 1. SI L'UTILISATEUR EST INCONNU -> NOTIFICATION STYLISÉE ICE-CYAN
-      if (errorMsg.includes("Utilisateur non trouvé") || errorMsg.includes("compte n'existe pas")) {
+      if (errorMsg.includes("Utilisateur non trouvé") || errorMsg.includes("compte n'existe pas") || errorMsg.includes("invalides")) {
         toast(errorMsg.toUpperCase(), {
           icon: <AlertCircle size={16} color="#00f2ff" />,
           style: {
@@ -69,7 +82,7 @@ export default function Login() {
       else if (errorMsg.toLowerCase().includes("mot de passe")) {
         setErrors({ password: "Mot de passe incorrect" });
       } 
-      // PAR DÉFAUT (Email mal formé ou autre)
+      // PAR DÉFAUT
       else {
         setErrors({ email: errorMsg });
       }
@@ -78,7 +91,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
-      {/* MAX-W-4XL et Padding horizontal pour la posture PC */}
       <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
         
         <div className="text-center mb-10">
@@ -90,7 +102,6 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
-          {/* GRILLE : 2 COLONNES SUR PC (Horizontal) / 1 COLONNE SUR MOBILE */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
             
             {/* CHAMP EMAIL */}
@@ -130,9 +141,8 @@ export default function Login() {
             </div>
           </div>
 
-          {/* BOUTON VALIDATION : AU MILIEU */}
           <div className="flex flex-col items-center pt-2">
-            <button className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs flex items-center justify-center gap-2 group">
+            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs flex items-center justify-center gap-2 group">
               Se connecter <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
 
@@ -148,4 +158,3 @@ export default function Login() {
     </div>
   );
 }
-// --- FIN DU COMPOSANT LOGIN ---
