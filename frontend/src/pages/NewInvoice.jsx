@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   ArrowLeft, Plus, Minus, CheckCircle, ShoppingCart, 
-  Search, AlertCircle, Banknote, User, Trash2 
+  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -26,9 +26,11 @@ export default function NewInvoice() {
       .then(res => {
         if (!res.data.address || !res.data.phone) {
           setIsProfileComplete(false);
-          toast.error("PROFIL INCOMPLET");
+        } else {
+          setIsProfileComplete(true);
         }
-      });
+      })
+      .catch(err => console.error("Erreur profil:", err));
 
     axios.get(`${API_URL}/api/products`, config)
       .then(res => setProducts(res.data))
@@ -69,7 +71,7 @@ export default function NewInvoice() {
   };
 
   const handleCheckout = async () => {
-    if (!isProfileComplete) return toast.error("Profil incomplet");
+    if (!isProfileComplete) return toast.error("Profil incomplet : Remplissez les paramètres");
     if (items.length === 0) return toast.error("Panier vide");
     if (!customerName.trim()) return toast.error("NOM DU CLIENT OBLIGATOIRE");
 
@@ -139,7 +141,24 @@ export default function NewInvoice() {
         </div>
 
         {/* PANIER */}
-        <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
+        <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
+          
+          {/* BANDEAU ALERTE PULSE */}
+          {!isProfileComplete && (
+            <div className="bg-red-500/20 border-b border-red-500/20 py-2 px-4 flex items-center justify-between animate-pulse">
+              <span className="text-[9px] font-black uppercase text-red-400 tracking-tighter">
+                Veuillez remplir le paramètre
+              </span>
+              <button 
+                onClick={() => navigate('/settings')}
+                className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 transition-colors"
+                title="Aller aux paramètres"
+              >
+                <SettingsIcon size={12} />
+              </button>
+            </div>
+          )}
+
           <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
             <h2 className="font-black text-ice-400 text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
               <ShoppingCart size={16} /> Panier ({items.length})
@@ -164,7 +183,6 @@ export default function NewInvoice() {
 
           <div className="p-6 bg-white/[0.03] border-t border-white/10 space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              {/* NOM DU CLIENT : Filtrage strict Lettres/Espaces */}
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Client (Lettres seul.)</label>
                 <input 
@@ -179,7 +197,6 @@ export default function NewInvoice() {
                 />
               </div>
 
-              {/* ENCAISSÉ : Filtrage strict Chiffres + Blocage au Net à payer */}
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Encaissé (Max: {total})</label>
                 <input 
@@ -188,13 +205,11 @@ export default function NewInvoice() {
                   placeholder="0" 
                   value={amountPaid}
                   onChange={(e) => {
-                    // Supprime tout ce qui n'est pas un chiffre
                     let val = e.target.value.replace(/\D/g, ''); 
                     if (val === "") {
                       setAmountPaid("");
                       return;
                     }
-                    // Bloque si supérieur au total
                     if (parseInt(val, 10) > total) {
                       setAmountPaid(total.toString());
                       toast.error(`MAXIMUM: ${total} F`);
@@ -224,10 +239,12 @@ export default function NewInvoice() {
             <button 
               onClick={handleCheckout} 
               disabled={items.length === 0 || !isProfileComplete} 
-              className="w-full bg-ice-400 text-ice-900 font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-ice-400/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-20"
+              className={`w-full font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all ${!isProfileComplete ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 hover:scale-[1.02] active:scale-95'}`}
             >
               <CheckCircle size={20} /> 
-              <span className="uppercase tracking-widest text-[11px]">Valider la vente</span>
+              <span className="uppercase tracking-widest text-[11px]">
+                {isProfileComplete ? "Valider la vente" : "Profil Incomplet"}
+              </span>
             </button>
           </div>
         </div>
