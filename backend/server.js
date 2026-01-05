@@ -5,16 +5,18 @@ const cors = require('cors');
 
 const app = express();
 
-// --- MIDDLEWARES (CORRIGÉ POUR ÉVITER LE BLOCAGE CORS) ---
+// --- MIDDLEWARES (CONFIGURATION CORS RENFORCÉE) ---
 app.use(cors({
-  origin: '*', // Autorise toutes les origines pour éviter le blocage navigateur
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // PATCH et OPTIONS sont vitaux ici
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 app.use(express.json()); 
 
-// Log des requêtes pour faciliter le débogage sur Render
+// Log des requêtes pour faciliter le débogage sur Render (Très utile pour voir si PATCH arrive)
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
@@ -39,7 +41,7 @@ mongoose.connect(uri)
   .then(() => {
     console.log("✅ CONNEXION RÉUSSIE : Base de données liée.");
     
-    // Correction Render : On écoute sur 0.0.0.0 pour être accessible de l'extérieur
+    // Correction Render : On écoute sur 0.0.0.0
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 SERVEUR : Lancé sur le port ${PORT}`);
