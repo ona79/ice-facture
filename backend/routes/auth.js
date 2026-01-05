@@ -9,9 +9,9 @@ router.post('/register', async (req, res) => {
   try {
     const { shopName, email, password, phone } = req.body;
 
-    // --- SÉCURITÉ STRICTE SUR LE TÉLÉPHONE (14 CARACTÈRES) ---
-    if (!phone || phone.length !== 14) {
-      return res.status(400).json({ msg: "Le numéro de téléphone doit comporter exactement 14 caractères." });
+    // --- SÉCURITÉ : TÉLÉPHONE INFÉRIEUR OU ÉGAL À 9 CHIFFRES ---
+    if (!phone || phone.length > 9) {
+      return res.status(400).json({ msg: "Le numéro de téléphone ne doit pas dépasser 9 chiffres." });
     }
 
     // Vérifier si l'email existe déjà
@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
     let userPhone = await User.findOne({ phone });
     if (userPhone) return res.status(400).json({ msg: "Ce numéro de téléphone est déjà utilisé" });
 
-    // Créer le nouvel utilisateur avec le champ phone
+    // Créer le nouvel utilisateur
     const user = new User({ shopName, email, password, phone });
 
     // Hachage du mot de passe
@@ -82,9 +82,9 @@ router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
 
-    // Validation du téléphone aussi lors de la mise à jour
-    if (phone && phone.length !== 14) {
-      return res.status(400).json({ msg: "Le numéro doit faire 14 caractères." });
+    // Validation du téléphone (Max 9) lors de la mise à jour
+    if (phone && phone.length > 9) {
+      return res.status(400).json({ msg: "Le numéro ne doit pas dépasser 9 chiffres." });
     }
 
     const updatedUser = await User.findByIdAndUpdate(

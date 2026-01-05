@@ -8,7 +8,6 @@ import { IceInput } from '../components/IceInput';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
-  // Ajout de 'phone' dans le formData
   const [formData, setFormData] = useState({ shopName: '', email: '', password: '', phone: '' });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -35,12 +34,11 @@ export default function Register() {
       tempErrors.shopName = "Minimum 3 caractères.";
     }
 
-    // Validation Téléphone (14 chiffres avec indicatif)
-    // On autorise le '+' au début mais on vérifie la longueur totale
+    // Validation Téléphone (CORRIGÉ : MAX 9 CHIFFRES)
     if (!formData.phone) {
       tempErrors.phone = "Le numéro est requis.";
-    } else if (formData.phone.length !== 14) {
-      tempErrors.phone = "Le numéro doit faire exactement 14 caractères (Ex: +221770000000).";
+    } else if (formData.phone.length > 9) {
+      tempErrors.phone = "Le numéro ne doit pas dépasser 9 chiffres.";
     }
 
     // Validation Email
@@ -108,14 +106,18 @@ export default function Register() {
             )}
           </div>
 
-          {/* CHAMP TÉLÉPHONE (AJOUTÉ) */}
+          {/* CHAMP TÉLÉPHONE (MIS À JOUR : MAX 9) */}
           <div className="relative">
             <IceInput 
               label="Numéro de Téléphone" 
-              placeholder="+221770000000"
-              maxLength={14}
+              placeholder="77XXXXXXX"
+              maxLength={9}
               value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              onChange={(e) => {
+                // Autorise uniquement les chiffres
+                const val = e.target.value.replace(/\D/g, "");
+                setFormData({...formData, phone: val});
+              }}
             />
             {errors.phone && (
               <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
