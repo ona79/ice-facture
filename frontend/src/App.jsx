@@ -5,7 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import NewInvoice from './pages/NewInvoice';
-import History from './pages/History'; // C'est ici que se trouve ton historique/factures
+import History from './pages/History'; 
 import Settings from './pages/Settings';
 
 function App() {
@@ -13,27 +13,43 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Configuration fidèle de ton Toaster style "Glass" */}
+      {/* Configuration fidèle et stylisée de ton Toaster "Ice Glass" */}
       <Toaster 
-        position="top-right"
+        position="top-center" // Centré en haut pour plus d'impact
         toastOptions={{
-          duration: 3000,
+          duration: 3500,
           style: {
-            background: '#161b22', 
+            background: 'rgba(9, 9, 11, 0.9)', // Fond très sombre (Ice-900)
             color: '#fff',         
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '16px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(0, 242, 255, 0.2)', // Bordure Cyan légère
+            borderRadius: '24px', // Plus arrondi pour coller à tes inputs
+            fontSize: '11px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            backdropFilter: 'blur(12px)',
+            padding: '16px 24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
           },
           success: {
-            iconTheme: { primary: '#22d3ee', secondary: '#161b22' },
-            style: { border: '1px solid rgba(34, 211, 238, 0.3)' },
+            iconTheme: { 
+              primary: '#00f2ff', // Cyan Ice-400
+              secondary: '#09090b' 
+            },
+            style: { 
+              border: '1px solid rgba(0, 242, 255, 0.4)',
+              color: '#00f2ff'
+            },
           },
           error: {
-            iconTheme: { primary: '#ef4444', secondary: '#161b22' },
-            style: { border: '1px solid rgba(239, 68, 68, 0.3)' },
+            iconTheme: { 
+              primary: '#ff4b4b', 
+              secondary: '#09090b' 
+            },
+            style: { 
+              border: '1px solid rgba(255, 75, 75, 0.4)',
+              color: '#ff4b4b'
+            },
           },
         }}
       />
@@ -63,7 +79,6 @@ function App() {
           element={token ? <NewInvoice /> : <Navigate to="/login" />} 
         />
         
-        {/* C'est cette route qui affiche l'historique des factures */}
         <Route 
           path="/history" 
           element={token ? <History /> : <Navigate to="/login" />} 

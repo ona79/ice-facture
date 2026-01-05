@@ -3,16 +3,23 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, AlertCircle } from 'lucide-react'; 
 import { IceInput } from '../components/IceInput';
+import { toast } from 'react-hot-toast';
 
 // --- CONFIGURATION DE L'URL API ---
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
-  const [formData, setFormData] = useState({ shopName: '', email: '', password: '', phone: '' });
+  // Ajout de 'confirmPassword' dans l'état initial
+  const [formData, setFormData] = useState({ 
+    shopName: '', 
+    email: '', 
+    password: '', 
+    confirmPassword: '', 
+    phone: '' 
+  });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  // EFFET POUR DISPARAÎTRE LES ERREURS APRÈS 3 SECONDES
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       const timer = setTimeout(() => {
@@ -34,11 +41,11 @@ export default function Register() {
       tempErrors.shopName = "Minimum 3 caractères.";
     }
 
-    // Validation Téléphone (CORRIGÉ : MAX 9 CHIFFRES)
+    // Validation Téléphone (STRICTEMENT 9 CHIFFRES)
     if (!formData.phone) {
       tempErrors.phone = "Le numéro est requis.";
-    } else if (formData.phone.length > 9) {
-      tempErrors.phone = "Le numéro ne doit pas dépasser 9 chiffres.";
+    } else if (formData.phone.length !== 9) {
+      tempErrors.phone = "Le numéro doit comporter exactement 9 chiffres.";
     }
 
     // Validation Email
@@ -54,6 +61,13 @@ export default function Register() {
       tempErrors.password = "Le mot de passe doit faire au moins 6 caractères.";
     }
 
+    // --- NOUVELLE VALIDATION : CONFIRMATION MOT DE PASSE ---
+    if (!formData.confirmPassword) {
+      tempErrors.confirmPassword = "Veuillez confirmer le mot de passe.";
+    } else if (formData.confirmPassword !== formData.password) {
+      tempErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
+    }
+
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -62,9 +76,26 @@ export default function Register() {
     e.preventDefault();
     if (validate()) {
       try {
-        await axios.post(`${API_URL}/api/auth/register`, formData);
-        alert("Inscription réussie !");
-        navigate('/login'); 
+        // On envoie tout sauf confirmPassword au backend
+        const { confirmPassword, ...dataToSend } = formData;
+        await axios.post(`${API_URL}/api/auth/register`, dataToSend);
+        
+        toast.success("Inscription réussie !", {
+          duration: 3000,
+          style: {
+            background: '#09090b',
+            color: '#00f2ff',
+            border: '1px solid rgba(0, 242, 255, 0.2)',
+            fontSize: '10px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+          }
+        });
+
+        setTimeout(() => {
+          navigate('/login'); 
+        }, 2000);
+
       } catch (err) {
         setErrors({ server: err.response?.data?.msg || "Erreur serveur" });
       }
@@ -100,27 +131,23 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, shopName: e.target.value})}
             />
             {errors.shopName && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
                 <AlertCircle size={10} /> {errors.shopName}
               </p>
             )}
           </div>
 
-          {/* CHAMP TÉLÉPHONE (MIS À JOUR : MAX 9) */}
+          {/* TÉLÉPHONE */}
           <div className="relative">
             <IceInput 
               label="Numéro de Téléphone" 
               placeholder="77XXXXXXX"
               maxLength={9}
               value={formData.phone}
-              onChange={(e) => {
-                // Autorise uniquement les chiffres
-                const val = e.target.value.replace(/\D/g, "");
-                setFormData({...formData, phone: val});
-              }}
+              onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, "")})}
             />
             {errors.phone && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
                 <AlertCircle size={10} /> {errors.phone}
               </p>
             )}
@@ -136,7 +163,7 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
             {errors.email && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
                 <AlertCircle size={10} /> {errors.email}
               </p>
             )}
@@ -152,8 +179,24 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
             {errors.password && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1 duration-200">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
                 <AlertCircle size={10} /> {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* CONFIRMATION MOT DE PASSE (NOUVEAU) */}
+          <div className="relative">
+            <IceInput 
+              label="Confirmer le mot de passe" 
+              type="password"
+              placeholder="••••••••"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
+                <AlertCircle size={10} /> {errors.confirmPassword}
               </p>
             )}
           </div>

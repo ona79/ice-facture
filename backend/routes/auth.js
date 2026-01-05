@@ -9,9 +9,9 @@ router.post('/register', async (req, res) => {
   try {
     const { shopName, email, password, phone } = req.body;
 
-    // --- SÉCURITÉ : TÉLÉPHONE INFÉRIEUR OU ÉGAL À 9 CHIFFRES ---
-    if (!phone || phone.length > 9) {
-      return res.status(400).json({ msg: "Le numéro de téléphone ne doit pas dépasser 9 chiffres." });
+    // --- SÉCURITÉ : TÉLÉPHONE STRICTEMENT ÉGAL À 9 CHIFFRES ---
+    if (!phone || phone.length !== 9) {
+      return res.status(400).json({ msg: "Le numéro de téléphone doit comporter exactement 9 chiffres." });
     }
 
     // Vérifier si l'email existe déjà
@@ -82,9 +82,9 @@ router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
 
-    // Validation du téléphone (Max 9) lors de la mise à jour
-    if (phone && phone.length > 9) {
-      return res.status(400).json({ msg: "Le numéro ne doit pas dépasser 9 chiffres." });
+    // Validation du téléphone (Strictement 9) lors de la mise à jour
+    if (phone && phone.length !== 9) {
+      return res.status(400).json({ msg: "Le numéro doit comporter exactement 9 chiffres." });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
