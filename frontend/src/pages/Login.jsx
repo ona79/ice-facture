@@ -1,70 +1,149 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { IceInput } from '../components/IceInput';
+import { toast } from 'react-hot-toast';
 
 // --- CONFIGURATION DE L'URL API ---
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  // Nettoyage automatique des messages d'erreurs rouges sous les champs
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      const timer = setTimeout(() => setErrors({}), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [errors]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({}); // Réinitialise les erreurs à chaque tentative
+
     try {
-      // Modification de l'URL pour pointer vers Render ou Localhost
       const res = await axios.post(`${API_URL}/api/auth/login`, formData);
       
-      // Stockage
+      // Stockage des informations
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('shopName', res.data.user.shopName);
       
-      // Redirection et rechargement pour mettre à jour l'état Global
+      toast.success("ACCÈS AUTORISÉ", {
+        style: { 
+          background: '#09090b', 
+          color: '#00f2ff', 
+          border: '1px solid #00f2ff', 
+          fontSize: '10px', 
+          fontWeight: '900' 
+        }
+      });
+
+      // Redirection
       navigate('/dashboard');
       window.location.reload(); 
+
     } catch (err) {
-      console.error("Détails erreur login:", err.response);
-      alert(err.response?.data?.msg || "Identifiants incorrects");
+      const errorMsg = err.response?.data?.msg || "Erreur de connexion";
+
+      // 1. SI L'UTILISATEUR EST INCONNU -> NOTIFICATION STYLISÉE ICE-CYAN
+      if (errorMsg.includes("Utilisateur non trouvé") || errorMsg.includes("compte n'existe pas")) {
+        toast(errorMsg.toUpperCase(), {
+          icon: <AlertCircle size={16} color="#00f2ff" />,
+          style: {
+            background: 'rgba(0, 242, 255, 0.05)',
+            color: '#00f2ff',
+            border: '1px solid rgba(0, 242, 255, 0.3)',
+            backdropFilter: 'blur(10px)',
+            fontSize: '10px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            borderRadius: '15px'
+          }
+        });
+      } 
+      // 2. SI C'EST LE MOT DE PASSE -> SIGNALÉ SOUS LE CHAMP EN ROUGE
+      else if (errorMsg.toLowerCase().includes("mot de passe")) {
+        setErrors({ password: "Mot de passe incorrect" });
+      } 
+      // PAR DÉFAUT (Email mal formé ou autre)
+      else {
+        setErrors({ email: errorMsg });
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-ice-900">
-      <div className="glass-card p-10 rounded-[3rem] w-full max-w-md border-white/5">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
+      {/* MAX-W-4XL et Padding horizontal pour la posture PC */}
+      <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
+        
         <div className="text-center mb-10">
-          <div className="inline-block p-4 bg-ice-400 rounded-2xl text-ice-900 mb-4">
+          <div className="inline-block p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-4">
             <LogIn size={32} />
           </div>
           <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter">Connexion</h1>
-          <p className="text-ice-100/40 text-xs font-bold uppercase tracking-widest mt-2">Gérez vos ventes au Sénégal</p>
+          <p className="text-ice-100/40 text-[9px] font-bold uppercase tracking-[0.3em] mt-2 italic">Posture horizontale optimisée</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <IceInput 
-            label="Email" 
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-            required
-          />
-          <IceInput 
-            label="Mot de passe" 
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-10">
+          {/* GRILLE : 2 COLONNES SUR PC (Horizontal) / 1 COLONNE SUR MOBILE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+            
+            {/* CHAMP EMAIL */}
+            <div className="relative">
+              <IceInput 
+                label="Email Professionnel" 
+                icon={<Mail size={16}/>}
+                type="email"
+                placeholder="votre@boutique.com"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                required
+              />
+              {errors.email && (
+                <p className="text-red-500 text-[8px] font-black mt-2 ml-1 uppercase italic flex items-center gap-1 animate-in slide-in-from-top-1">
+                  <AlertCircle size={10} /> {errors.email}
+                </p>
+              )}
+            </div>
 
-          <button className="w-full bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:bg-white transition-all shadow-xl uppercase">
-            Se connecter
-          </button>
+            {/* CHAMP MOT DE PASSE */}
+            <div className="relative">
+              <IceInput 
+                label="Mot de passe" 
+                icon={<Lock size={16}/>}
+                type="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                required
+              />
+              {errors.password && (
+                <p className="text-red-500 text-[8px] font-black mt-2 ml-1 uppercase italic flex items-center gap-1 animate-in slide-in-from-top-1">
+                  <AlertCircle size={10} /> {errors.password}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* BOUTON VALIDATION : AU MILIEU */}
+          <div className="flex flex-col items-center pt-2">
+            <button className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs flex items-center justify-center gap-2 group">
+              Se connecter <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <p className="mt-8 text-[9px] text-ice-100/30 font-bold uppercase tracking-widest">
+              Pas de boutique ? 
+              <Link to="/register" className="text-ice-400 ml-2 hover:text-white underline underline-offset-4 decoration-ice-400/30">
+                Créer un compte
+              </Link>
+            </p>
+          </div>
         </form>
-
-        <p className="text-center mt-8 text-sm text-ice-100/40 font-bold uppercase tracking-tighter">
-          Nouveau ? <Link to="/register" className="text-ice-400 hover:underline ml-1">Créer une boutique</Link>
-        </p>
       </div>
     </div>
   );

@@ -8,29 +8,31 @@ const bcrypt = require('bcryptjs');
 // --- RÉCUPÉRER TOUTES LES FACTURES ---
 router.get('/', auth, async (req, res) => {
   try {
-    const invoices = await Invoice.find({ userId: req.user }).sort({ createdAt: -1 });
+    // On utilise req.user.id (ou req.user selon ton middleware) pour filtrer
+    const invoices = await Invoice.find({ userId: req.user.id || req.user }).sort({ createdAt: -1 });
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ error: "Erreur lors de la récupération des factures" });
   }
 });
 
-// --- CRÉER UNE NOUVELLE VENTE ---
+// --- CRÉER UNE NOUVELLE VENTE (MAJ AVEC DETTES) ---
 router.post('/', auth, async (req, res) => {
   try {
-    const { items, totalAmount, customerName } = req.body;
+    const { items, totalAmount, amountPaid, invoiceNumber } = req.body;
 
     const newInvoice = new Invoice({
-      userId: req.user,
+      userId: req.user.id || req.user,
+      invoiceNumber: invoiceNumber, // Reçoit le numéro généré par le frontend
       items,
       totalAmount,
-      customerName: customerName || "Client Comptant",
-      invoiceNumber: `FAC-${Math.floor(100000 + Math.random() * 900000)}` 
+      amountPaid: amountPaid || 0, // Enregistre le montant versé initialement
+      // Le statut est géré automatiquement par le middleware .pre('save') du modèle
     });
 
     const savedInvoice = await newInvoice.save();
 
-    // Mise à jour du stock
+    // Mise à jour du stock (Déduction)
     for (const item of items) {
       const idToUpdate = item.productId || item._id;
       if (idToUpdate) {
@@ -47,24 +49,48 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// --- NOUVEAU : RÉGLER UNE DETTE (PATCH) ---
+// C'est cette route qui manquait et causait l'erreur "Erreur lors du règlement"
+router.patch('/:id/pay', auth, async (req, res) => {
+  try {
+    const { amount } = req.body; // Le montant envoyé depuis la modale orange
+    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id || req.user });
+
+    if (!invoice) {
+      return res.status(404).json({ msg: "Facture introuvable" });
+    }
+
+    // On ajoute le nouveau versement au cumul déjà payé
+    invoice.amountPaid += Number(amount);
+
+    // .save() déclenche le middleware .pre('save') du modèle Invoice
+    // qui va recalculer si le status doit passer de "Dette" à "Payé"
+    await invoice.save();
+
+    res.json(invoice);
+  } catch (err) {
+    console.error("Erreur Règlement:", err);
+    res.status(500).json({ msg: "Erreur lors du règlement sur le serveur" });
+  }
+});
+
 // --- SUPPRIMER UNE VENTE (SÉCURISÉ) ---
 router.delete('/:id', auth, async (req, res) => {
   try {
     const { password } = req.body;
 
     if (!password) {
-      return res.status(400).json({ msg: "Mot de passe requis" });
+      return res.status(400).json({ msg: "Mot de passe requis pour supprimer" });
     }
 
-    // Vérification du mot de passe utilisateur
-    const user = await User.findById(req.user);
+    const user = await User.findById(req.user.id || req.user);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ msg: "Mot de passe incorrect" });
 
-    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user });
+    const invoice = await Invoice.findOne({ _id: req.params.id, userId: req.user.id || req.user });
     if (!invoice) return res.status(404).json({ msg: "Facture introuvable" });
 
-    // Restauration du stock
+    // Restauration du stock (Ré-incrémentation)
     for (const item of invoice.items) {
       const idToUpdate = item.productId || item._id;
       if (idToUpdate) {
@@ -75,7 +101,7 @@ router.delete('/:id', auth, async (req, res) => {
     }
 
     await Invoice.findByIdAndDelete(req.params.id);
-    res.json({ msg: "Vente annulée" });
+    res.json({ msg: "Vente annulée et stock restauré" });
   } catch (err) {
     res.status(500).json({ error: "Erreur serveur" });
   }

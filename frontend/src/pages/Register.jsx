@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, AlertCircle } from 'lucide-react'; 
+import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck } from 'lucide-react'; 
 import { IceInput } from '../components/IceInput';
 import { toast } from 'react-hot-toast';
 
-// --- CONFIGURATION DE L'URL API ---
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
@@ -21,54 +20,23 @@ export default function Register() {
 
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
-      const timer = setTimeout(() => {
-        setErrors({});
-      }, 3000); 
+      const timer = setTimeout(() => setErrors({}), 4000); 
       return () => clearTimeout(timer);
     }
   }, [errors]);
 
   const validate = () => {
     let tempErrors = {};
+    if (!formData.shopName.trim()) tempErrors.shopName = "Le nom est requis.";
+    if (!formData.phone || formData.phone.length !== 9) tempErrors.phone = "9 chiffres requis.";
     
-    // Validation Boutique
-    if (!formData.shopName.trim()) {
-      tempErrors.shopName = "Le nom est requis.";
-    } else if (/^\d/.test(formData.shopName.trim())) {
-      tempErrors.shopName = "Le nom ne peut pas commencer par un chiffre.";
-    } else if (formData.shopName.trim().length < 3) {
-      tempErrors.shopName = "Minimum 3 caractères.";
-    }
-
-    // Validation Téléphone (STRICTEMENT 9 CHIFFRES)
-    if (!formData.phone) {
-      tempErrors.phone = "Le numéro est requis.";
-    } else if (formData.phone.length !== 9) {
-      tempErrors.phone = "Le numéro doit comporter exactement 9 chiffres.";
-    }
-
-    // Validation Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
-    if (!formData.email) {
-      tempErrors.email = "L'email est requis.";
-    } else if (!emailRegex.test(formData.email)) {
-      tempErrors.email = "Email invalide (doit finir par .com)";
-    }
+    if (!emailRegex.test(formData.email)) tempErrors.email = "Email invalide (.com)";
 
-    // --- VALIDATION MOT DE PASSE (Lettre + Chiffre + 6 à 8 caractères) ---
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
-    if (!formData.password) {
-      tempErrors.password = "Le mot de passe est requis.";
-    } else if (!passwordRegex.test(formData.password)) {
-      tempErrors.password = "Doit contenir lettres/chiffres (6-8 caractères).";
-    }
+    if (!passwordRegex.test(formData.password)) tempErrors.password = "6-8 car. (Lettres+Chiffres)";
 
-    // Validation Confirmation
-    if (!formData.confirmPassword) {
-      tempErrors.confirmPassword = "Veuillez confirmer le mot de passe.";
-    } else if (formData.confirmPassword !== formData.password) {
-      tempErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
-    }
+    if (formData.confirmPassword !== formData.password) tempErrors.confirmPassword = "Les mots de passe diffèrent.";
 
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -81,137 +49,95 @@ export default function Register() {
         const { confirmPassword, ...dataToSend } = formData;
         await axios.post(`${API_URL}/api/auth/register`, dataToSend);
         
-        toast.success("Inscription réussie !", {
-          duration: 3000,
+        toast.success("COMPTE CRÉÉ !", {
+          style: { background: '#09090b', color: '#00f2ff', border: '1px solid #00f2ff', fontSize: '10px', fontWeight: '900' }
+        });
+        setTimeout(() => navigate('/login'), 2000);
+
+      } catch (err) {
+        // NOTIFICATION STYLISÉE (Pas rouge, style ICE)
+        const msg = err.response?.data?.msg || "ERREUR SERVEUR";
+        toast(msg, {
+          icon: <AlertCircle size={16} color="#00f2ff" />,
           style: {
-            background: '#09090b',
+            background: 'rgba(0, 242, 255, 0.05)',
             color: '#00f2ff',
             border: '1px solid rgba(0, 242, 255, 0.2)',
+            backdropFilter: 'blur(10px)',
             fontSize: '10px',
             fontWeight: '900',
             textTransform: 'uppercase',
+            borderRadius: '15px'
           }
         });
-
-        setTimeout(() => {
-          navigate('/login'); 
-        }, 2000);
-
-      } catch (err) {
-        setErrors({ server: err.response?.data?.msg || "Erreur serveur" });
       }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-ice-900 font-sans">
-      <div className="glass-card p-10 rounded-[3rem] w-full max-w-md border border-white/5 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
+      {/* MAX-W-4XL pour la posture horizontale sur PC */}
+      <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
         
         <div className="text-center mb-10">
-          <div className="inline-block p-4 bg-ice-400 rounded-2xl text-ice-900 mb-4 shadow-lg shadow-ice-400/20">
+          <div className="inline-block p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-4">
             <UserPlus size={32} />
           </div>
-          <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter leading-none">Inscription</h1>
-          <p className="text-ice-100/40 text-[10px] font-bold uppercase tracking-[0.2em] mt-3 italic">Créez votre compte Ice-Facture</p>
+          <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter">Inscription</h1>
+          <p className="text-ice-100/40 text-[9px] font-bold uppercase tracking-[0.3em] mt-2 italic">Posture horizontale optimisée</p>
         </div>
 
-        {errors.server && (
-          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 p-3 rounded-xl mb-6 animate-in fade-in zoom-in duration-300">
-            <AlertCircle size={14} className="text-red-500" />
-            <p className="text-red-500 text-[10px] font-bold uppercase italic">{errors.server}</p>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* GRILLE 2 COLONNES SUR PC */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+            
+            {/* COLONNE GAUCHE */}
+            <div className="space-y-5">
+              <div className="relative">
+                <IceInput label="Boutique" icon={<Store size={16}/>} value={formData.shopName} onChange={(e) => setFormData({...formData, shopName: e.target.value})}/>
+                {errors.shopName && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.shopName}</p>}
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* NOM BOUTIQUE */}
-          <div className="relative">
-            <IceInput 
-              label="Nom de la Boutique" 
-              placeholder="Ex: VIP Store"
-              value={formData.shopName}
-              onChange={(e) => setFormData({...formData, shopName: e.target.value})}
-            />
-            {errors.shopName && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
-                <AlertCircle size={10} /> {errors.shopName}
-              </p>
-            )}
-          </div>
+              <div className="relative">
+                <IceInput label="Email (.com)" icon={<Mail size={16}/>} type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}/>
+                {errors.email && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.email}</p>}
+              </div>
 
-          {/* TÉLÉPHONE */}
-          <div className="relative">
-            <IceInput 
-              label="Numéro de Téléphone" 
-              placeholder="77XXXXXXX"
-              maxLength={9}
-              value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, "")})}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
-                <AlertCircle size={10} /> {errors.phone}
-              </p>
-            )}
-          </div>
+              <div className="relative">
+                <IceInput label="Téléphone" icon={<Phone size={16}/>} maxLength={9} value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, "")})}/>
+                {errors.phone && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.phone}</p>}
+              </div>
+            </div>
 
-          {/* EMAIL */}
-          <div className="relative">
-            <IceInput 
-              label="Email Professionnel" 
-              type="email"
-              placeholder="contact@boutique.com"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
-                <AlertCircle size={10} /> {errors.email}
-              </p>
-            )}
+            {/* COLONNE DROITE */}
+            <div className="space-y-5">
+              <div className="relative">
+                <IceInput label="Mot de passe" icon={<Lock size={16}/>} type="password" maxLength={8} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}/>
+                {errors.password && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.password}</p>}
+              </div>
+
+              <div className="relative">
+                <IceInput label="Confirmation" icon={<ShieldCheck size={16}/>} type="password" maxLength={8} value={formData.confirmPassword} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}/>
+                {errors.confirmPassword && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.confirmPassword}</p>}
+              </div>
+
+              <div className="hidden md:block p-4 bg-white/5 rounded-2xl border border-white/5">
+                <p className="text-[8px] text-ice-100/30 uppercase font-black leading-relaxed">Sécurité : Utilisez un mélange de lettres et de chiffres (Max 8 car.).</p>
+              </div>
+            </div>
           </div>
 
-          {/* MOT DE PASSE */}
-          <div className="relative">
-            <IceInput 
-              label="Mot de passe" 
-              type="password"
-              placeholder="Ex: Ab1234"
-              maxLength={8}
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-            />
-            {errors.password && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
-                <AlertCircle size={10} /> {errors.password}
-              </p>
-            )}
-          </div>
+          {/* BOUTON CENTRÉ AU MILIEU */}
+          <div className="flex flex-col items-center pt-4">
+            <button className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs">
+              Valider l'inscription →
+            </button>
 
-          {/* CONFIRMATION */}
-          <div className="relative">
-            <IceInput 
-              label="Confirmer le mot de passe" 
-              type="password"
-              placeholder="••••••••"
-              maxLength={8}
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-            />
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
-                <AlertCircle size={10} /> {errors.confirmPassword}
-              </p>
-            )}
+            <p className="mt-6 text-[9px] text-ice-100/30 font-bold uppercase tracking-widest">
+              Déjà membre ? <Link to="/login" className="text-ice-400 ml-1 hover:text-white underline underline-offset-4">Connexion</Link>
+            </p>
           </div>
-
-          <button className="w-full bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:bg-white transition-all shadow-xl shadow-ice-400/10 uppercase italic tracking-widest text-xs mt-4 group">
-            S'inscrire <span className="inline-block group-hover:translate-x-1 transition-transform ml-1">→</span>
-          </button>
         </form>
-
-        <p className="text-center mt-10 text-[10px] text-ice-100/30 font-bold uppercase tracking-[0.1em]">
-          Déjà inscrit ? <Link to="/login" className="text-ice-400 hover:text-white transition-colors ml-1 underline decoration-ice-400/30 underline-offset-4">Se connecter</Link>
-        </p>
       </div>
     </div>
   );

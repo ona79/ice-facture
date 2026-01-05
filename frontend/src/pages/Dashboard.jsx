@@ -10,8 +10,8 @@ import {
   Trash2,
   X,
   Lock,
-  AlertTriangle, // Ajouté pour les alertes
-  Package // Ajouté pour l'icône produit
+  AlertTriangle,
+  Package
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import SalesChart from '../components/SalesChart';
@@ -23,10 +23,9 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function Dashboard() {
   const [allInvoices, setAllInvoices] = useState([]);
   const [products, setProducts] = useState([]);
-  const [lowStockProducts, setLowStockProducts] = useState([]); // Pour stocker les alertes
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [stats, setStats] = useState({ totalSales: 0, count: 0 });
   const [recentInvoices, setRecentInvoices] = useState([]);
-  
   const [modal, setModal] = useState({ show: false, invoiceId: null, invoiceNum: '' });
   const [password, setPassword] = useState('');
 
@@ -38,6 +37,20 @@ export default function Dashboard() {
     return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " F";
   };
 
+  // --- LOGIQUE DE RAPPEL AUTOMATIQUE (15 SECONDES) ---
+ useEffect(() => {
+  const checkProfileCompleteness = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/auth/profile`, config);
+      // On récupère les données mais on ne lance plus d'intervalle de notification
+      const { address, phone } = res.data; 
+    } catch (err) {
+      console.error("Erreur vérification profil:", err);
+    }
+  };
+  
+  checkProfileCompleteness();
+}, []);
   const fetchData = async () => {
     try {
       const resInv = await axios.get(`${API_URL}/api/invoices`, config);
@@ -51,13 +64,9 @@ export default function Dashboard() {
       });
       setRecentInvoices(sortedInvoices.slice(0, 3));
 
-      // RÉCUPÉRATION ET FILTRAGE DES PRODUITS
       const resProd = await axios.get(`${API_URL}/api/products`, config);
       setProducts(resProd.data);
-      
-      // On filtre les produits dont le stock est <= 5
-      const lowStock = resProd.data.filter(p => p.stock <= 5);
-      setLowStockProducts(lowStock);
+      setLowStockProducts(resProd.data.filter(p => p.stock <= 5));
 
     } catch (err) {
       console.error("Erreur fetchData:", err);
@@ -200,7 +209,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* ALERTES STOCK FAIBLE (AJOUTÉ) */}
+      {/* ALERTES STOCK FAIBLE */}
       {lowStockProducts.length > 0 && (
         <div className="mb-8">
           <h3 className="text-sm font-black italic uppercase text-red-500/50 ml-2 tracking-widest mb-4 flex items-center gap-2">
