@@ -134,7 +134,7 @@ export default function Settings() {
             <p className="text-ice-100/50 text-sm mb-8 leading-relaxed">Confirmez votre identité pour modifier les réglages.</p>
             <form onSubmit={handleVerifyAccess} className="w-full space-y-4 text-left">
               <IceInput 
-                label="Mot de passe Admin" 
+                label="Saisir votre mot de passe" 
                 type="password" 
                 value={accessPassword} 
                 onChange={(e) => setAccessPassword(e.target.value)}
@@ -188,7 +188,7 @@ export default function Settings() {
             </div>
             
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-ice-100/40">Adresse physique</label>
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-ice-100/40">Adresse de residence</label>
               <textarea 
                 className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-ice-400 outline-none h-24 resize-none text-sm transition-all"
                 value={formData.address}

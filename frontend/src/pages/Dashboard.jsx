@@ -11,7 +11,9 @@ import {
   X,
   Lock,
   AlertTriangle,
-  Package
+  Package,
+  TrendingUp,
+  Target
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import SalesChart from '../components/SalesChart';
@@ -24,7 +26,12 @@ export default function Dashboard() {
   const [allInvoices, setAllInvoices] = useState([]);
   const [products, setProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [stats, setStats] = useState({ totalSales: 0, count: 0 });
+  const [stats, setStats] = useState({ 
+    totalSales: 0, 
+    count: 0, 
+    todaySales: 0, 
+    topProducts: [] 
+  });
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [modal, setModal] = useState({ show: false, invoiceId: null, invoiceNum: '' });
   const [password, setPassword] = useState('');
@@ -37,30 +44,38 @@ export default function Dashboard() {
     return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " F";
   };
 
-  // --- LOGIQUE DE RAPPEL AUTOMATIQUE (15 SECONDES) ---
- useEffect(() => {
-  const checkProfileCompleteness = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/auth/profile`, config);
-      // On récupère les données mais on ne lance plus d'intervalle de notification
-      const { address, phone } = res.data; 
-    } catch (err) {
-      console.error("Erreur vérification profil:", err);
-    }
-  };
-  
-  checkProfileCompleteness();
-}, []);
   const fetchData = async () => {
     try {
       const resInv = await axios.get(`${API_URL}/api/invoices`, config);
       const invoices = resInv.data;
+      
+      // --- LOGIQUE STATISTIQUES AVANCÉES ---
+      const today = new Date().toISOString().split('T')[0];
+      
+      // 1. Calcul des ventes du jour
+      const todaySales = invoices
+        .filter(inv => inv.createdAt.startsWith(today))
+        .reduce((sum, inv) => sum + inv.totalAmount, 0);
+
+      // 2. Analyse des Top Produits (Best-sellers)
+      const productMap = {};
+      invoices.forEach(inv => {
+        inv.items.forEach(item => {
+          productMap[item.name] = (productMap[item.name] || 0) + item.quantity;
+        });
+      });
+      const topProducts = Object.entries(productMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3); // Top 3
+
       const sortedInvoices = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
       setAllInvoices(invoices);
       setStats({ 
         totalSales: invoices.reduce((sum, inv) => sum + inv.totalAmount, 0), 
-        count: invoices.length 
+        count: invoices.length,
+        todaySales,
+        topProducts
       });
       setRecentInvoices(sortedInvoices.slice(0, 3));
 
@@ -75,33 +90,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData();
-    const hasBeenWelcomed = sessionStorage.getItem('welcomeShown');
-    if (!hasBeenWelcomed) {
-      const welcomeTimeout = setTimeout(() => {
-        toast.custom((t) => (
-          <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-ice-900/95 backdrop-blur-md border border-ice-400/20 shadow-2xl rounded-3xl pointer-events-auto flex p-4`}>
-            <div className="flex-1 w-0 p-2">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 pt-0.5">
-                  <div className="h-10 w-10 rounded-2xl bg-ice-400 flex items-center justify-center text-ice-900 font-black italic">
-                     {shopName.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-                <div className="ml-4 flex-1">
-                  <p className="text-sm font-black text-white uppercase tracking-tighter">Bienvenue, {shopName} !</p>
-                  <p className="mt-1 text-[10px] font-bold text-ice-100/50 uppercase tracking-widest leading-relaxed">Prêt pour une nouvelle vente ?</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex border-l border-white/5 ml-4">
-              <button onClick={() => toast.dismiss(t.id)} className="w-full border border-transparent rounded-none rounded-r-lg px-4 flex items-center justify-center text-[10px] font-black text-ice-400 hover:text-white transition-colors uppercase">Fermer</button>
-            </div>
-          </div>
-        ), { duration: 4000, position: 'top-center' });
-        sessionStorage.setItem('welcomeShown', 'true');
-      }, 600);
-      return () => clearTimeout(welcomeTimeout);
-    }
   }, []);
 
   const handleLogout = () => {
@@ -112,18 +100,13 @@ export default function Dashboard() {
     window.location.reload();
   };
 
-  const openDeleteModal = (id, num) => {
-    setPassword('');
-    setModal({ show: true, invoiceId: id, invoiceNum: num });
-  };
-
   const handleFinalDelete = async (e) => {
     if(e) e.preventDefault();
-    const loadingToast = toast.loading("Suppression en cours...");
+    const loadingToast = toast.loading("Suppression...");
     try {
       await axios.delete(`${API_URL}/api/invoices/${modal.invoiceId}`, {
         headers: config.headers,
-        data: { password: password } 
+        data: { password } 
       });
       toast.dismiss(loadingToast);
       toast.success("Vente annulée");
@@ -131,7 +114,7 @@ export default function Dashboard() {
       await fetchData(); 
     } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error(err.response?.data?.message || "Mot de passe incorrect");
+      toast.error(err.response?.data?.message || "Erreur");
     }
   };
 
@@ -142,24 +125,14 @@ export default function Dashboard() {
       {modal.show && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
           <div className="glass-card w-full max-w-md p-8 rounded-[2.5rem] border-white/10 shadow-2xl relative">
-            <button onClick={() => setModal({show: false})} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"><X size={20}/></button>
+            <button onClick={() => setModal({show: false})} className="absolute top-6 right-6 text-white/20"><X size={20}/></button>
             <div className="flex flex-col items-center text-center">
               <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-6"><Lock size={32} /></div>
               <h3 className="text-2xl font-black italic uppercase mb-2">Annuler la vente</h3>
-              <p className="text-ice-100/50 text-sm mb-8 leading-relaxed">Entrez le mot de passe pour <br/><span className="text-white font-bold">{modal.invoiceNum}</span></p>
-              
+              <p className="text-ice-100/50 text-sm mb-8">{modal.invoiceNum}</p>
               <form onSubmit={handleFinalDelete} className="w-full space-y-4">
-                <IceInput 
-                  label="Mot de passe Admin" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <button type="button" onClick={() => setModal({show: false})} className="py-4 rounded-2xl font-bold text-[10px] uppercase bg-white/5 hover:bg-white/10">Retour</button>
-                  <button type="submit" disabled={!password} className={`py-4 rounded-2xl font-black text-[10px] uppercase transition-all ${password ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-white/5 text-white/20'}`}>Confirmer</button>
-                </div>
+                <IceInput label="Mot de passe" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button type="submit" className="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-red-500 shadow-lg shadow-red-500/20">Confirmer</button>
               </form>
             </div>
           </div>
@@ -173,62 +146,79 @@ export default function Dashboard() {
           <p className="text-ice-100/40 text-xs font-bold uppercase tracking-[0.3em]">Tableau de bord</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => navigate('/settings')} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-ice-400 hover:bg-ice-400/10 transition-all shadow-lg"><SettingsIcon size={20} /></button>
-          <button onClick={handleLogout} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-red-400 hover:bg-red-400/10 transition-all shadow-lg"><LogOut size={20} /></button>
+          <button onClick={() => navigate('/settings')} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-ice-400"><SettingsIcon size={20} /></button>
+          <button onClick={handleLogout} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-red-400"><LogOut size={20} /></button>
         </div>
       </div>
 
-      {/* STATISTIQUES */}
+      {/* STATISTIQUES EN 4 COLONNES (Layout PC) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* BLOC VENTES DU JOUR */}
+        <div className="glass-card p-5 rounded-3xl border-ice-400/20 bg-ice-400/5">
+          <p className="text-ice-400 text-[9px] font-black uppercase tracking-widest mb-1 flex items-center gap-2">
+            <TrendingUp size={12}/> Ventes du jour
+          </p>
+          <h2 className="text-2xl font-black text-white">{formatFCFA(stats.todaySales)}</h2>
+        </div>
+        
+        {/* CHIFFRE GLOBAL */}
+        <div className="glass-card p-5 rounded-3xl border-white/5">
+          <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-1">Chiffre Global</p>
+          <h2 className="text-2xl font-black text-ice-400">{formatFCFA(stats.totalSales)}</h2>
+        </div>
+
+        {/* TOP PRODUITS ET TOTAL OPÉRATIONS */}
+        <div className="md:col-span-2 glass-card p-5 rounded-3xl border-white/5 flex items-center justify-between">
+          <div>
+            <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+              <Target size={12}/> Top Produits
+            </p>
+            <div className="flex gap-2">
+              {stats.topProducts.map(([name, qty], i) => (
+                <span key={i} className="text-[10px] font-black bg-white/5 px-3 py-1 rounded-full border border-white/10 uppercase">
+                  {name} <span className="text-ice-400 ml-1">{qty}</span>
+                </span>
+              ))}
+              {stats.topProducts.length === 0 && <span className="text-[10px] text-white/20 uppercase">Aucune donnée</span>}
+            </div>
+          </div>
+          <div className="text-right">
+             <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-1">Opérations</p>
+             <h2 className="text-2xl font-black text-white">{stats.count}</h2>
+          </div>
+        </div>
+      </div>
+
+      {/* ACTIONS ET ALERTES */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-card p-6 rounded-3xl border-ice-400/20 shadow-xl">
-          <p className="text-ice-100/50 text-[10px] font-black uppercase tracking-widest mb-2">Chiffre d'Affaires</p>
-          <h2 className="text-4xl font-black text-ice-400">{formatFCFA(stats.totalSales)}</h2>
-        </div>
-        <div className="glass-card p-6 rounded-3xl border-white/5 shadow-xl">
-          <p className="text-ice-100/50 text-[10px] font-black uppercase tracking-widest mb-2">Ventes effectuées</p>
-          <h2 className="text-4xl font-black text-white">{stats.count}</h2>
-        </div>
-        <Link to="/products" className="glass-card p-6 rounded-3xl border-white/5 hover:border-ice-400 transition-all flex items-center justify-between group shadow-xl relative overflow-hidden">
-          <span className="font-black text-lg uppercase tracking-tighter italic z-10">Catalogue</span>
-          {lowStockProducts.length > 0 && (
-            <span className="absolute top-2 right-12 bg-red-500 text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse">STOCK !</span>
-          )}
-          <div className="p-2 bg-ice-400/10 text-ice-400 rounded-xl group-hover:bg-ice-400 group-hover:text-ice-900 transition-all z-10"><ChevronRight size={24} /></div>
-        </Link>
-      </div>
-
-      {/* ACTIONS PRINCIPALES */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <button onClick={() => navigate('/new-invoice')} className="bg-ice-400 p-10 rounded-[2.5rem] flex flex-col items-center gap-4 hover:bg-white transition-all shadow-2xl shadow-ice-400/10 group">
-          <div className="bg-ice-900 text-ice-400 p-4 rounded-2xl group-hover:scale-110 transition-transform"><PlusCircle size={36} /></div>
-          <span className="text-ice-900 font-black text-2xl uppercase tracking-tighter italic">Nouvelle Vente</span>
+        <button onClick={() => navigate('/new-invoice')} className="bg-ice-400 p-10 rounded-[2.5rem] flex flex-col items-center gap-4 hover:scale-[1.02] transition-all group">
+          <div className="bg-ice-900 text-ice-400 p-4 rounded-2xl"><PlusCircle size={36} /></div>
+          <span className="text-ice-900 font-black text-xl uppercase italic">Vendre</span>
         </button>
-        <button onClick={() => navigate('/history')} className="glass-card p-10 rounded-[2.5rem] flex flex-col items-center gap-4 border-white/5 hover:border-ice-400 transition-all group">
-          <div className="bg-white/10 text-white p-4 rounded-2xl group-hover:scale-110 transition-transform"><HistoryIcon size={36} /></div>
-          <span className="font-black text-2xl uppercase tracking-tighter italic">Historique</span>
+
+        <Link to="/products" className="glass-card p-10 rounded-[2.5rem] flex flex-col items-center gap-4 border-white/5 hover:border-ice-400 transition-all group relative">
+          <div className="bg-white/10 text-ice-400 p-4 rounded-2xl group-hover:bg-ice-400 group-hover:text-ice-900 transition-all"><Package size={36} /></div>
+          <span className="font-black text-xl uppercase italic">Stock</span>
+          {lowStockProducts.length > 0 && <span className="absolute top-6 right-6 h-3 w-3 bg-red-500 rounded-full animate-ping"></span>}
+        </Link>
+
+        <button onClick={() => navigate('/history')} className="glass-card p-10 rounded-[2.5rem] flex flex-col items-center gap-4 border-white/5 hover:border-white/20 transition-all group">
+          <div className="bg-white/10 text-white p-4 rounded-2xl"><HistoryIcon size={36} /></div>
+          <span className="font-black text-xl uppercase italic">Historique</span>
         </button>
       </div>
 
       {/* ALERTES STOCK FAIBLE */}
       {lowStockProducts.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-sm font-black italic uppercase text-red-500/50 ml-2 tracking-widest mb-4 flex items-center gap-2">
-            <AlertTriangle size={16} /> Alertes Inventaire
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="mb-8 p-4 bg-red-500/5 border border-red-500/20 rounded-3xl">
+          <div className="flex items-center gap-2 mb-3 text-red-500 text-[10px] font-black uppercase tracking-widest">
+            <AlertTriangle size={14}/> Stock critique ({lowStockProducts.length})
+          </div>
+          <div className="flex flex-wrap gap-2">
             {lowStockProducts.map(p => (
-              <div key={p._id} className="glass-card p-4 rounded-2xl border-red-500/20 bg-red-500/5 flex items-center justify-between group hover:bg-red-500/10 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><Package size={16}/></div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-tight">{p.name}</p>
-                    <p className="text-[9px] font-bold text-red-500/60 uppercase">Reste: {p.stock}</p>
-                  </div>
-                </div>
-                <button onClick={() => navigate('/products')} className="p-2 text-white/20 hover:text-white transition-colors">
-                  <ChevronRight size={14}/>
-                </button>
-              </div>
+              <span key={p._id} className="text-[9px] font-black bg-red-500/20 text-red-500 px-3 py-1 rounded-full uppercase border border-red-500/10">
+                {p.name}: {p.stock}
+              </span>
             ))}
           </div>
         </div>
@@ -236,47 +226,29 @@ export default function Dashboard() {
 
       {/* GRAPHIQUE */}
       <div className="glass-card p-6 rounded-[2.5rem] border-white/5 mb-12 shadow-2xl">
-        <div className="mb-6 flex justify-between items-center px-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-ice-100/40 italic">Activité hebdomadaire</h3>
-            <div className="h-2 w-2 rounded-full bg-ice-400 animate-pulse"></div>
-        </div>
         <SalesChart invoices={allInvoices} />
       </div>
 
       {/* VENTES RÉCENTES */}
       <div className="space-y-4">
-        <h3 className="text-sm font-black italic uppercase text-ice-100/30 ml-2 tracking-widest">Dernières Opérations</h3>
-        {recentInvoices.length > 0 ? (
-          recentInvoices.map(inv => {
-            const dateCode = new Date(inv.createdAt).toISOString().slice(0, 10).replace(/-/g, '');
-            const serial = inv.invoiceNumber.split('-')[1] || "0";
-            const displayNum = `FACT-${dateCode}-${serial.padStart(5, '0')}`;
-
-            return (
-              <div key={inv._id} className="glass-card p-5 rounded-3xl flex justify-between items-center border-white/5 hover:border-white/10 transition-all group shadow-md">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/5 rounded-2xl text-ice-400 group-hover:bg-ice-400 group-hover:text-ice-900 transition-all"><FileText size={20} /></div>
-                  <div>
-                    <p className="font-black text-sm uppercase tracking-tighter">{displayNum}</p>
-                    <p className="text-[10px] font-bold text-ice-100/30 uppercase">
-                      {new Date(inv.createdAt).toLocaleDateString('fr-FR')} • {new Date(inv.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-6">
-                  <p className="font-black text-xl text-ice-400 tracking-tight">{formatFCFA(inv.totalAmount)}</p>
-                  <button onClick={() => openDeleteModal(inv._id, displayNum)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
-                    <Trash2 size={20} />
-                  </button>
-                </div>
+        <h3 className="text-[10px] font-black italic uppercase text-ice-100/30 ml-2 tracking-widest">Dernières Opérations</h3>
+        {recentInvoices.map(inv => (
+          <div key={inv._id} className="glass-card p-5 rounded-3xl flex justify-between items-center border-white/5 group">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/5 rounded-2xl text-ice-400"><FileText size={20} /></div>
+              <div>
+                <p className="font-black text-sm uppercase truncate max-w-[150px]">{inv.invoiceNumber}</p>
+                <p className="text-[10px] font-bold text-ice-100/30 uppercase">{new Date(inv.createdAt).toLocaleDateString('fr-FR')}</p>
               </div>
-            );
-          })
-        ) : (
-          <div className="p-10 border border-dashed border-white/5 rounded-3xl text-center text-white/10 font-black uppercase tracking-widest text-xs">
-            Aucune vente enregistrée
+            </div>
+            <div className="flex items-center gap-6">
+              <p className="font-black text-xl text-ice-400">{formatFCFA(inv.totalAmount)}</p>
+              <button onClick={() => { setModal({ show: true, invoiceId: inv._id, invoiceNum: inv.invoiceNumber }); setPassword(''); }} className="p-2 text-white/10 hover:text-red-500 transition-colors">
+                <Trash2 size={20} />
+              </button>
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

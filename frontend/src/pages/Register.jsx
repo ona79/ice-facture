@@ -84,7 +84,7 @@ export default function Register() {
             <UserPlus size={32} />
           </div>
           <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter">Inscription</h1>
-          <p className="text-ice-100/40 text-[9px] font-bold uppercase tracking-[0.3em] mt-2 italic">Posture horizontale optimisée</p>
+          <p className="text-ice-100/40 text-[9px] font-bold uppercase tracking-[0.3em] mt-2 italic">kassa vous souhaite une belle experience</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
