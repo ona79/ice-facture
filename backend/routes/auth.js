@@ -90,7 +90,7 @@ router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
 
-    // Validation du téléphone (Strictement 9)
+    // --- SÉCURITÉ : TÉLÉPHONE (STRICTEMENT 9 CHIFFRES) ---
     if (phone && phone.length !== 9) {
       return res.status(400).json({ msg: "Le numéro doit comporter exactement 9 chiffres." });
     }
@@ -122,6 +122,7 @@ router.put('/update-password', auth, async (req, res) => {
     }
 
     const user = await User.findById(req.user);
+    if (!user) return res.status(404).json({ msg: "Utilisateur non trouvé" });
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ msg: "L'ancien mot de passe est incorrect" });

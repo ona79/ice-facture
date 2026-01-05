@@ -3,28 +3,34 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
   shopName: { 
     type: String, 
-    required: true 
+    required: true,
+    trim: true
   },
   email: { 
     type: String, 
     required: true, 
     unique: true,
-    lowercase: true // Force l'email en minuscules pour éviter les doublons
+    lowercase: true,
+    trim: true
   },
   password: { 
     type: String, 
-    required: true 
+    required: true,
+    // Note : On ne met pas de maxlength ici car le mot de passe 
+    // sera haché (bcrypt), ce qui génère une chaîne longue de 60 caractères.
   },
   address: { 
     type: String, 
     default: "" 
   },
-  // --- MODIFICATION ICI ---
   phone: { 
     type: String, 
-    required: true, // Requis pour l'inscription
-    unique: true,   // Empêche deux boutiques d'avoir le même numéro
-    trim: true      // Enlève les espaces inutiles
+    required: true, 
+    unique: true,   
+    trim: true,
+    // Sécurité au niveau de la base de données
+    minlength: 9,
+    maxlength: 9
   },
   footerMessage: { 
     type: String, 
