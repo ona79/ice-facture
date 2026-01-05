@@ -16,6 +16,7 @@ export default function NewInvoice() {
   const [total, setTotal] = useState(0);
   const [amountPaid, setAmountPaid] = useState(""); 
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState(""); // NOUVEAU
   const [isProfileComplete, setIsProfileComplete] = useState(true);
 
   const navigate = useNavigate();
@@ -75,6 +76,11 @@ export default function NewInvoice() {
     if (items.length === 0) return toast.error("Panier vide");
     if (!customerName.trim()) return toast.error("NOM DU CLIENT OBLIGATOIRE");
 
+    // VALIDATION TÉLÉPHONE (Optionnelle mais si remplie, doit faire 9 chiffres)
+    if (customerPhone && customerPhone.length !== 9) {
+      return toast.error("Le numéro doit comporter exactement 9 chiffres");
+    }
+
     const finalPaid = amountPaid === "" ? total : parseFloat(amountPaid);
 
     if (finalPaid > total) {
@@ -91,11 +97,20 @@ export default function NewInvoice() {
         totalAmount: total,
         amountPaid: finalPaid,
         customerName: customerName.trim().toUpperCase(),
+        customerPhone: customerPhone, // ENVOI DU NUMÉRO
         status: finalPaid >= total ? 'Payé' : 'Dette'
       }, config);
 
       toast.dismiss(loadingToast);
       toast.success(`Vente réussie !`);
+
+      // REDIRECTION WHATSAPP SI NUMÉRO PRÉSENT
+      if (customerPhone.length === 9) {
+        const message = `Bonjour ${customerName.toUpperCase()}, voici votre facture ${invoiceNum} de ${total.toLocaleString()} F.`;
+        const formattedPhone = `221${customerPhone}`;
+        window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+      }
+
       navigate('/dashboard'); 
     } catch (err) { 
       toast.dismiss(loadingToast);
@@ -143,17 +158,12 @@ export default function NewInvoice() {
         {/* PANIER */}
         <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
           
-          {/* BANDEAU ALERTE PULSE */}
           {!isProfileComplete && (
             <div className="bg-red-500/20 border-b border-red-500/20 py-2 px-4 flex items-center justify-between animate-pulse">
               <span className="text-[9px] font-black uppercase text-red-400 tracking-tighter">
                 Veuillez remplir le paramètre en cliquant sur l'icône du parametre.
               </span>
-              <button 
-                onClick={() => navigate('/settings')}
-                className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 transition-colors"
-                title="Aller aux paramètres"
-              >
+              <button onClick={() => navigate('/settings')} className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 transition-colors">
                 <SettingsIcon size={12} />
               </button>
             </div>
@@ -189,37 +199,42 @@ export default function NewInvoice() {
                   type="text" 
                   placeholder="NOM..." 
                   value={customerName}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                    setCustomerName(val);
-                  }}
+                  onChange={(e) => setCustomerName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
                   className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase outline-none focus:border-ice-400/50"
                 />
               </div>
 
+              {/* CHAMPS NUMÉRO WHATSAPP (9 CHIFFRES MAX) */}
               <div className="space-y-1">
-                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Encaissé (Max: {total})</label>
+                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">WhatsApp (9 chiffres)</label>
                 <input 
                   type="text" 
-                  inputMode="numeric"
-                  placeholder="0" 
-                  value={amountPaid}
-                  onChange={(e) => {
-                    let val = e.target.value.replace(/\D/g, ''); 
-                    if (val === "") {
-                      setAmountPaid("");
-                      return;
-                    }
-                    if (parseInt(val, 10) > total) {
-                      setAmountPaid(total.toString());
-                      toast.error(`MAXIMUM: ${total} F`);
-                    } else {
-                      setAmountPaid(val);
-                    }
-                  }}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-orange-500"
+                  maxLength={9}
+                  placeholder="7..." 
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-green-400"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Encaissé (Max: {total})</label>
+              <input 
+                type="text" 
+                inputMode="numeric"
+                placeholder="0" 
+                value={amountPaid}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, ''); 
+                  if (val === "") { setAmountPaid(""); return; }
+                  if (parseInt(val, 10) > total) {
+                    setAmountPaid(total.toString());
+                    toast.error(`MAXIMUM: ${total} F`);
+                  } else { setAmountPaid(val); }
+                }}
+                className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-orange-500"
+              />
             </div>
 
             <div className="flex justify-between items-end py-2">

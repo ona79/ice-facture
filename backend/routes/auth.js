@@ -9,12 +9,13 @@ router.post('/register', async (req, res) => {
   try {
     const { shopName, email, password, phone } = req.body;
 
-    // --- SÉCURITÉ : TÉLÉPHONE STRICTEMENT ÉGAL À 9 CHIFFRES ---
+    // Conversion de l'email en minuscules pour éviter les erreurs de saisie
+    const cleanEmail = email.toLowerCase().trim();
+
     if (!phone || phone.length !== 9) {
       return res.status(400).json({ msg: "Le numéro de téléphone doit comporter exactement 9 chiffres." });
     }
 
-    // --- SÉCURITÉ : MOT DE PASSE (Lettres + Chiffres, 6-8 caractères) ---
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
     if (!password || !passwordRegex.test(password)) {
       return res.status(400).json({ 
@@ -22,25 +23,22 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Vérifier si l'email existe déjà
-    let userEmail = await User.findOne({ email });
+    let userEmail = await User.findOne({ email: cleanEmail });
     if (userEmail) return res.status(400).json({ msg: "Cet email est déjà utilisé" });
 
-    // Vérifier si le numéro de téléphone existe déjà
     let userPhone = await User.findOne({ phone });
     if (userPhone) return res.status(400).json({ msg: "Ce numéro de téléphone est déjà utilisé" });
 
-    // Créer le nouvel utilisateur
-    const user = new User({ shopName, email, password, phone });
+    const user = new User({ shopName, email: cleanEmail, password, phone });
 
-    // Hachage du mot de passe
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
 
-    // Génération du token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    // RECONNAISSANCE : On utilise la clé 'user: { id }' pour être compatible avec la plupart des middlewares auth
+    const payload = { user: { id: user._id } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.json({
       token,
@@ -57,13 +55,18 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé" });
+    // On cherche toujours en minuscules
+    const cleanEmail = email.toLowerCase().trim();
+    
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé ou email incorrect" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Mot de passe incorrect" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    // RECONNAISSANCE : Structure identique au Register
+    const payload = { user: { id: user._id } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
     
     res.json({ 
       token, 
@@ -77,8 +80,9 @@ router.post('/login', async (req, res) => {
 // --- 3. RÉCUPÉRATION DU PROFIL ---
 router.get('/profile', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user).select('-password');
-    if (!user) return res.status(404).json({ msg: "Utilisateur non trouvé" });
+    // Le middleware 'auth' injecte l'id dans req.user.id
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ msg: "Session expirée ou utilisateur introuvable" });
     res.json(user);
   } catch (err) {
     res.status(500).json({ msg: "Erreur serveur" });
@@ -90,13 +94,18 @@ router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
 
-    // --- SÉCURITÉ : TÉLÉPHONE (STRICTEMENT 9 CHIFFRES) ---
     if (phone && phone.length !== 9) {
       return res.status(400).json({ msg: "Le numéro doit comporter exactement 9 chiffres." });
     }
 
+    // Sécurité pour ne pas écraser avec un numéro déjà utilisé par un autre
+    if (phone) {
+        const existing = await User.findOne({ phone, _id: { $ne: req.user.id } });
+        if (existing) return res.status(400).json({ msg: "Ce numéro est déjà utilisé" });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
-      req.user,
+      req.user.id,
       { $set: { shopName, address, phone, footerMessage } },
       { new: true, runValidators: true }
     ).select('-password');
@@ -113,7 +122,6 @@ router.put('/update-password', auth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
 
-    // --- SÉCURITÉ : NOUVEAU MOT DE PASSE (Lettres + Chiffres, 6-8 caractères) ---
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
     if (!newPassword || !passwordRegex.test(newPassword)) {
       return res.status(400).json({ 
@@ -121,7 +129,7 @@ router.put('/update-password', auth, async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.user);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "Utilisateur non trouvé" });
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -143,7 +151,7 @@ router.post('/verify-password', auth, async (req, res) => {
     const { password } = req.body;
     if (!password) return res.status(400).json({ msg: "Mot de passe requis" });
 
-    const user = await User.findById(req.user);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "Utilisateur non trouvé" });
 
     const isMatch = await bcrypt.compare(password, user.password);

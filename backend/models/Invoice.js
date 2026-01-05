@@ -18,6 +18,12 @@ const InvoiceSchema = new mongoose.Schema({
     default: "Client Passager",
     trim: true 
   },
+  // --- NOUVEAU : NUMÉRO WHATSAPP DU CLIENT ---
+  customerPhone: { 
+    type: String, 
+    default: "",
+    trim: true 
+  },
   // Liste des produits vendus (Détails pour le PDF et les stats)
   items: [
     {
@@ -58,11 +64,12 @@ const InvoiceSchema = new mongoose.Schema({
 /**
  * MIDDLEWARE DE SÉCURITÉ "FIDÈLE"
  * Avant chaque sauvegarde (save), le serveur compare le total et le versé.
- * Cela garantit qu'aucune dette ne passe inaperçue, même en cas d'erreur frontend.
  */
 InvoiceSchema.pre('save', function(next) {
-  // On utilise une marge de 0.1 pour éviter les problèmes de calcul flottant
-  if (this.amountPaid < this.totalAmount) {
+  // Sécurité supplémentaire : si amountPaid n'est pas défini, on le met à 0
+  const paid = this.amountPaid || 0;
+  
+  if (paid < this.totalAmount) {
     this.status = 'Dette';
   } else {
     this.status = 'Payé';

@@ -52,7 +52,6 @@ export default function History() {
     const resteAPayer = modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0);
     const montantSaisi = parseFloat(modalPay.amount);
 
-    // BLOCAGE SI MONTANT SUPÉRIEUR À LA DETTE
     if (montantSaisi > resteAPayer) {
       toast.error(`MONTANT TROP ÉLEVÉ ! LA DETTE EST DE ${resteAPayer} F`);
       return;
@@ -89,11 +88,21 @@ export default function History() {
     }
   };
 
+  // --- FONCTION WHATSAPP CORRIGÉE (Fidèle & Directe) ---
   const handleWhatsApp = (inv) => {
     const displayNum = formatInvoiceDisplay(inv);
     const message = `Bonjour ${inv.customerName || 'Client'}, voici votre facture ${displayNum} d'un montant de ${inv.totalAmount.toLocaleString()} F. Merci de votre confiance !`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    
+    // Si un numéro est enregistré, on l'utilise directement
+    if (inv.customerPhone && inv.customerPhone.trim() !== "") {
+      const cleanPhone = inv.customerPhone.replace(/\D/g, '');
+      const formattedPhone = cleanPhone.startsWith('221') ? cleanPhone : `221${cleanPhone}`;
+      window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+    } else {
+      // Sinon, comportement par défaut (choix du contact manuel)
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   const filteredInvoices = invoices.filter(inv => {
@@ -110,7 +119,6 @@ export default function History() {
     return match;
   });
 
-  // --- CALCUL DES DETTES (SANS CHIFFRES NÉGATIFS) ---
   const totalDettes = invoices.reduce((acc, inv) => {
     const reste = inv.totalAmount - (inv.amountPaid || 0);
     return reste > 0 ? acc + reste : acc;
@@ -119,7 +127,7 @@ export default function History() {
   return (
     <div className="p-3 md:p-5 max-w-5xl mx-auto min-h-screen text-white font-sans">
       
-      {/* MODAL PAIEMENT AVEC LIMITEUR */}
+      {/* MODAL PAIEMENT */}
       {modalPay.show && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm">
           <div className="glass-card w-full max-w-sm p-6 rounded-[2rem] border-orange-500/20 relative shadow-2xl">
@@ -127,22 +135,13 @@ export default function History() {
             <div className="text-center">
               <div className="p-3 bg-orange-500/10 text-orange-500 rounded-2xl mb-3 inline-block"><Banknote size={24} /></div>
               <h3 className="text-xl font-black italic uppercase tracking-tighter">{modalPay.invoice.customerName || 'Client'}</h3>
-              <p className="text-white/30 text-[9px] uppercase mb-6 italic">Reste à payer : <span className="text-orange-500">{(modalPay.invoice.totalAmount - modalPay.invoice.amountPaid).toLocaleString()} F</span></p>
+              <p className="text-white/30 text-[9px] uppercase mb-6 italic">Reste à payer : <span className="text-orange-500">{(modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0)).toLocaleString()} F</span></p>
               
               <form onSubmit={handleSettleDebt} className="space-y-3">
                 <IceInput 
                   type="number" 
                   value={modalPay.amount} 
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const max = modalPay.invoice.totalAmount - modalPay.invoice.amountPaid;
-                    // Auto-correction si dépassement
-                    if (parseFloat(val) > max) {
-                      setModalPay({...modalPay, amount: max.toString()});
-                    } else {
-                      setModalPay({...modalPay, amount: val});
-                    }
-                  }} 
+                  onChange={(e) => setModalPay({...modalPay, amount: e.target.value})} 
                   placeholder="MONTANT VERSÉ" 
                   required 
                 />
@@ -153,7 +152,7 @@ export default function History() {
         </div>
       )}
 
-      {/* MODAL DÉTAILS (Inchangé) */}
+      {/* MODAL DÉTAILS */}
       {modalDetail.show && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
           <div className="glass-card w-full max-w-md p-5 rounded-[1.5rem] border-white/10 relative shadow-2xl animate-in zoom-in duration-150">
@@ -195,13 +194,13 @@ export default function History() {
         </div>
       )}
 
-      {/* MODAL SUPPRESSION (Inchangé) */}
+      {/* MODAL SUPPRESSION */}
       {modalDelete.show && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
           <div className="glass-card w-full max-w-sm p-6 rounded-[2rem] border-white/10 relative shadow-2xl text-center">
             <button onClick={() => setModalDelete({show:false})} className="absolute top-5 right-5 text-white/20"><X size={18}/></button>
             <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl mb-4 inline-block"><Lock size={24} /></div>
-            <h3 className="text-xl font-black italic uppercase mb-1">Code Admin</h3>
+            <h3 className="text-xl font-black italic uppercase mb-1">votre mot de pass</h3>
             <p className="text-[8px] font-black uppercase text-white/20 mb-6">{modalDelete.num}</p>
             <form onSubmit={handleDeleteInvoice} className="w-full space-y-3">
               <IceInput label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
@@ -211,11 +210,11 @@ export default function History() {
         </div>
       )}
 
-      {/* RESTE DU COMPOSANT (HEADER & LISTE) */}
+      {/* DASHBOARD HEADER */}
       <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-white/20 mb-4 font-black uppercase text-[8px] tracking-[0.2em] hover:text-ice-400"><ArrowLeft size={12} /> Dashboard</button>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
-        <h1 className="text-3xl font-black italic tracking-tighter uppercase">Historique</h1>
+        <h1 className="text-3xl font-black italic tracking-tighter uppercase">FACTURES</h1>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button onClick={() => setShowOnlyToday(!showOnlyToday)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyToday ? 'bg-ice-400 text-ice-900 border-ice-400' : 'bg-white/5 border-white/10 text-white/30'}`}><Clock size={12} /> Aujourd'hui</button>
           <button onClick={() => setShowOnlyDebts(!showOnlyDebts)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyDebts ? 'bg-orange-500 text-white border-orange-500' : 'bg-white/5 border-white/10 text-white/30'}`}><ListFilter size={12} /> Dettes</button>
@@ -237,6 +236,7 @@ export default function History() {
         </div>
       </div>
 
+      {/* LISTE DES FACTURES */}
       <div className="space-y-2 pb-10">
         {filteredInvoices.map(inv => {
           const displayNum = formatInvoiceDisplay(inv);
@@ -261,7 +261,14 @@ export default function History() {
                 </div>
                 
                 <div className="flex gap-1">
-                  <button onClick={() => handleWhatsApp(inv)} className="p-2 bg-green-500/5 text-green-500 rounded-lg"><MessageCircle size={14} /></button>
+                  {/* BOUTON WHATSAPP RELIÉ AU NUMÉRO */}
+                  <button 
+                    onClick={() => handleWhatsApp(inv)} 
+                    className={`p-2 rounded-lg transition-all ${inv.customerPhone ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/20'}`}
+                  >
+                    <MessageCircle size={14} />
+                  </button>
+
                   <button onClick={() => setModalDetail({ show: true, invoice: inv })} className="p-2 bg-white/5 text-white/40 rounded-lg hover:text-ice-400 transition-all"><Eye size={14} /></button>
                   {reste > 0 && <button onClick={() => setModalPay({show: true, invoice: inv, amount: ""})} className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10"><Banknote size={14} /></button>}
                   <button onClick={() => generatePDF({...inv, invoiceNumber: displayNum})} className="p-2 bg-ice-400 text-ice-900 rounded-lg hover:bg-ice-300 transition-all shadow-md shadow-ice-400/10"><Download size={14} /></button>
