@@ -7,3 +7,4 @@ export const IceInput = ({ label, ...props }) => (
     />
   </div>
 );
+// --- FIN DU COMPOSANT ICEINPUT ---

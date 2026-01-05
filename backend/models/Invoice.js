@@ -78,3 +78,4 @@ InvoiceSchema.pre('save', function(next) {
 });
 
 module.exports = mongoose.model('Invoice', InvoiceSchema);
+//backend/models/Invoice.js

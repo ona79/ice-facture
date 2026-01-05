@@ -124,3 +124,4 @@ export const generatePDF = async (invoice) => {
 
   doc.save(`FACT_${invoice.invoiceNumber}.pdf`);
 };
+// --- FIN DE LA FONCTION GENERATEPDF ---

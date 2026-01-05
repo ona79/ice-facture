@@ -267,3 +267,4 @@ export default function NewInvoice() {
     </div>
   );
 }
+// --- FIN DU COMPOSANT NEWINVOICE ---

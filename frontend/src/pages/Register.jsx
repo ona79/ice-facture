@@ -142,3 +142,4 @@ export default function Register() {
     </div>
   );
 }
+// --- FIN DU COMPOSANT REGISTER ---

@@ -166,3 +166,4 @@ router.post('/verify-password', auth, async (req, res) => {
 });
 
 module.exports = router;
+//backend/routes/auth.js

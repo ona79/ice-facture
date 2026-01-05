@@ -282,3 +282,4 @@ export default function History() {
     </div>
   );
 }
+// --- FIN DU COMPOSANT HISTORY ---
