@@ -204,7 +204,7 @@ export default function Dashboard() {
 
         <button onClick={() => navigate('/history')} className="glass-card p-10 rounded-[2.5rem] flex flex-col items-center gap-4 border-white/5 hover:border-white/20 transition-all group">
           <div className="bg-white/10 text-white p-4 rounded-2xl"><HistoryIcon size={36} /></div>
-          <span className="font-black text-xl uppercase italic">Historique</span>
+          <span className="font-black text-xl uppercase italic">FACTURES</span>
         </button>
       </div>
 
