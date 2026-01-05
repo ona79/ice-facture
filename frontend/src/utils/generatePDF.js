@@ -45,7 +45,7 @@ export const generatePDF = async (invoice) => {
   // Espacement augmenté entre chaque ligne
   doc.text(userData.address || "Conakry", width / 2, 20, { align: "center" });
   doc.text(`Tel: ${userData.phone}`, width / 2, 25, { align: "center" });
-  doc.text("Tambacounda (Sénégal)", width / 2, 30, { align: "center" });
+  doc.text("(Sénégal)", width / 2, 30, { align: "center" });
 
   // --- INFOS CLIENT ET FACTURE ---
   doc.setLineWidth(0.3);
