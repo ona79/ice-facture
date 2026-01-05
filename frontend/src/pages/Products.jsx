@@ -4,8 +4,8 @@ import { ArrowLeft, Plus, Trash2, Package, Lock, Unlock, AlertCircle } from 'luc
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-// Remplace par ton URL Render réelle si nécessaire
-const API_URL = import.meta.env.VITE_API_URL || "https://ton-api-backend.onrender.com";
+// Correction : Remplace bien par ton URL réelle si le .env ne charge pas
+const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -15,11 +15,12 @@ export default function Products() {
   
   const navigate = useNavigate();
 
-  // Fonction pour récupérer le header avec le token à jour
+  // Header de sécurité avec Token
   const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   });
 
+  // Validations du formulaire
   const isNameInvalid = newProduct.name !== "" && /^\d+$/.test(newProduct.name);
   const isPriceInvalid = newProduct.price !== "" && (isNaN(newProduct.price) || Number(newProduct.price) <= 0);
   const isStockInvalid = newProduct.stock !== "" && (isNaN(newProduct.stock) || Number(newProduct.stock) < 0);
@@ -38,29 +39,37 @@ export default function Products() {
     }
   };
 
-  // --- GESTION DU MOT DE PASSE DE DÉVERROUILLAGE ---
+  // --- GESTION DU DÉVERROUILLAGE (CORRIGÉ) ---
   const handleUnlock = async (e) => {
     e.preventDefault();
+    if (!accessPassword) return toast.error("Entrez un mot de passe");
+    
     const loading = toast.loading("Vérification...");
     try {
-      // Appel à ton backend pour vérifier le mot de passe admin
-      await axios.post(`${API_URL}/api/auth/verify-password`, { password: accessPassword }, getAuthHeader());
+      // On envoie le password nettoyé (.trim())
+      const res = await axios.post(
+        `${API_URL}/api/auth/verify-password`, 
+        { password: accessPassword.trim() }, 
+        getAuthHeader()
+      );
+      
+      // Si le serveur répond 200 ou success:true
       setIsUnlocked(true);
       toast.dismiss(loading);
       toast.success("Catalogue déverrouillé");
     } catch (err) {
       toast.dismiss(loading);
-      toast.error("Mot de passe incorrect");
+      // On affiche l'erreur 400 ou 401 renvoyée par ton backend
+      toast.error(err.response?.data?.msg || "Mot de passe incorrect");
       setAccessPassword('');
     }
   };
 
-  // --- AJOUT DE PRODUIT (CORRIGÉ POUR RENDER) ---
+  // --- AJOUT DE PRODUIT ---
   const addProduct = async (e) => {
     e.preventDefault();
     const loading = toast.loading("Ajout en cours...");
     try {
-      // On envoie newProduct vers la route API
       await axios.post(`${API_URL}/api/products`, newProduct, getAuthHeader());
       toast.dismiss(loading);
       toast.success("Produit ajouté !");
@@ -68,7 +77,6 @@ export default function Products() {
       fetchProducts();
     } catch (err) {
       toast.dismiss(loading);
-      console.error(err);
       toast.error(err.response?.data?.error || "Erreur lors de l'ajout");
     }
   };
@@ -84,12 +92,12 @@ export default function Products() {
     }
   };
 
-  // --- AFFICHAGE DE L'ÉCRAN DE VERROUILLAGE ---
+  // --- ECRAN DE VERROUILLAGE ---
   if (!isUnlocked) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black p-4">
-        <div className="glass-card w-full max-w-sm p-10 rounded-[2.5rem] border-white/10 text-center shadow-2xl bg-white/5">
-          <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6"><Lock size={40}/></div>
+      <div className="flex items-center justify-center min-h-screen bg-black p-4 font-sans">
+        <div className="glass-card w-full max-w-sm p-10 rounded-[2.5rem] border-white/10 text-center shadow-2xl bg-white/5 backdrop-blur-md">
+          <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6 shadow-inner"><Lock size={40}/></div>
           <h2 className="text-xl font-black uppercase italic mb-2 text-white tracking-tighter">Catalogue Protégé</h2>
           <p className="text-[10px] text-white/40 uppercase tracking-widest mb-8 leading-relaxed">Saisir votre mot de passe</p>
           
@@ -98,7 +106,9 @@ export default function Products() {
               autoFocus
               type="password" 
               placeholder="Mot de passe..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center"
+              // Ajout de text-white et forcing du style pour éviter le fond jaune autocomplétion
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center transition-all placeholder:text-white/20"
+              style={{ colorScheme: 'dark' }}
               value={accessPassword}
               onChange={(e) => setAccessPassword(e.target.value)}
             />
@@ -112,11 +122,11 @@ export default function Products() {
     );
   }
 
-  // --- AFFICHAGE DE L'INVENTAIRE UNE FOIS DÉVERROUILLÉ ---
+  // --- INVENTAIRE ---
   return (
-    <div className="p-4 max-w-5xl mx-auto min-h-screen text-white">
+    <div className="p-4 max-w-5xl mx-auto min-h-screen text-white font-sans">
       <div className="flex justify-between items-center mb-8">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-ice-100/50 font-bold uppercase text-[10px]">
+        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-ice-100/50 font-bold uppercase text-[10px] tracking-widest">
           <ArrowLeft size={14} /> Retour Dashboard
         </button>
         <div className="flex items-center gap-2 text-green-500 font-black text-[10px] uppercase italic">
@@ -130,17 +140,17 @@ export default function Products() {
         <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
-            <input required type="text" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400`} placeholder="Nom..." />
+            <input required type="text" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="Nom..." />
           </div>
 
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Prix</label>
-            <input required type="text" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} className={`w-full bg-white/5 border ${isPriceInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400`} placeholder="0" />
+            <input required type="text" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} className={`w-full bg-white/5 border ${isPriceInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
           </div>
 
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Stock</label>
-            <input required type="text" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400`} placeholder="0" />
+            <input required type="text" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
           </div>
 
           <button type="submit" disabled={!isFormValid} className={`h-[48px] mt-[18px] rounded-2xl font-black uppercase text-[10px] shadow-lg transition-all ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20 active:scale-95' : 'bg-white/5 text-white/20 cursor-not-allowed opacity-50'}`}>
@@ -149,27 +159,31 @@ export default function Products() {
         </form>
       </div>
 
-      <div className="space-y-2">
-        {products.map((p) => (
-          <div key={p._id} className="glass-card p-4 rounded-2xl flex justify-between items-center border-white/5 hover:bg-white/5 transition-all bg-white/5">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-ice-400/10 text-ice-400 rounded-lg"><Package size={18} /></div>
-              <div>
-                <p className="font-bold text-sm uppercase">{p.name}</p>
-                <p className="text-[10px] text-ice-400">{p.price} F</p>
+      <div className="space-y-2 pb-10">
+        {products.length === 0 ? (
+          <p className="text-center text-white/20 py-10 uppercase text-xs font-bold italic tracking-widest italic">Aucun produit en stock</p>
+        ) : (
+          products.map((p) => (
+            <div key={p._id} className="glass-card p-4 rounded-2xl flex justify-between items-center border-white/5 hover:bg-white/5 transition-all bg-white/5">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-ice-400/10 text-ice-400 rounded-lg"><Package size={18} /></div>
+                <div>
+                  <p className="font-bold text-sm uppercase">{p.name}</p>
+                  <p className="text-[10px] text-ice-400">{p.price} F</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="text-[8px] uppercase text-white/20 italic">Quantité</p>
+                  <p className={`font-black ${p.stock <= 5 ? 'text-red-500' : 'text-white'}`}>{p.stock}</p>
+                </div>
+                <button onClick={() => deleteProduct(p._id, p.name)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
+                  <Trash2 size={18} />
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-[8px] uppercase text-white/20 italic">Quantité</p>
-                <p className={`font-black ${p.stock <= 5 ? 'text-red-500 font-bold' : 'text-white'}`}>{p.stock}</p>
-              </div>
-              <button onClick={() => deleteProduct(p._id, p.name)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
-                <Trash2 size={18} />
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
