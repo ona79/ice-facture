@@ -9,7 +9,6 @@ import { toast } from 'react-hot-toast';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
-  // Ajout de 'confirmPassword' dans l'état initial
   const [formData, setFormData] = useState({ 
     shopName: '', 
     email: '', 
@@ -56,12 +55,15 @@ export default function Register() {
       tempErrors.email = "Email invalide (doit finir par .com)";
     }
 
-    // Validation Mot de passe
-    if (formData.password.length < 6) {
-      tempErrors.password = "Le mot de passe doit faire au moins 6 caractères.";
+    // --- VALIDATION MOT DE PASSE (Lettre + Chiffre + 6 à 8 caractères) ---
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
+    if (!formData.password) {
+      tempErrors.password = "Le mot de passe est requis.";
+    } else if (!passwordRegex.test(formData.password)) {
+      tempErrors.password = "Doit contenir lettres/chiffres (6-8 caractères).";
     }
 
-    // --- NOUVELLE VALIDATION : CONFIRMATION MOT DE PASSE ---
+    // Validation Confirmation
     if (!formData.confirmPassword) {
       tempErrors.confirmPassword = "Veuillez confirmer le mot de passe.";
     } else if (formData.confirmPassword !== formData.password) {
@@ -76,7 +78,6 @@ export default function Register() {
     e.preventDefault();
     if (validate()) {
       try {
-        // On envoie tout sauf confirmPassword au backend
         const { confirmPassword, ...dataToSend } = formData;
         await axios.post(`${API_URL}/api/auth/register`, dataToSend);
         
@@ -131,7 +132,7 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, shopName: e.target.value})}
             />
             {errors.shopName && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
                 <AlertCircle size={10} /> {errors.shopName}
               </p>
             )}
@@ -147,7 +148,7 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, "")})}
             />
             {errors.phone && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
                 <AlertCircle size={10} /> {errors.phone}
               </p>
             )}
@@ -163,7 +164,7 @@ export default function Register() {
               onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
             {errors.email && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
                 <AlertCircle size={10} /> {errors.email}
               </p>
             )}
@@ -174,28 +175,30 @@ export default function Register() {
             <IceInput 
               label="Mot de passe" 
               type="password"
-              placeholder="••••••••"
+              placeholder="Ex: Ab1234"
+              maxLength={8}
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
             {errors.password && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
                 <AlertCircle size={10} /> {errors.password}
               </p>
             )}
           </div>
 
-          {/* CONFIRMATION MOT DE PASSE (NOUVEAU) */}
+          {/* CONFIRMATION */}
           <div className="relative">
             <IceInput 
               label="Confirmer le mot de passe" 
               type="password"
               placeholder="••••••••"
+              maxLength={8}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
             />
             {errors.confirmPassword && (
-              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1">
+              <p className="text-red-500 text-[9px] font-black mt-1.5 ml-1 uppercase italic tracking-tighter flex items-center gap-1 animate-in slide-in-from-top-1">
                 <AlertCircle size={10} /> {errors.confirmPassword}
               </p>
             )}

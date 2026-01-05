@@ -14,6 +14,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ msg: "Le numéro de téléphone doit comporter exactement 9 chiffres." });
     }
 
+    // --- SÉCURITÉ : MOT DE PASSE (Lettres + Chiffres, 6-8 caractères) ---
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
+    if (!password || !passwordRegex.test(password)) {
+      return res.status(400).json({ 
+        msg: "Le mot de passe doit contenir des lettres et des chiffres (6 à 8 caractères)." 
+      });
+    }
+
     // Vérifier si l'email existe déjà
     let userEmail = await User.findOne({ email });
     if (userEmail) return res.status(400).json({ msg: "Cet email est déjà utilisé" });
@@ -82,7 +90,7 @@ router.put('/profile', auth, async (req, res) => {
   try {
     const { shopName, address, phone, footerMessage } = req.body;
 
-    // Validation du téléphone (Strictement 9) lors de la mise à jour
+    // Validation du téléphone (Strictement 9)
     if (phone && phone.length !== 9) {
       return res.status(400).json({ msg: "Le numéro doit comporter exactement 9 chiffres." });
     }
@@ -104,6 +112,15 @@ router.put('/profile', auth, async (req, res) => {
 router.put('/update-password', auth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
+
+    // --- SÉCURITÉ : NOUVEAU MOT DE PASSE (Lettres + Chiffres, 6-8 caractères) ---
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
+    if (!newPassword || !passwordRegex.test(newPassword)) {
+      return res.status(400).json({ 
+        msg: "Le nouveau mot de passe doit contenir des lettres et des chiffres (6 à 8 caractères)." 
+      });
+    }
+
     const user = await User.findById(req.user);
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
