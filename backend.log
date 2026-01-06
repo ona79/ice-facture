@@ -1,0 +1,5 @@
+[dotenv@17.2.3] injecting env (3) from backend/.env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+✅ CONNEXION RÉUSSIE : Base de données liée.
+🚀 SERVEUR : Lancé sur le port 5000
+2026-01-06T03:40:52.304Z - POST /api/auth/register
+2026-01-06T03:40:52.800Z - POST /api/auth/login

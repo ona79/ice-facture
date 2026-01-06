@@ -1,6 +1,6 @@
 #!/bin/bash
 # reproduce_issue.sh
-EMAIL="test_$(date +%s)@example.com"
+EMAIL="test_$(date +%s)@gmail.com"
 PASSWORD="Pass12"
 PHONE="773$(shuf -i 100000-999999 -n 1)"
 
