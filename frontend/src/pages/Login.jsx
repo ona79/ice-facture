@@ -28,7 +28,8 @@ export default function Login() {
     // NETTOYAGE CRUCIAL : On force l'email en minuscules avant l'envoi
     const cleanData = {
       ...formData,
-      email: formData.email.toLowerCase().trim()
+      email: formData.email.toLowerCase().trim(),
+      password: formData.password.trim()
     };
 
     try {
@@ -128,6 +129,7 @@ export default function Login() {
                 label="Mot de passe" 
                 icon={<Lock size={16}/>}
                 type="password"
+                maxLength={8}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}

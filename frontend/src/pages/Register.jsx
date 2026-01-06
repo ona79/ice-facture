@@ -1,26 +1,26 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck } from 'lucide-react'; 
+import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck } from 'lucide-react';
 import { IceInput } from '../components/IceInput';
 import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
-  const [formData, setFormData] = useState({ 
-    shopName: '', 
-    email: '', 
-    password: '', 
-    confirmPassword: '', 
-    phone: '' 
+  const [formData, setFormData] = useState({
+    shopName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: ''
   });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
-      const timer = setTimeout(() => setErrors({}), 4000); 
+      const timer = setTimeout(() => setErrors({}), 4000);
       return () => clearTimeout(timer);
     }
   }, [errors]);
@@ -29,7 +29,7 @@ export default function Register() {
     let tempErrors = {};
     if (!formData.shopName.trim()) tempErrors.shopName = "Le nom est requis.";
     if (!formData.phone || formData.phone.length !== 9) tempErrors.phone = "9 chiffres requis.";
-    
+
     // Validation email plus flexible mais toujours avec .com
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) tempErrors.email = "Format email invalide.";
@@ -48,25 +48,26 @@ export default function Register() {
     if (validate()) {
       try {
         const { confirmPassword, ...dataToSend } = formData;
-        
+
         // RECONNAISSANCE : On force l'email en minuscules avant l'envoi au backend
         const finalData = {
           ...dataToSend,
-          email: dataToSend.email.toLowerCase().trim()
+          email: dataToSend.email.toLowerCase().trim(),
+          password: dataToSend.password.trim()
         };
 
         await axios.post(`${API_URL}/api/auth/register`, finalData);
-        
+
         toast.success("COMPTE CRÉÉ !", {
           style: { background: '#09090b', color: '#00f2ff', border: '1px solid #00f2ff', fontSize: '10px', fontWeight: '900' }
         });
-        
+
         // Redirection après succès
         setTimeout(() => navigate('/login'), 2000);
 
       } catch (err) {
         const msg = err.response?.data?.msg || "ERREUR SERVEUR";
-        
+
         // Notification stylisée ICE si l'email ou le téléphone existe déjà
         toast(msg.toUpperCase(), {
           icon: <AlertCircle size={16} color="#00f2ff" />,
@@ -88,7 +89,7 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
       <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
-        
+
         <div className="text-center mb-10">
           <div className="inline-block p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-4">
             <UserPlus size={32} />
@@ -99,21 +100,21 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-            
+
             {/* COLONNE GAUCHE */}
             <div className="space-y-5">
               <div className="relative">
-                <IceInput label="Boutique" icon={<Store size={16}/>} value={formData.shopName} onChange={(e) => setFormData({...formData, shopName: e.target.value})}/>
+                <IceInput label="Boutique" icon={<Store size={16} />} value={formData.shopName} onChange={(e) => setFormData({ ...formData, shopName: e.target.value })} />
                 {errors.shopName && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.shopName}</p>}
               </div>
 
               <div className="relative">
-                <IceInput label="Email" icon={<Mail size={16}/>} type="email" placeholder="boutique@exemple.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}/>
+                <IceInput label="Email" icon={<Mail size={16} />} type="email" placeholder="boutique@exemple.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 {errors.email && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.email}</p>}
               </div>
 
               <div className="relative">
-                <IceInput label="Téléphone" icon={<Phone size={16}/>} maxLength={9} value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, "")})}/>
+                <IceInput label="Téléphone" icon={<Phone size={16} />} maxLength={9} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "") })} />
                 {errors.phone && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.phone}</p>}
               </div>
             </div>
@@ -121,12 +122,12 @@ export default function Register() {
             {/* COLONNE DROITE */}
             <div className="space-y-5">
               <div className="relative">
-                <IceInput label="Mot de passe" icon={<Lock size={16}/>} type="password" maxLength={8} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}/>
+                <IceInput label="Mot de passe" icon={<Lock size={16} />} type="password" maxLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
                 {errors.password && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.password}</p>}
               </div>
 
               <div className="relative">
-                <IceInput label="Confirmation" icon={<ShieldCheck size={16}/>} type="password" maxLength={8} value={formData.confirmPassword} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}/>
+                <IceInput label="Confirmation" icon={<ShieldCheck size={16} />} type="password" maxLength={8} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
                 {errors.confirmPassword && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.confirmPassword}</p>}
               </div>
 
