@@ -73,15 +73,32 @@ export default function Dashboard() {
         .slice(0, 3); // Top 3
 
       // 3. Analyse des Top Clients (VIP)
+      // 3. Analyse des Top Clients (VIP) - Logique Avancée
       const clientMap = {};
       invoices.forEach(inv => {
         const name = inv.customerName || "Passager";
         if (name.toUpperCase() !== "PASSAGER") {
-          clientMap[name] = (clientMap[name] || 0) + inv.totalAmount;
+          if (!clientMap[name]) clientMap[name] = { spent: 0, debt: 0 };
+          clientMap[name].spent += inv.totalAmount;
+          clientMap[name].debt += (inv.totalAmount - (inv.amountPaid || 0));
         }
       });
+
       const topClients = Object.entries(clientMap)
-        .sort((a, b) => b[1] - a[1]) // Tri par montant dépensé
+        .sort(([, a], [, b]) => {
+          const aHasDebt = a.debt > 0;
+          const bHasDebt = b.debt > 0;
+
+          // 1. Priorité absolue : Pas de dette
+          if (aHasDebt !== bHasDebt) return aHasDebt ? 1 : -1;
+
+          // 2. Si les deux ont des dettes : Celui qui en a le moins gagne
+          if (aHasDebt && bHasDebt) return a.debt - b.debt;
+
+          // 3. Si aucun n'a de dette : Celui qui a le plus dépensé gagne
+          return b.spent - a.spent;
+        })
+        .map(([name, data]) => [name, data.spent]) // On garde le format [Nom, MontantAffiche]
         .slice(0, 3);
 
       const sortedInvoices = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -173,9 +190,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* STATISTIQUES EN 4 COLONNES (Layout PC) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        {/* BLOC VENTES DU JOUR */}
+      {/* LIGNE 1 : METRIQUES CLÉS (3 Colonnes) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* VENTES DU JOUR */}
         <div className="glass-card p-5 rounded-3xl border-ice-400/20 bg-ice-400/5">
           <p className="text-ice-400 text-[9px] font-black uppercase tracking-widest mb-1 flex items-center gap-2">
             <TrendingUp size={12} /> Ventes du jour
@@ -189,7 +206,18 @@ export default function Dashboard() {
           <h2 className="text-2xl font-black text-ice-400">{formatFCFA(stats.totalSales)}</h2>
         </div>
 
-        {/* TOP CLIENTS (NOUVEAU) */}
+        {/* TOTAL OPÉRATIONS */}
+        <div className="glass-card p-5 rounded-3xl border-white/5">
+          <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-1 flex items-center gap-2">
+            <Target size={12} /> Opérations
+          </p>
+          <h2 className="text-2xl font-black text-white">{stats.count}</h2>
+        </div>
+      </div>
+
+      {/* LIGNE 2 : ANALYSES (2 Colonnes) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* CLIENTS VIP */}
         <div className="glass-card p-5 rounded-3xl border-yellow-500/20 bg-yellow-500/5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-all text-yellow-500"><Crown size={40} /></div>
           <p className="text-yellow-500 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -198,7 +226,7 @@ export default function Dashboard() {
           <div className="space-y-1">
             {stats.topClients.map(([name, amount], i) => (
               <div key={i} className="flex justify-between items-center text-[9px] font-bold uppercase border-b border-yellow-500/10 pb-1 last:border-0">
-                <span className="text-white/80">{i + 1}. {name.slice(0, 10)}</span>
+                <span className="text-white/80">{i + 1}. {name.slice(0, 15)}</span>
                 <span className="text-yellow-500">{formatFCFA(amount)}</span>
               </div>
             ))}
@@ -206,24 +234,18 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* TOP PRODUITS ET TOTAL OPÉRATIONS */}
-        <div className="md:col-span-2 glass-card p-5 rounded-3xl border-white/5 flex items-center justify-between">
-          <div>
-            <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Target size={12} /> Top Produits
-            </p>
-            <div className="flex gap-2">
-              {stats.topProducts.map(([name, qty], i) => (
-                <span key={i} className="text-[10px] font-black bg-white/5 px-3 py-1 rounded-full border border-white/10 uppercase">
-                  {name} <span className="text-ice-400 ml-1">{qty}</span>
-                </span>
-              ))}
-              {stats.topProducts.length === 0 && <span className="text-[10px] text-white/20 uppercase">Aucune donnée</span>}
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-1">Opérations</p>
-            <h2 className="text-2xl font-black text-white">{stats.count}</h2>
+        {/* TOP PRODUITS */}
+        <div className="glass-card p-5 rounded-3xl border-white/5">
+          <p className="text-ice-100/40 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+            <Package size={12} /> Top Produits
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {stats.topProducts.map(([name, qty], i) => (
+              <span key={i} className="text-[10px] font-black bg-white/5 px-3 py-1 rounded-full border border-white/10 uppercase">
+                {name} <span className="text-ice-400 ml-1">{qty}</span>
+              </span>
+            ))}
+            {stats.topProducts.length === 0 && <span className="text-[10px] text-white/20 uppercase">Aucune donnée</span>}
           </div>
         </div>
       </div>
