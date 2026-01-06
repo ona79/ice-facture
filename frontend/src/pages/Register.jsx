@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck } from 'lucide-react';
 import { IceInput } from '../components/IceInput';
+import { PhoneInput } from '../components/PhoneInput';
 import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -30,9 +32,26 @@ export default function Register() {
     if (!formData.shopName.trim()) tempErrors.shopName = "Le nom est requis.";
     if (!formData.phone || formData.phone.length !== 9) tempErrors.phone = "9 chiffres requis.";
 
-    // Validation email plus flexible mais toujours avec .com
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) tempErrors.email = "Format email invalide.";
+    // Validation email stricte : uniquement @gmail.com
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!emailRegex.test(formData.email)) {
+      tempErrors.email = "Un compte Gmail est requis (@gmail.com).";
+
+      // Notification stylisée pour l'erreur Google
+      toast("COMPTE GMAIL REQUIS", {
+        icon: <AlertCircle size={16} color="#00f2ff" />,
+        style: {
+          background: 'rgba(0, 242, 255, 0.05)',
+          color: '#00f2ff',
+          border: '1px solid rgba(0, 242, 255, 0.2)',
+          backdropFilter: 'blur(10px)',
+          fontSize: '10px',
+          fontWeight: '900',
+          textTransform: 'uppercase',
+          borderRadius: '15px'
+        }
+      });
+    }
 
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
     if (!passwordRegex.test(formData.password)) tempErrors.password = "6-8 car. (Lettres+Chiffres)";
@@ -56,7 +75,7 @@ export default function Register() {
           password: dataToSend.password.trim()
         };
 
-        await axios.post(`${API_URL}/api/auth/register`, finalData);
+        await axios.post(`${API_URL} /api/auth / register`, finalData);
 
         toast.success("COMPTE CRÉÉ !", {
           style: { background: '#09090b', color: '#00f2ff', border: '1px solid #00f2ff', fontSize: '10px', fontWeight: '900' }
@@ -104,7 +123,7 @@ export default function Register() {
             {/* COLONNE GAUCHE */}
             <div className="space-y-5">
               <div className="relative">
-                <IceInput label="Boutique" icon={<Store size={16} />} value={formData.shopName} onChange={(e) => setFormData({ ...formData, shopName: e.target.value })} />
+                <IceInput label="Boutique" icon={<Store size={16} />} placeholder="Donnez le nom de votre boutique..." value={formData.shopName} onChange={(e) => setFormData({ ...formData, shopName: e.target.value })} />
                 {errors.shopName && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.shopName}</p>}
               </div>
 
@@ -114,20 +133,24 @@ export default function Register() {
               </div>
 
               <div className="relative">
-                <IceInput label="Téléphone" icon={<Phone size={16} />} maxLength={9} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "") })} />
-                {errors.phone && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.phone}</p>}
+                <PhoneInput
+                  label="Téléphone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "") })}
+                  error={errors.phone}
+                />
               </div>
             </div>
 
             {/* COLONNE DROITE */}
             <div className="space-y-5">
               <div className="relative">
-                <IceInput label="Mot de passe" icon={<Lock size={16} />} type="password" maxLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                <IceInput label="Mot de passe" icon={<Lock size={16} />} type="password" maxLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} autoComplete="new-password" />
                 {errors.password && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.password}</p>}
               </div>
 
               <div className="relative">
-                <IceInput label="Confirmation" icon={<ShieldCheck size={16} />} type="password" maxLength={8} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
+                <IceInput label="Confirmation" icon={<ShieldCheck size={16} />} type="password" maxLength={8} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} autoComplete="new-password" />
                 {errors.confirmPassword && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.confirmPassword}</p>}
               </div>
 

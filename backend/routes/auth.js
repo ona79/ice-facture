@@ -12,14 +12,19 @@ router.post('/register', async (req, res) => {
     // Conversion de l'email en minuscules
     const cleanEmail = email.toLowerCase().trim();
 
+    // Restriction stricte aux emails Gmail
+    if (!cleanEmail.endsWith('@gmail.com')) {
+      return res.status(400).json({ msg: "Seuls les comptes Gmail (@gmail.com) sont autorisés." });
+    }
+
     if (!phone || phone.length !== 9) {
       return res.status(400).json({ msg: "Le numéro de téléphone doit comporter exactement 9 chiffres." });
     }
 
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
     if (!password || !passwordRegex.test(password)) {
-      return res.status(400).json({ 
-        msg: "Le mot de passe doit contenir des lettres et des chiffres (6 à 8 caractères)." 
+      return res.status(400).json({
+        msg: "Le mot de passe doit contenir des lettres et des chiffres (6 à 8 caractères)."
       });
     }
 
@@ -54,9 +59,9 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     const cleanEmail = email.toLowerCase().trim();
-    
+
     const user = await User.findOne({ email: cleanEmail });
     if (!user) return res.status(400).json({ msg: "Utilisateur non trouvé ou email incorrect" });
 
@@ -65,10 +70,10 @@ router.post('/login', async (req, res) => {
 
     const payload = { user: { id: user._id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
-    
-    res.json({ 
-      token, 
-      user: { id: user._id, shopName: user.shopName } 
+
+    res.json({
+      token,
+      user: { id: user._id, shopName: user.shopName }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -96,8 +101,8 @@ router.put('/profile', auth, async (req, res) => {
     }
 
     if (phone) {
-        const existing = await User.findOne({ phone, _id: { $ne: req.user.id } });
-        if (existing) return res.status(400).json({ msg: "Ce numéro est déjà utilisé" });
+      const existing = await User.findOne({ phone, _id: { $ne: req.user.id } });
+      if (existing) return res.status(400).json({ msg: "Ce numéro est déjà utilisé" });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -120,8 +125,8 @@ router.put('/update-password', auth, async (req, res) => {
 
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
     if (!newPassword || !passwordRegex.test(newPassword)) {
-      return res.status(400).json({ 
-        msg: "Le nouveau mot de passe doit contenir des lettres et des chiffres (6 à 8 caractères)." 
+      return res.status(400).json({
+        msg: "Le nouveau mot de passe doit contenir des lettres et des chiffres (6 à 8 caractères)."
       });
     }
 
@@ -133,7 +138,7 @@ router.put('/update-password', auth, async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
-    
+
     await user.save();
     res.json({ msg: "Mot de passe mis à jour avec succès" });
   } catch (err) {
@@ -152,7 +157,7 @@ router.post('/verify-password', auth, async (req, res) => {
     if (!user) return res.status(404).json({ msg: "Utilisateur non trouvé" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (isMatch) {
       // On renvoie success true pour débloquer le frontend
       return res.json({ success: true, msg: "Accès autorisé" });

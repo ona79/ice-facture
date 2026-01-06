@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  ArrowLeft, Download, Calendar, Search, 
-  FileText, Trash2, X, Lock, Eye, FilterX, Banknote, MessageCircle, ListFilter, Clock, User, Printer 
+import {
+  ArrowLeft, Download, Calendar, Search,
+  FileText, Trash2, X, Lock, Eye, FilterX, Banknote, MessageCircle, ListFilter, Clock, User, Printer
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { generatePDF } from '../utils/generatePDF';
@@ -59,7 +59,7 @@ export default function History() {
 
     const loadingToast = toast.loading("Mise à jour...");
     try {
-      await axios.patch(`${API_URL}/api/invoices/${modalPay.invoice._id}/pay`, 
+      await axios.patch(`${API_URL}/api/invoices/${modalPay.invoice._id}/pay`,
         { amount: montantSaisi }, config
       );
       toast.dismiss(loadingToast);
@@ -75,9 +75,9 @@ export default function History() {
   const handleDeleteInvoice = async (e) => {
     e.preventDefault();
     try {
-      await axios.delete(`${API_URL}/api/invoices/${modalDelete.id}`, { 
-        headers: config.headers, 
-        data: { password } 
+      await axios.delete(`${API_URL}/api/invoices/${modalDelete.id}`, {
+        headers: config.headers,
+        data: { password }
       });
       toast.success("Vente supprimée");
       setModalDelete({ show: false, id: null, num: '' });
@@ -91,8 +91,11 @@ export default function History() {
   // --- FONCTION WHATSAPP CORRIGÉE (Fidèle & Directe) ---
   const handleWhatsApp = (inv) => {
     const displayNum = formatInvoiceDisplay(inv);
-    const message = `Bonjour ${inv.customerName || 'Client'}, voici votre facture ${displayNum} d'un montant de ${inv.totalAmount.toLocaleString()} F. Merci de votre confiance !`;
-    
+    const shopName = localStorage.getItem('shopName') || "votre boutique";
+
+    // Message optimisé et engageant
+    const message = `Bonjour ${inv.customerName || 'Client'} 👋,\n\nMerci pour votre visite chez *${shopName}* !\nVoici votre facture *${displayNum}* d'un montant de *${inv.totalAmount.toLocaleString()} F*.\n\nVous trouverez le détail ci-dessous. À bientôt ! 🚀`;
+
     // Si un numéro est enregistré, on l'utilise directement
     if (inv.customerPhone && inv.customerPhone.trim() !== "") {
       const cleanPhone = inv.customerPhone.replace(/\D/g, '');
@@ -126,24 +129,24 @@ export default function History() {
 
   return (
     <div className="p-3 md:p-5 max-w-5xl mx-auto min-h-screen text-white font-sans">
-      
+
       {/* MODAL PAIEMENT */}
       {modalPay.show && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm">
           <div className="glass-card w-full max-w-sm p-6 rounded-[2rem] border-orange-500/20 relative shadow-2xl">
-            <button onClick={() => setModalPay({show:false})} className="absolute top-5 right-5 text-white/20"><X size={18}/></button>
+            <button onClick={() => setModalPay({ show: false })} className="absolute top-5 right-5 text-white/20"><X size={18} /></button>
             <div className="text-center">
               <div className="p-3 bg-orange-500/10 text-orange-500 rounded-2xl mb-3 inline-block"><Banknote size={24} /></div>
               <h3 className="text-xl font-black italic uppercase tracking-tighter">{modalPay.invoice.customerName || 'Client'}</h3>
               <p className="text-white/30 text-[9px] uppercase mb-6 italic">Reste à payer : <span className="text-orange-500">{(modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0)).toLocaleString()} F</span></p>
-              
+
               <form onSubmit={handleSettleDebt} className="space-y-3">
-                <IceInput 
-                  type="number" 
-                  value={modalPay.amount} 
-                  onChange={(e) => setModalPay({...modalPay, amount: e.target.value})} 
-                  placeholder="MONTANT VERSÉ" 
-                  required 
+                <IceInput
+                  type="number"
+                  value={modalPay.amount}
+                  onChange={(e) => setModalPay({ ...modalPay, amount: e.target.value })}
+                  placeholder="MONTANT VERSÉ"
+                  required
                 />
                 <button type="submit" className="w-full py-3 rounded-xl font-black bg-orange-500 text-white uppercase text-xs active:scale-95 transition-all shadow-lg shadow-orange-500/20">Valider le paiement</button>
               </form>
@@ -156,7 +159,7 @@ export default function History() {
       {modalDetail.show && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
           <div className="glass-card w-full max-w-md p-5 rounded-[1.5rem] border-white/10 relative shadow-2xl animate-in zoom-in duration-150">
-            <button onClick={() => setModalDetail({show:false})} className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"><X size={18}/></button>
+            <button onClick={() => setModalDetail({ show: false })} className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"><X size={18} /></button>
             <div className="mb-4">
               <h3 className="text-lg font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
               <p className="text-[8px] font-black uppercase text-white/30 tracking-[0.2em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
@@ -186,7 +189,7 @@ export default function History() {
                 <p className="text-[7px] font-black uppercase text-white/20 mb-1">Total Facture</p>
                 <p className="text-2xl font-black italic text-ice-400 leading-none">{modalDetail.invoice.totalAmount.toLocaleString()} F</p>
               </div>
-              <button onClick={() => generatePDF({...modalDetail.invoice, invoiceNumber: formatInvoiceDisplay(modalDetail.invoice)})} className="flex items-center gap-2 bg-ice-400 text-ice-900 px-4 py-2 rounded-lg font-black uppercase text-[9px] hover:scale-105 transition-all shadow-lg shadow-ice-400/20">
+              <button onClick={() => generatePDF({ ...modalDetail.invoice, invoiceNumber: formatInvoiceDisplay(modalDetail.invoice) })} className="flex items-center gap-2 bg-ice-400 text-ice-900 px-4 py-2 rounded-lg font-black uppercase text-[9px] hover:scale-105 transition-all shadow-lg shadow-ice-400/20">
                 <Printer size={14} /> Imprimer
               </button>
             </div>
@@ -198,7 +201,7 @@ export default function History() {
       {modalDelete.show && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
           <div className="glass-card w-full max-w-sm p-6 rounded-[2rem] border-white/10 relative shadow-2xl text-center">
-            <button onClick={() => setModalDelete({show:false})} className="absolute top-5 right-5 text-white/20"><X size={18}/></button>
+            <button onClick={() => setModalDelete({ show: false })} className="absolute top-5 right-5 text-white/20"><X size={18} /></button>
             <div className="p-3 bg-red-500/10 text-red-500 rounded-2xl mb-4 inline-block"><Lock size={24} /></div>
             <h3 className="text-xl font-black italic uppercase mb-1">votre mot de pass</h3>
             <p className="text-[8px] font-black uppercase text-white/20 mb-6">{modalDelete.num}</p>
@@ -259,20 +262,20 @@ export default function History() {
                   <p className="text-sm font-black italic">{Math.round(inv.totalAmount).toLocaleString()} F</p>
                   <p className="text-[6px] text-white/20 font-black uppercase">{new Date(inv.createdAt).toLocaleDateString()}</p>
                 </div>
-                
+
                 <div className="flex gap-1">
                   {/* BOUTON WHATSAPP RELIÉ AU NUMÉRO */}
-                  <button 
-                    onClick={() => handleWhatsApp(inv)} 
+                  <button
+                    onClick={() => handleWhatsApp(inv)}
                     className={`p-2 rounded-lg transition-all ${inv.customerPhone ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/20'}`}
                   >
                     <MessageCircle size={14} />
                   </button>
 
                   <button onClick={() => setModalDetail({ show: true, invoice: inv })} className="p-2 bg-white/5 text-white/40 rounded-lg hover:text-ice-400 transition-all"><Eye size={14} /></button>
-                  {reste > 0 && <button onClick={() => setModalPay({show: true, invoice: inv, amount: ""})} className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10"><Banknote size={14} /></button>}
-                  <button onClick={() => generatePDF({...inv, invoiceNumber: displayNum})} className="p-2 bg-ice-400 text-ice-900 rounded-lg hover:bg-ice-300 transition-all shadow-md shadow-ice-400/10"><Download size={14} /></button>
-                  <button onClick={() => setModalDelete({show: true, id: inv._id, num: displayNum})} className="p-2 bg-white/5 text-red-500/30 hover:text-red-500 rounded-lg transition-all"><Trash2 size={14} /></button>
+                  {reste > 0 && <button onClick={() => setModalPay({ show: true, invoice: inv, amount: "" })} className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10"><Banknote size={14} /></button>}
+                  <button onClick={() => generatePDF({ ...inv, invoiceNumber: displayNum })} className="p-2 bg-ice-400 text-ice-900 rounded-lg hover:bg-ice-300 transition-all shadow-md shadow-ice-400/10"><Download size={14} /></button>
+                  <button onClick={() => setModalDelete({ show: true, id: inv._id, num: displayNum })} className="p-2 bg-white/5 text-red-500/30 hover:text-red-500 rounded-lg transition-all"><Trash2 size={14} /></button>
                 </div>
               </div>
             </div>

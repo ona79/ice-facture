@@ -3,30 +3,31 @@ import axios from 'axios';
 import { ArrowLeft, Save, Lock, X, ShieldCheck, AlertTriangle, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { IceInput } from '../components/IceInput';
+import { PhoneInput } from '../components/PhoneInput';
 import toast from 'react-hot-toast';
 
 // Utilisation de l'URL Render
 const API_URL = import.meta.env.VITE_API_URL || "https://ton-api-backend.onrender.com";
 
 export default function Settings() {
-  const [formData, setFormData] = useState({ 
-    shopName: '', 
-    address: '', 
-    phone: '', 
-    footerMessage: '' 
+  const [formData, setFormData] = useState({
+    shopName: '',
+    address: '',
+    phone: '',
+    footerMessage: ''
   });
 
-  const [passData, setPassData] = useState({ 
-    oldPassword: '', 
-    newPassword: '', 
-    confirmPassword: '' 
+  const [passData, setPassData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   const [isLocked, setIsLocked] = useState(true);
   const [accessPassword, setAccessPassword] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [errors, setErrors] = useState({}); 
-  
+  const [errors, setErrors] = useState({});
+
   const navigate = useNavigate();
 
   // Correction : Fonction pour récupérer le token frais à chaque appel
@@ -62,7 +63,7 @@ export default function Settings() {
     e.preventDefault();
     const loading = toast.loading("Vérification...");
     try {
-      await axios.post(`${API_URL}/api/auth/verify-password`, { password: accessPassword }, getAuthHeader());
+      await axios.post(`${API_URL}/api/auth/verify-password`, { password: accessPassword.trim() }, getAuthHeader());
       setIsLocked(false);
       toast.dismiss(loading);
       toast.success("Accès autorisé");
@@ -119,7 +120,7 @@ export default function Settings() {
         oldPassword: passData.oldPassword,
         newPassword: passData.newPassword
       }, getAuthHeader());
-      
+
       toast.success("Sécurité mise à jour");
       setPassData({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
@@ -131,18 +132,19 @@ export default function Settings() {
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
         <div className="glass-card w-full max-w-md p-8 rounded-[3rem] border-white/10 shadow-2xl relative bg-white/5">
-          <button onClick={() => navigate('/dashboard')} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"><X size={20}/></button>
+          <button onClick={() => navigate('/dashboard')} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"><X size={20} /></button>
           <div className="flex flex-col items-center text-center">
             <div className="p-5 bg-ice-400/10 text-ice-400 rounded-3xl mb-6 shadow-inner"><Lock size={38} /></div>
             <h3 className="text-2xl font-black italic uppercase mb-2 tracking-tighter text-white">Accès Restreint</h3>
             <p className="text-ice-100/50 text-sm mb-8 leading-relaxed">Confirmez votre identité pour modifier les réglages.</p>
             <form onSubmit={handleVerifyAccess} className="w-full space-y-4 text-left">
-              <IceInput 
-                label="Saisir votre mot de passe" 
-                type="password" 
-                value={accessPassword} 
+              <IceInput
+                label="Saisir votre mot de passe"
+                type="password"
+                value={accessPassword}
                 onChange={(e) => setAccessPassword(e.target.value)}
                 autoComplete="new-password"
+                maxLength={8}
                 required
               />
               <button type="submit" className="w-full py-5 rounded-2xl bg-ice-400 text-ice-900 font-black uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-ice-400/20 active:scale-95 transition-all">
@@ -167,35 +169,39 @@ export default function Settings() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        
+
         {/* IDENTITÉ BOUTIQUE */}
         <form onSubmit={handleSaveProfile} className="glass-card p-8 rounded-[2.5rem] space-y-6 border-white/5 shadow-2xl text-left bg-white/5">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-ice-400/10 rounded-lg"><Save size={18} className="text-ice-400" /></div>
             <h2 className="text-sm font-black uppercase italic tracking-widest">Identité Boutique</h2>
           </div>
-          
+
           <div className="space-y-4">
             <div>
-              <IceInput label="Nom de la boutique" value={formData.shopName} onChange={(e) => setFormData({...formData, shopName: e.target.value})} />
-              {errors.shopName && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic animate-in slide-in-from-top-1"><AlertTriangle size={10}/> {errors.shopName}</p>}
+              <IceInput label="Nom de la boutique" placeholder="Donnez le nom de votre boutique..." value={formData.shopName} onChange={(e) => setFormData({ ...formData, shopName: e.target.value })} />
+              {errors.shopName && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic animate-in slide-in-from-top-1"><AlertTriangle size={10} /> {errors.shopName}</p>}
             </div>
-            
+
             <div>
-              <IceInput label="Téléphone (9 chiffres)" maxLength={9} value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, "")})} />
-              {errors.phone && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic animate-in slide-in-from-top-1"><AlertTriangle size={10}/> {errors.phone}</p>}
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-ice-100/40 italic">Adresse de résidence</label>
-              <textarea 
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-ice-400 outline-none h-24 resize-none text-sm transition-all text-white"
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
+              <PhoneInput
+                label="Téléphone (9 chiffres)"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "") })}
+                error={errors.phone}
               />
             </div>
 
-            <IceInput label="Message pied de page" value={formData.footerMessage} onChange={(e) => setFormData({...formData, footerMessage: e.target.value})} />
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-ice-100/40 italic">Adresse de résidence</label>
+              <textarea
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-ice-400 outline-none h-24 resize-none text-sm transition-all text-white"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+
+            <IceInput label="Message pied de page" value={formData.footerMessage} onChange={(e) => setFormData({ ...formData, footerMessage: e.target.value })} />
           </div>
 
           <button disabled={isSaving} className="w-full bg-ice-400 text-ice-900 font-black py-4 rounded-2xl uppercase text-xs hover:bg-white transition-all shadow-xl shadow-ice-400/20 mt-4 active:scale-95">
@@ -212,20 +218,20 @@ export default function Settings() {
 
           <div className="space-y-4">
             <div>
-              <IceInput label="Ancien mot de passe" type="password" value={passData.oldPassword} onChange={(e) => setPassData({...passData, oldPassword: e.target.value})} required />
-              {errors.auth && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10}/> {errors.auth}</p>}
+              <IceInput label="Ancien mot de passe" type="password" maxLength={8} value={passData.oldPassword} onChange={(e) => setPassData({ ...passData, oldPassword: e.target.value })} required autoComplete="new-password" />
+              {errors.auth && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10} /> {errors.auth}</p>}
             </div>
 
             <div className="h-px bg-white/5 mx-4 my-2"></div>
 
             <div>
-              <IceInput label="Nouveau mot de passe" type="password" maxLength={8} value={passData.newPassword} onChange={(e) => setPassData({...passData, newPassword: e.target.value})} placeholder="6-8 car. (A-z + 0-9)" required />
-              {errors.newPassword && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10}/> {errors.newPassword}</p>}
+              <IceInput label="Nouveau mot de passe" type="password" maxLength={8} value={passData.newPassword} onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })} placeholder="6-8 car. (A-z + 0-9)" required autoComplete="new-password" />
+              {errors.newPassword && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10} /> {errors.newPassword}</p>}
             </div>
 
             <div>
-              <IceInput label="Confirmer nouveau" type="password" maxLength={8} value={passData.confirmPassword} onChange={(e) => setPassData({...passData, confirmPassword: e.target.value})} required />
-              {errors.confirmPassword && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10}/> {errors.confirmPassword}</p>}
+              <IceInput label="Confirmer nouveau" type="password" maxLength={8} value={passData.confirmPassword} onChange={(e) => setPassData({ ...passData, confirmPassword: e.target.value })} required autoComplete="new-password" />
+              {errors.confirmPassword && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10} /> {errors.confirmPassword}</p>}
             </div>
           </div>
 

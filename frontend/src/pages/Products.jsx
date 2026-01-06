@@ -12,7 +12,7 @@ export default function Products() {
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '' });
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [accessPassword, setAccessPassword] = useState('');
-  
+
   const navigate = useNavigate();
 
   // Header de sécurité avec Token
@@ -43,16 +43,16 @@ export default function Products() {
   const handleUnlock = async (e) => {
     e.preventDefault();
     if (!accessPassword) return toast.error("Entrez un mot de passe");
-    
+
     const loading = toast.loading("Vérification...");
     try {
       // On envoie le password nettoyé (.trim())
       const res = await axios.post(
-        `${API_URL}/api/auth/verify-password`, 
-        { password: accessPassword.trim() }, 
+        `${API_URL}/api/auth/verify-password`,
+        { password: accessPassword.trim() },
         getAuthHeader()
       );
-      
+
       // Si le serveur répond 200 ou success:true
       setIsUnlocked(true);
       toast.dismiss(loading);
@@ -97,21 +97,24 @@ export default function Products() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black p-4 font-sans">
         <div className="glass-card w-full max-w-sm p-10 rounded-[2.5rem] border-white/10 text-center shadow-2xl bg-white/5 backdrop-blur-md">
-          <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6 shadow-inner"><Lock size={40}/></div>
+          <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6 shadow-inner"><Lock size={40} /></div>
           <h2 className="text-xl font-black uppercase italic mb-2 text-white tracking-tighter">Catalogue Protégé</h2>
           <p className="text-[10px] text-white/40 uppercase tracking-widest mb-8 leading-relaxed">Saisir votre mot de passe</p>
-          
+
           <form onSubmit={handleUnlock} className="space-y-4">
-            <input 
-              autoFocus
-              type="password" 
-              placeholder="Mot de passe..."
-              // Ajout de text-white et forcing du style pour éviter le fond jaune autocomplétion
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center transition-all placeholder:text-white/20"
-              style={{ colorScheme: 'dark' }}
-              value={accessPassword}
-              onChange={(e) => setAccessPassword(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                autoFocus
+                type="password"
+                placeholder="Mot de passe..."
+                maxLength={8}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center transition-all placeholder:text-white/20 font-bold tracking-widest"
+                style={{ colorScheme: 'dark' }}
+                value={accessPassword}
+                onChange={(e) => setAccessPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
             <button type="submit" className="w-full py-4 bg-ice-400 text-ice-900 rounded-2xl font-black uppercase text-xs shadow-lg shadow-ice-400/20 active:scale-95 transition-all">
               Déverrouiller
             </button>
@@ -140,17 +143,17 @@ export default function Products() {
         <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
-            <input required type="text" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="Nom..." />
+            <input required type="text" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="Nom..." />
           </div>
 
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Prix</label>
-            <input required type="text" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} className={`w-full bg-white/5 border ${isPriceInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
+            <input required type="text" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className={`w-full bg-white/5 border ${isPriceInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
           </div>
 
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Stock</label>
-            <input required type="text" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
+            <input required type="text" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
           </div>
 
           <button type="submit" disabled={!isFormValid} className={`h-[48px] mt-[18px] rounded-2xl font-black uppercase text-[10px] shadow-lg transition-all ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20 active:scale-95' : 'bg-white/5 text-white/20 cursor-not-allowed opacity-50'}`}>
