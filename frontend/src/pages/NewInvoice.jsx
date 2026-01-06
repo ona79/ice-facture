@@ -21,6 +21,8 @@ export default function NewInvoice() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [isProfileComplete, setIsProfileComplete] = useState(true);
 
+  const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'cart'
+
   const navigate = useNavigate();
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
 
@@ -129,9 +131,9 @@ export default function NewInvoice() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 lg:pb-0">
         {/* CATALOGUE */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className={`lg:col-span-7 space-y-4 ${activeTab === 'cart' ? 'hidden lg:block' : ''}`}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
             <input
@@ -159,7 +161,14 @@ export default function NewInvoice() {
         </div>
 
         {/* PANIER */}
-        <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-white/[0.02] backdrop-blur-md">
+        <div className={`lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-white/[0.02] backdrop-blur-md ${activeTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+          {/* Mobile Back Button */}
+          <button
+            onClick={() => setActiveTab('catalog')}
+            className="lg:hidden p-4 flex items-center gap-2 text-ice-400 font-black uppercase text-[10px]"
+          >
+            <ArrowLeft size={14} /> Retour au catalogue
+          </button>
 
           {!isProfileComplete && (
             <div className="bg-red-500/20 border-b border-red-500/20 py-2 px-4 flex items-center justify-between animate-pulse">
@@ -301,6 +310,25 @@ export default function NewInvoice() {
 
 
         </div>
+      </div>
+
+      {/* MOBILE FLOATING FOOTER (Only in Catalog Tab) */}
+      <div className={`fixed bottom-0 left-0 w-full p-4 bg-black/90 backdrop-blur-xl border-t border-white/10 lg:hidden flex justify-between items-center z-50 ${activeTab === 'cart' ? 'hidden' : ''}`}>
+        <div className="flex flex-col">
+          <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">Votre Panier</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-black text-white">{items.length} <span className="text-[10px] mobile-text">ARTICLES</span></span>
+            <span className="text-[10px] text-ice-400 font-bold">~ {total.toLocaleString()} F</span>
+          </div>
+        </div>
+        <button
+          onClick={() => setActiveTab('cart')}
+          disabled={items.length === 0}
+          className={`px-6 py-3 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 shadow-lg ${items.length === 0 ? 'bg-white/10 text-white/20' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 animate-pulse'}`}
+        >
+          <span>Voir Panier</span>
+          <ShoppingCart size={14} />
+        </button>
       </div>
     </motion.div>
   );
