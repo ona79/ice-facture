@@ -75,7 +75,7 @@ export default function Register() {
           password: dataToSend.password.trim()
         };
 
-        await axios.post(`${API_URL} /api/auth / register`, finalData);
+        await axios.post(`${API_URL}/api/auth/register`, finalData);
 
         toast.success("COMPTE CRÉÉ !", {
           style: { background: '#09090b', color: '#00f2ff', border: '1px solid #00f2ff', fontSize: '10px', fontWeight: '900' }

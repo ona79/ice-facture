@@ -28,7 +28,7 @@ export default function History() {
 
   const fetchInvoices = async () => {
     try {
-      const res = await axios.get(`${API_URL} /api/invoices`, config);
+      const res = await axios.get(`${API_URL}/api/invoices`, config);
       const sortedData = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setInvoices(sortedData);
     } catch (err) {
