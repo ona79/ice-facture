@@ -178,31 +178,53 @@ export default function NewInvoice() {
             </h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-            {items.map(item => (
-              <div key={item.productId} className="flex flex-col bg-white/[0.02] p-3 rounded-xl border border-white/5 gap-2">
-                <div className="flex justify-between items-center">
-                  <p className="text-[11px] font-black uppercase truncate flex-1">{item.name}</p>
-                  <div className="flex items-center bg-black/40 rounded-lg p-1">
-                    <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus size={12} /></button>
-                    <span className="text-[10px] font-black w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus size={12} /></button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-white/30 uppercase">Prix U. :</span>
-                  <input
-                    type="number"
-                    value={item.price === 0 && !item.isPriceSet ? "" : item.price}
-                    onChange={(e) => updatePrice(item.productId, e.target.value)}
-                    placeholder="Prix..."
-                    className={`w-20 bg-black/40 border ${!item.isPriceSet ? 'border-orange-500/50 animate-pulse' : 'border-white/10'} rounded-lg px-2 py-1 text-[10px] text-white outline-none focus:border-ice-400`}
-                    autoFocus={!item.isPriceSet}
-                  />
-                  <span className="text-[9px] text-ice-400 ml-auto">= {(item.price * item.quantity).toLocaleString()} F</span>
-                </div>
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-white/20 italic">
+                <ShoppingCart size={48} className="mb-4 opacity-50" />
+                <p className="text-xs uppercase font-bold tracking-widest">Votre panier est vide</p>
               </div>
-            ))}
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="text-[9px] uppercase font-black text-white/30 border-b border-white/10">
+                    <th className="py-2 pl-2">Produit</th>
+                    <th className="py-2 text-center">Qté</th>
+                    <th className="py-2 w-32">Prix</th>
+                    <th className="py-2 text-right pr-2">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {items.map(item => (
+                    <tr key={item.productId} className="group hover:bg-white/5 transition-colors">
+                      <td className="py-3 pl-2 max-w-[100px]">
+                        <div className="font-black text-[10px] uppercase truncate">{item.name}</div>
+                      </td>
+                      <td className="py-3 text-center">
+                        <div className="flex items-center justify-center bg-black/40 rounded-lg p-1 w-fit mx-auto">
+                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1 hover:text-white text-white/50 transition-colors"><Minus size={10} /></button>
+                          <span className="text-[10px] font-black w-6 text-center">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1 hover:text-white text-white/50 transition-colors"><Plus size={10} /></button>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <input
+                          type="number"
+                          value={item.price === 0 && !item.isPriceSet ? "" : item.price}
+                          onChange={(e) => updatePrice(item.productId, e.target.value)}
+                          placeholder="0 F"
+                          className={`w-full bg-black/40 border ${!item.isPriceSet ? 'border-orange-500/50 animate-pulse' : 'border-white/10'} rounded-lg px-3 py-2 text-[11px] font-bold text-white outline-none focus:border-ice-400 focus:bg-black/60 transition-all`}
+                          autoFocus={!item.isPriceSet}
+                        />
+                      </td>
+                      <td className="py-3 pr-2 text-right">
+                        <div className="text-[10px] font-black text-ice-400">{(item.price * item.quantity).toLocaleString()} F</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           <div className="p-6 bg-white/[0.03] border-t border-white/10 space-y-4">

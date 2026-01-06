@@ -61,7 +61,7 @@ export default function History() {
 
     const loadingToast = toast.loading("Mise à jour...");
     try {
-      await axios.patch(`${API_URL} /api/invoices / ${modalPay.invoice._id}/pay`,
+      await axios.patch(`${API_URL}/api/invoices/${modalPay.invoice._id}/pay`,
         { amount: montantSaisi }, config
       );
       toast.dismiss(loadingToast);
