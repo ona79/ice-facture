@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ArrowLeft, Plus, Trash2, Package, Lock, Unlock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Package, Lock, Unlock, AlertCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -11,7 +11,11 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '' });
   const [isUnlocked, setIsUnlocked] = useState(false);
+
   const [accessPassword, setAccessPassword] = useState('');
+  // State pour la suppression sécurisée
+  const [modalDelete, setModalDelete] = useState({ show: false, id: null, name: '' });
+  const [deletePassword, setDeletePassword] = useState('');
 
   const navigate = useNavigate();
 
@@ -81,14 +85,26 @@ export default function Products() {
     }
   };
 
-  const deleteProduct = async (id, name) => {
-    if (!window.confirm(`Supprimer définitivement ${name} ?`)) return;
+  const confirmDeleteProduct = (id, name) => {
+    setModalDelete({ show: true, id, name });
+    setDeletePassword('');
+  };
+
+  const handleFinalDelete = async (e) => {
+    e.preventDefault();
+    const loading = toast.loading("Suppression...");
     try {
-      await axios.delete(`${API_URL}/api/products/${id}`, getAuthHeader());
+      await axios.delete(`${API_URL}/api/products/${modalDelete.id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        data: { password: deletePassword }
+      });
+      toast.dismiss(loading);
       toast.success("Produit supprimé");
+      setModalDelete({ show: false, id: null, name: '' });
       fetchProducts();
     } catch (err) {
-      toast.error("Erreur lors de la suppression");
+      toast.dismiss(loading);
+      toast.error(err.response?.data?.msg || "Mot de passe incorrect");
     }
   };
 
@@ -139,6 +155,37 @@ export default function Products() {
 
       <h1 className="text-2xl font-black italic mb-8 uppercase tracking-widest text-white">Inventaire</h1>
 
+      {/* MODAL SUPPRESSION SÉCURISÉE */}
+      {modalDelete.show && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border-white/10 shadow-2xl relative">
+            <button onClick={() => setModalDelete({ show: false })} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
+            <div className="flex flex-col items-center text-center">
+              <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-6"><Trash2 size={32} /></div>
+              <h3 className="text-xl font-black italic uppercase mb-2">Supprimer ?</h3>
+              <p className="text-ice-100/50 text-xs mb-6 uppercase">{modalDelete.name}</p>
+
+              <form onSubmit={handleFinalDelete} className="w-full space-y-4">
+                <div className="relative">
+                  <input
+                    autoFocus
+                    type="password"
+                    placeholder="Mot de passe..."
+                    maxLength={8}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white outline-none focus:border-red-500 text-center transition-all placeholder:text-white/20 font-bold tracking-widest"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-red-500 shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+                  Confirmer la suppression
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
         <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
           <div className="relative">
@@ -180,7 +227,7 @@ export default function Products() {
                   <p className="text-[8px] uppercase text-white/20 italic">Quantité</p>
                   <p className={`font-black ${p.stock <= 5 ? 'text-red-500' : 'text-white'}`}>{p.stock}</p>
                 </div>
-                <button onClick={() => deleteProduct(p._id, p.name)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
+                <button onClick={() => confirmDeleteProduct(p._id, p.name)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
                   <Trash2 size={18} />
                 </button>
               </div>
