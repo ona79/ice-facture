@@ -67,6 +67,17 @@ export default function History() {
       toast.dismiss(loadingToast);
       toast.success("PAIEMENT ENREGISTRÉ");
       setModalPay({ show: false, invoice: null, amount: "" });
+      setModalPay({ show: false, invoice: null, amount: "" });
+
+      // Mise à jour locale optimiste pour disparition immédiate
+      const montantP = Number(montantSaisi);
+      setInvoices(prev => prev.map(inv => {
+        if (inv._id === modalPay.invoice._id) {
+          return { ...inv, amountPaid: (inv.amountPaid || 0) + montantP };
+        }
+        return inv;
+      }));
+      // On recharge quand même pour être sûr
       fetchInvoices();
     } catch (err) {
       toast.dismiss(loadingToast);
