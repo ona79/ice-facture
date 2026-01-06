@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import axios from 'axios';
-import autoTable from "jspdf-autotable"; 
+import autoTable from "jspdf-autotable";
+import QRCode from 'qrcode';
 import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -8,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export const generatePDF = async (invoice) => {
   const token = localStorage.getItem('token');
   const config = { headers: { Authorization: `Bearer ${token}` } };
-  
+
   const formatF = (amount) => {
     return Math.round(amount).toLocaleString('fr-FR').replace(/\s/g, ' ') + " F";
   };
@@ -17,7 +18,7 @@ export const generatePDF = async (invoice) => {
   try {
     const res = await axios.get(`${API_URL}/api/auth/profile`, config);
     userData = res.data;
-  } catch (err) { 
+  } catch (err) {
     toast.error("ERREUR DE VÉRIFICATION");
     return;
   }
@@ -34,7 +35,7 @@ export const generatePDF = async (invoice) => {
   doc.setDrawColor(0);
   doc.setLineWidth(0.1);
   // doc.rect(x, y, largeur, hauteur)
-  doc.rect(5, 5, width - 10, 30); 
+  doc.rect(5, 5, width - 10, 30);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
@@ -50,11 +51,11 @@ export const generatePDF = async (invoice) => {
   // --- INFOS CLIENT ET FACTURE ---
   doc.setLineWidth(0.3);
   doc.line(10, 42, width - 10, 42); // Ligne de séparation sous l'en-tête
-  
+
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.text(`CLIENT : ${(invoice.customerName || "PASSAGER").toUpperCase()}`, 10, 48);
-  
+
   doc.setFont("helvetica", "normal");
   doc.text(`DATE : ${new Date(invoice.createdAt || new Date()).toLocaleDateString('fr-FR')}`, width - 10, 48, { align: "right" });
   doc.text(`FACTURE N° : ${invoice.invoiceNumber.split('-').pop()}`, width - 10, 53, { align: "right" });
@@ -73,24 +74,24 @@ export const generatePDF = async (invoice) => {
     head: [["Qté", "Désignation", "P.U", "Montant"]],
     body: tableRows,
     theme: 'grid',
-    styles: { 
-      fontSize: 8, 
-      cellPadding: 2.5, 
+    styles: {
+      fontSize: 8,
+      cellPadding: 2.5,
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
       font: "helvetica"
     },
-    headStyles: { 
-      fillColor: [245, 245, 245], 
-      textColor: [0, 0, 0], 
+    headStyles: {
+      fillColor: [245, 245, 245],
+      textColor: [0, 0, 0],
       fontStyle: 'bold',
       halign: 'center'
     },
-    columnStyles: { 
+    columnStyles: {
       0: { cellWidth: 12, halign: 'center' },
       1: { cellWidth: 'auto' },
-      2: { cellWidth: 28, halign: 'right' }, 
-      3: { cellWidth: 28, halign: 'right' } 
+      2: { cellWidth: 28, halign: 'right' },
+      3: { cellWidth: 28, halign: 'right' }
     }
   });
 
@@ -100,7 +101,7 @@ export const generatePDF = async (invoice) => {
   const startX = width - boxWidth - 10;
 
   doc.setDrawColor(0);
-  doc.rect(startX, finalY, boxWidth, 21); 
+  doc.rect(startX, finalY, boxWidth, 21);
 
   doc.setFontSize(9);
   const reste = invoice.totalAmount - (invoice.amountPaid || 0);
@@ -120,7 +121,28 @@ export const generatePDF = async (invoice) => {
   // --- FOOTER ---
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
-  doc.text("Merci de votre fidélité !", width / 2, 195, { align: "center" });
+  // --- FOOTER & QR CODE ---
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "italic");
+  doc.text("Merci de votre confiance !", width / 2, 190, { align: "center" });
+
+  try {
+    // Génération du QR Code
+    // Le QR code pointe vers l'API WhatsApp avec un message prédéfini
+    const cleanPhone = userData.phone.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.startsWith('221') ? cleanPhone : `221${cleanPhone}`;
+    const qrText = `https://wa.me/${formattedPhone}?text=Bonjour, concernant la facture ${invoice.invoiceNumber}...`;
+
+    const qrDataUrl = await QRCode.toDataURL(qrText);
+
+    // Affichage QR Code (Centré en bas)
+    // doc.addImage(data, format, x, y, width, height)
+    doc.addImage(qrDataUrl, 'PNG', (width / 2) - 10, 165, 20, 20);
+    doc.text("Scannez pour nous contacter", width / 2, 187, { align: "center" });
+
+  } catch (err) {
+    console.error("Erreur QR Code", err);
+  }
 
   doc.save(`FACT_${invoice.invoiceNumber}.pdf`);
 };

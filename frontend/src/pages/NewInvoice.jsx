@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  ArrowLeft, Plus, Minus, CheckCircle, ShoppingCart, 
-  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon 
+import {
+  ArrowLeft, Plus, Minus, CheckCircle, ShoppingCart,
+  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -15,9 +16,9 @@ export default function NewInvoice() {
   const [searchTerm, setSearchTerm] = useState("");
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [amountPaid, setAmountPaid] = useState(""); 
+  const [amountPaid, setAmountPaid] = useState("");
   const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState(""); 
+  const [customerPhone, setCustomerPhone] = useState("");
   const [isProfileComplete, setIsProfileComplete] = useState(true);
 
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function NewInvoice() {
   const addItem = (productId) => {
     const product = products.find(p => p._id === productId);
     if (!product || product.stock <= 0) return toast.error("Rupture de stock");
-    
+
     const existing = items.find(i => i.productId === productId);
     if (existing) {
       if (existing.quantity >= product.stock) return toast.error("Stock limite");
@@ -91,9 +92,9 @@ export default function NewInvoice() {
 
     try {
       // On envoie les données au serveur pour enregistrement
-      await axios.post(`${API_URL}/api/invoices`, { 
-        invoiceNumber: invoiceNum, 
-        items, 
+      await axios.post(`${API_URL}/api/invoices`, {
+        invoiceNumber: invoiceNum,
+        items,
         totalAmount: total,
         amountPaid: finalPaid,
         customerName: customerName.trim().toUpperCase(),
@@ -102,17 +103,22 @@ export default function NewInvoice() {
 
       toast.dismiss(loadingToast);
       toast.success(`Vente enregistrée : ${invoiceNum}`);
-      
+
       // Retour au dashboard directement après la réussite
-      navigate('/dashboard'); 
-    } catch (err) { 
+      navigate('/dashboard');
+    } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error("Erreur serveur lors de la vente"); 
+      toast.error("Erreur serveur lors de la vente");
     }
   };
 
   return (
-    <div className="p-4 max-w-7xl mx-auto min-h-screen text-white font-sans">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="p-4 max-w-7xl mx-auto min-h-screen text-white font-sans"
+    >
       <div className="flex justify-between items-center mb-6">
         <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-white/30 font-black uppercase text-[10px] hover:text-white transition-colors">
           <ArrowLeft size={14} /> Annuler
@@ -124,17 +130,17 @@ export default function NewInvoice() {
         <div className="lg:col-span-7 space-y-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-            <input 
-              type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-[11px] font-black uppercase" 
+            <input
+              type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-[11px] font-black uppercase"
             />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
             {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(p => (
-              <button 
-                key={p._id} onClick={() => addItem(p._id)} 
+              <button
+                key={p._id} onClick={() => addItem(p._id)}
                 className={`p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex justify-between items-center hover:border-ice-400/50 transition-all ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95'}`}
                 disabled={p.stock <= 0}
               >
@@ -150,7 +156,7 @@ export default function NewInvoice() {
 
         {/* PANIER */}
         <div className="lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-white/[0.02] backdrop-blur-md">
-          
+
           {!isProfileComplete && (
             <div className="bg-red-500/20 border-b border-red-500/20 py-2 px-4 flex items-center justify-between animate-pulse">
               <span className="text-[9px] font-black uppercase text-red-400 tracking-tighter">
@@ -174,9 +180,9 @@ export default function NewInvoice() {
                 <p className="text-[11px] font-black uppercase truncate flex-1">{item.name}</p>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center bg-black/40 rounded-lg p-1">
-                    <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus size={12}/></button>
+                    <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus size={12} /></button>
                     <span className="text-[10px] font-black w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus size={12}/></button>
+                    <button onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus size={12} /></button>
                   </div>
                   <p className="text-[11px] font-black w-20 text-right">{(item.price * item.quantity).toLocaleString()} F</p>
                 </div>
@@ -188,9 +194,9 @@ export default function NewInvoice() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Client (Lettres seul.)</label>
-                <input 
-                  type="text" 
-                  placeholder="NOM..." 
+                <input
+                  type="text"
+                  placeholder="NOM..."
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
                   className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase outline-none focus:border-ice-400/50"
@@ -199,10 +205,10 @@ export default function NewInvoice() {
 
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">WhatsApp (9 chiffres)</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   maxLength={9}
-                  placeholder="7..." 
+                  placeholder="7..."
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
                   className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-ice-400"
@@ -212,12 +218,12 @@ export default function NewInvoice() {
 
             <div className="space-y-1">
               <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Encaissé (Max: {total})</label>
-              <input 
-                type="text" 
-                placeholder="0" 
+              <input
+                type="text"
+                placeholder="0"
                 value={amountPaid}
                 onChange={(e) => {
-                  let val = e.target.value.replace(/\D/g, ''); 
+                  let val = e.target.value.replace(/\D/g, '');
                   if (val === "") { setAmountPaid(""); return; }
                   if (parseInt(val, 10) > total) {
                     setAmountPaid(total.toString());
@@ -242,12 +248,12 @@ export default function NewInvoice() {
               </p>
             </div>
 
-            <button 
-              onClick={handleCheckout} 
-              disabled={items.length === 0 || !isProfileComplete} 
+            <button
+              onClick={handleCheckout}
+              disabled={items.length === 0 || !isProfileComplete}
               className={`w-full font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 hover:scale-[1.02] active:scale-95'}`}
             >
-              <CheckCircle size={20} /> 
+              <CheckCircle size={20} />
               <span className="uppercase tracking-widest text-[11px]">
                 {isProfileComplete ? "Valider la vente" : "Profil Incomplet"}
               </span>
@@ -255,6 +261,6 @@ export default function NewInvoice() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
