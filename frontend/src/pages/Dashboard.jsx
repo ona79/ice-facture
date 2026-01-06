@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Package,
   TrendingUp,
-  TrendingUp,
   Target,
   Crown
 } from 'lucide-react';
