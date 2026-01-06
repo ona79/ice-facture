@@ -248,8 +248,24 @@ export default function History() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
         <h1 className="text-3xl font-black italic tracking-tighter uppercase">FACTURES</h1>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button onClick={() => setShowOnlyToday(!showOnlyToday)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyToday ? 'bg-ice-400 text-ice-900 border-ice-400' : 'bg-white/5 border-white/10 text-white/30'}`}><Clock size={12} /> Aujourd'hui</button>
-          <button onClick={() => setShowOnlyDebts(!showOnlyDebts)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyDebts ? 'bg-orange-500 text-white border-orange-500' : 'bg-white/5 border-white/10 text-white/30'}`}><ListFilter size={12} /> Dettes</button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowOnlyToday(!showOnlyToday)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyToday ? 'bg-ice-400 text-ice-900 border-ice-400 shadow-lg shadow-ice-400/20' : 'bg-white/5 border-white/10 text-white/30'}`}
+          >
+            <Clock size={12} /> Aujourd'hui
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowOnlyDebts(!showOnlyDebts)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyDebts ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' : 'bg-white/5 border-white/10 text-white/30'}`}
+          >
+            <ListFilter size={12} /> Dettes
+          </motion.button>
+
           <div className="relative flex-1 md:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={12} />
             <input type="text" placeholder="RECHERCHER..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 pl-8 text-[9px] font-black uppercase outline-none focus:border-ice-400" />
