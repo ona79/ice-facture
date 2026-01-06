@@ -7,7 +7,6 @@ import {
   ChevronRight,
   FileText,
   Settings as SettingsIcon,
-  Trash2,
   X,
   Lock,
   AlertTriangle,
@@ -21,7 +20,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import SalesChart from '../components/SalesChart';
-import { IceInput } from '../components/IceInput';
 import { generatePDF } from '../utils/generatePDF';
 import toast from 'react-hot-toast';
 
@@ -39,9 +37,7 @@ export default function Dashboard() {
     topClients: []
   });
   const [recentInvoices, setRecentInvoices] = useState([]);
-  const [modal, setModal] = useState({ show: false, invoiceId: null, invoiceNum: '' });
   const [modalDetail, setModalDetail] = useState({ show: false, invoice: null });
-  const [password, setPassword] = useState('');
 
   const shopName = localStorage.getItem('shopName') || "Ma Boutique";
   const navigate = useNavigate();
@@ -148,24 +144,7 @@ export default function Dashboard() {
     window.location.reload();
   };
 
-  const handleFinalDelete = async (e) => {
-    if (e) e.preventDefault();
-    const loadingToast = toast.loading("Suppression...");
-    try {
-      await axios.delete(`${API_URL}/api/invoices/${modal.invoiceId}`, {
-        headers: config.headers,
-        data: { password }
-      });
-      toast.dismiss(loadingToast);
-      toast.success("Vente annulée");
-      setModal({ show: false, invoiceId: null, invoiceNum: '' });
-      setPassword('');
-      await fetchData();
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error(err.response?.data?.msg || "Mot de passe incorrect");
-    }
-  };
+
 
   return (
     <motion.div
@@ -174,24 +153,6 @@ export default function Dashboard() {
       transition={{ duration: 0.4 }}
       className="p-4 md:p-8 max-w-7xl mx-auto min-h-screen pb-20 text-white relative"
     >
-
-      {/* MODAL SÉCURITÉ */}
-      {modal.show && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="glass-card w-full max-w-md p-8 rounded-[2.5rem] border-white/10 shadow-2xl relative">
-            <button onClick={() => setModal({ show: false })} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
-            <div className="flex flex-col items-center text-center">
-              <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-6"><Lock size={32} /></div>
-              <h3 className="text-2xl font-black italic uppercase mb-2">Annuler la vente</h3>
-              <p className="text-ice-100/50 text-sm mb-8">{modal.invoiceNum}</p>
-              <form onSubmit={handleFinalDelete} className="w-full space-y-4">
-                <IceInput label="Mot de passe" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="submit" className="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-red-500 shadow-lg shadow-red-500/20">Confirmer</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MODAL DÉTAILS */}
       {modalDetail.show && (
@@ -370,12 +331,6 @@ export default function Dashboard() {
                   className="p-2 bg-white/5 text-white/40 rounded-xl hover:text-ice-400 transition-all border border-white/5"
                 >
                   <Eye size={18} />
-                </button>
-                <button
-                  onClick={() => { setModal({ show: true, invoiceId: inv._id, invoiceNum: formatInvoiceDisplay(inv) }); setPassword(''); }}
-                  className="p-2 bg-white/5 text-red-500/30 hover:text-red-500 rounded-xl transition-all border border-white/5"
-                >
-                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
