@@ -70,7 +70,8 @@ export default function History() {
       fetchInvoices();
     } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error("Erreur de règlement");
+      console.error(err);
+      toast.error(err.response?.data?.msg || "Erreur de règlement");
     }
   };
 
@@ -151,8 +152,18 @@ export default function History() {
                 <IceInput
                   type="number"
                   value={modalPay.amount}
-                  onChange={(e) => setModalPay({ ...modalPay, amount: e.target.value })}
-                  placeholder="MONTANT VERSÉ"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const reste = modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0);
+                    // On bloque la saisie si dépasse le reste
+                    if (Number(val) > reste) {
+                      toast.error(`MAXIMUM : ${reste} F`);
+                      setModalPay({ ...modalPay, amount: reste.toString() });
+                    } else {
+                      setModalPay({ ...modalPay, amount: val });
+                    }
+                  }}
+                  placeholder={`MAX: ${(modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0))} F`}
                   required
                 />
                 <button type="submit" className="w-full py-3 rounded-xl font-black bg-orange-500 text-white uppercase text-xs active:scale-95 transition-all shadow-lg shadow-orange-500/20">Valider le paiement</button>
