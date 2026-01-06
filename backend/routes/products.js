@@ -15,29 +15,44 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// --- 2. AJOUTER UN PRODUIT ---
+// --- 2. AJOUTER UN PRODUIT (UPSERT: SI EXISTE, ON AJOUTE AU STOCK) ---
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, price, stock } = req.body;
+    const { name, stock } = req.body; // Prix retiré ou ignoré
 
-    // Validation rapide
-    if (!name || price === undefined) {
-      return res.status(400).json({ msg: "Veuillez remplir tous les champs obligatoires" });
+    if (!name) {
+      return res.status(400).json({ msg: "Le nom du produit est obligatoire" });
     }
 
-    // CORRECTION : Attribution stricte de l'ID via req.user.id
-    const newProduct = new Product({
+    const cleanName = name.trim();
+    const quantityToAdd = Number(stock) || 0;
+
+    // Recherche insensible à la casse pour le même utilisateur
+    let product = await Product.findOne({
       userId: req.user.id,
-      name,
-      price: Number(price), // Force le format nombre
-      stock: Number(stock) || 0
+      name: { $regex: new RegExp(`^${cleanName}$`, 'i') }
     });
 
-    const savedProduct = await newProduct.save();
-    res.status(201).json(savedProduct);
+    if (product) {
+      // SI LE PRODUIT EXISTE -> ON AUGMENTE LE STOCK
+      product.stock += quantityToAdd;
+      await product.save();
+      return res.status(200).json(product);
+    } else {
+      // SI NOUVEAU -> ON CRÉE
+      const newProduct = new Product({
+        userId: req.user.id,
+        name: cleanName,
+        price: 0, // Prix par défaut à 0 car variable
+        stock: quantityToAdd
+      });
+      const savedProduct = await newProduct.save();
+      return res.status(201).json(savedProduct);
+    }
+
   } catch (err) {
     console.error("Erreur Backend Ajout:", err.message);
-    res.status(500).json({ error: "Erreur lors de la création du produit" });
+    res.status(500).json({ error: "Erreur lors de l'ajout du produit" });
   }
 });
 

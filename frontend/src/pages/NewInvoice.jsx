@@ -64,7 +64,7 @@ export default function NewInvoice() {
       if (existing.quantity >= product.stock) return toast.error("Stock limite");
       updateQuantity(productId, existing.quantity + 1);
     } else {
-      setItems([...items, { productId: product._id, name: product.name, price: product.price, quantity: 1 }]);
+      setItems([...items, { productId: product._id, name: product.name, price: 0, quantity: 1, isPriceSet: false }]);
     }
   };
 
@@ -73,6 +73,10 @@ export default function NewInvoice() {
     const product = products.find(p => p._id === id);
     if (q > (product?.stock || 0)) return toast.error("Stock insuffisant");
     setItems(items.map(i => i.productId === id ? { ...i, quantity: Number(q) } : i));
+  };
+
+  const updatePrice = (id, newPrice) => {
+    setItems(items.map(i => i.productId === id ? { ...i, price: Number(newPrice), isPriceSet: true } : i));
   };
 
   // --- VALIDATION DE LA VENTE (CORRIGÉ : PAS DE REDIRECTION WHATSAPP) ---
@@ -146,7 +150,7 @@ export default function NewInvoice() {
               >
                 <div className="text-left">
                   <p className="font-black text-[11px] uppercase tracking-tight">{p.name}</p>
-                  <p className="text-[10px] text-ice-400 font-black mt-1">{Math.round(p.price).toLocaleString()} F <span className="text-white/20 ml-2">({p.stock} STOCK)</span></p>
+                  <p className="text-[10px] text-ice-400 font-black mt-1"><span className="text-white/20 ml-2">({p.stock} STOCK)</span></p>
                 </div>
                 <Plus size={16} className="text-ice-400" />
               </button>
@@ -176,15 +180,26 @@ export default function NewInvoice() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
             {items.map(item => (
-              <div key={item.productId} className="flex justify-between items-center bg-white/[0.02] p-3 rounded-xl border border-white/5">
-                <p className="text-[11px] font-black uppercase truncate flex-1">{item.name}</p>
-                <div className="flex items-center gap-4">
+              <div key={item.productId} className="flex flex-col bg-white/[0.02] p-3 rounded-xl border border-white/5 gap-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-[11px] font-black uppercase truncate flex-1">{item.name}</p>
                   <div className="flex items-center bg-black/40 rounded-lg p-1">
                     <button onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus size={12} /></button>
                     <span className="text-[10px] font-black w-6 text-center">{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus size={12} /></button>
                   </div>
-                  <p className="text-[11px] font-black w-20 text-right">{(item.price * item.quantity).toLocaleString()} F</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-white/30 uppercase">Prix U. :</span>
+                  <input
+                    type="number"
+                    value={item.price === 0 && !item.isPriceSet ? "" : item.price}
+                    onChange={(e) => updatePrice(item.productId, e.target.value)}
+                    placeholder="Prix..."
+                    className={`w-20 bg-black/40 border ${!item.isPriceSet ? 'border-orange-500/50 animate-pulse' : 'border-white/10'} rounded-lg px-2 py-1 text-[10px] text-white outline-none focus:border-ice-400`}
+                    autoFocus={!item.isPriceSet}
+                  />
+                  <span className="text-[9px] text-ice-400 ml-auto">= {(item.price * item.quantity).toLocaleString()} F</span>
                 </div>
               </div>
             ))}

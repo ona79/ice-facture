@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com
 
 export default function Products() {
   const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '' });
+  const [newProduct, setNewProduct] = useState({ name: '', stock: '' });
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   const [accessPassword, setAccessPassword] = useState('');
@@ -25,10 +25,11 @@ export default function Products() {
   });
 
   // Validations du formulaire
+  // Validations du formulaire
   const isNameInvalid = newProduct.name !== "" && /^\d+$/.test(newProduct.name);
-  const isPriceInvalid = newProduct.price !== "" && (isNaN(newProduct.price) || Number(newProduct.price) <= 0);
   const isStockInvalid = newProduct.stock !== "" && (isNaN(newProduct.stock) || Number(newProduct.stock) < 0);
-  const isFormValid = newProduct.name && newProduct.price && newProduct.stock && !isNameInvalid && !isPriceInvalid && !isStockInvalid;
+  // Prix n'est plus requis
+  const isFormValid = newProduct.name && newProduct.stock && !isNameInvalid && !isStockInvalid;
 
   useEffect(() => {
     if (isUnlocked) fetchProducts();
@@ -77,7 +78,8 @@ export default function Products() {
       await axios.post(`${API_URL}/api/products`, newProduct, getAuthHeader());
       toast.dismiss(loading);
       toast.success("Produit ajouté !");
-      setNewProduct({ name: '', price: '', stock: '' });
+      toast.success("Stock mis à jour !");
+      setNewProduct({ name: '', stock: '' });
       fetchProducts();
     } catch (err) {
       toast.dismiss(loading);
@@ -187,24 +189,32 @@ export default function Products() {
       )}
 
       <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
-        <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+        <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           <div className="relative">
             <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
-            <input required type="text" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="Nom..." />
+            <input
+              list="product-suggestions"
+              required
+              type="text"
+              value={newProduct.name}
+              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+              className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white uppercase placeholder:normal-case`}
+              placeholder="Nom du produit..."
+            />
+            <datalist id="product-suggestions">
+              {products.map((p) => (
+                <option key={p._id} value={p.name} />
+              ))}
+            </datalist>
           </div>
 
           <div className="relative">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Prix</label>
-            <input required type="text" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} className={`w-full bg-white/5 border ${isPriceInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
-          </div>
-
-          <div className="relative">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Stock</label>
+            <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Quantité à ajouter</label>
             <input required type="text" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`} placeholder="0" />
           </div>
 
           <button type="submit" disabled={!isFormValid} className={`h-[48px] mt-[18px] rounded-2xl font-black uppercase text-[10px] shadow-lg transition-all ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20 active:scale-95' : 'bg-white/5 text-white/20 cursor-not-allowed opacity-50'}`}>
-            + Ajouter
+            + Ajouter / Mettre à jour
           </button>
         </form>
       </div>
@@ -219,7 +229,7 @@ export default function Products() {
                 <div className="p-2 bg-ice-400/10 text-ice-400 rounded-lg"><Package size={18} /></div>
                 <div>
                   <p className="font-bold text-sm uppercase">{p.name}</p>
-                  <p className="text-[10px] text-ice-400">{p.price} F</p>
+                  <p className="text-[10px] text-ice-400 opacity-50">Produit variable</p>
                 </div>
               </div>
               <div className="flex items-center gap-6">
