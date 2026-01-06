@@ -14,12 +14,15 @@ import {
   Package,
   TrendingUp,
   Target,
-  Crown
+  Crown,
+  Eye,
+  Printer
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import SalesChart from '../components/SalesChart';
 import { IceInput } from '../components/IceInput';
+import { generatePDF } from '../utils/generatePDF';
 import toast from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -37,6 +40,7 @@ export default function Dashboard() {
   });
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [modal, setModal] = useState({ show: false, invoiceId: null, invoiceNum: '' });
+  const [modalDetail, setModalDetail] = useState({ show: false, invoice: null });
   const [password, setPassword] = useState('');
 
   const shopName = localStorage.getItem('shopName') || "Ma Boutique";
@@ -45,6 +49,16 @@ export default function Dashboard() {
 
   const formatFCFA = (amount) => {
     return Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " F";
+  };
+
+  const formatInvoiceDisplay = (inv) => {
+    if (!inv.createdAt || !inv.invoiceNumber) return "FACT-0000";
+    const dateObj = new Date(inv.createdAt);
+    const dateCode = dateObj.toISOString().slice(0, 10).replace(/-/g, '');
+    const parts = inv.invoiceNumber.split('-');
+    const rawNum = parts[parts.length - 1];
+    const cleanNum = rawNum.replace(/\D/g, '').padStart(4, '0');
+    return `FACT - ${dateCode} - ${cleanNum}`;
   };
 
   const fetchData = async () => {
@@ -145,10 +159,11 @@ export default function Dashboard() {
       toast.dismiss(loadingToast);
       toast.success("Vente annulée");
       setModal({ show: false, invoiceId: null, invoiceNum: '' });
+      setPassword('');
       await fetchData();
     } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error(err.response?.data?.message || "Erreur");
+      toast.error(err.response?.data?.msg || "Mot de passe incorrect");
     }
   };
 
@@ -173,6 +188,51 @@ export default function Dashboard() {
                 <IceInput label="Mot de passe" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 <button type="submit" className="w-full py-4 rounded-2xl font-black text-[10px] uppercase bg-red-500 shadow-lg shadow-red-500/20">Confirmer</button>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DÉTAILS */}
+      {modalDetail.show && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md p-5 rounded-[1.5rem] border-white/10 relative shadow-2xl animate-in zoom-in duration-150 text-white">
+            <button onClick={() => setModalDetail({ show: false })} className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"><X size={18} /></button>
+            <div className="mb-4">
+              <h3 className="text-lg font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
+              <p className="text-[8px] font-black uppercase text-white/30 tracking-[0.2em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-white/5 bg-white/[0.02]">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-white/5 text-[8px] font-black uppercase text-ice-400/50">
+                  <tr>
+                    <th className="p-2 pl-3">Article</th>
+                    <th className="p-2 text-center">Qté</th>
+                    <th className="p-2 pr-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[10px] font-bold uppercase tracking-tight">
+                  {modalDetail.invoice.items.map((item, idx) => (
+                    <tr key={idx} className="border-t border-white/5 hover:bg-white/[0.02]">
+                      <td className="p-2 pl-3 max-w-[120px] truncate">{item.name}</td>
+                      <td className="p-2 text-center">{item.quantity}</td>
+                      <td className="p-2 pr-3 text-right">{(item.price * item.quantity).toLocaleString()} F</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 pt-3 border-t border-white/10 flex justify-between items-end">
+              <div>
+                <p className="text-[7px] font-black uppercase text-white/20 mb-1">Total Facture</p>
+                <p className="text-2xl font-black italic text-ice-400 leading-none">{modalDetail.invoice.totalAmount.toLocaleString()} F</p>
+              </div>
+              <button
+                onClick={() => generatePDF({ ...modalDetail.invoice, invoiceNumber: formatInvoiceDisplay(modalDetail.invoice) })}
+                className="flex items-center gap-2 bg-ice-400 text-ice-900 px-4 py-2 rounded-lg font-black uppercase text-[9px] hover:scale-105 transition-all shadow-lg shadow-ice-400/20"
+              >
+                <Printer size={14} /> Imprimer
+              </button>
             </div>
           </div>
         </div>
@@ -302,11 +362,22 @@ export default function Dashboard() {
                 <p className="text-[10px] font-bold text-ice-100/30 uppercase">{new Date(inv.createdAt).toLocaleDateString('fr-FR')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <p className="font-black text-xl text-ice-400">{formatFCFA(inv.totalAmount)}</p>
-              <button onClick={() => { setModal({ show: true, invoiceId: inv._id, invoiceNum: inv.invoiceNumber }); setPassword(''); }} className="p-2 text-white/10 hover:text-red-500 transition-colors">
-                <Trash2 size={20} />
-              </button>
+            <div className="flex items-center gap-4">
+              <p className="font-black text-lg text-ice-400 mr-2">{formatFCFA(inv.totalAmount)}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setModalDetail({ show: true, invoice: inv })}
+                  className="p-2 bg-white/5 text-white/40 rounded-xl hover:text-ice-400 transition-all border border-white/5"
+                >
+                  <Eye size={18} />
+                </button>
+                <button
+                  onClick={() => { setModal({ show: true, invoiceId: inv._id, invoiceNum: formatInvoiceDisplay(inv) }); setPassword(''); }}
+                  className="p-2 bg-white/5 text-red-500/30 hover:text-red-500 rounded-xl transition-all border border-white/5"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
           </div>
         ))}
