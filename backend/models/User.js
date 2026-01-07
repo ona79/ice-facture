@@ -1,44 +1,53 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  shopName: { 
-    type: String, 
+  shopName: {
+    type: String,
     required: true,
     trim: true
   },
-  email: { 
-    type: String, 
-    required: true, 
+  email: {
+    type: String,
+    required: true,
     unique: true,
     lowercase: true,
     trim: true
   },
-  password: { 
-    type: String, 
+  password: {
+    type: String,
     required: true,
     // Note : On ne met pas de maxlength ici car le mot de passe 
     // sera haché (bcrypt), ce qui génère une chaîne longue de 60 caractères.
   },
-  address: { 
-    type: String, 
-    default: "" 
+  address: {
+    type: String,
+    default: ""
   },
-  phone: { 
-    type: String, 
-    required: true, 
-    unique: true,   
-    trim: true,
-    // Sécurité au niveau de la base de données
-    minlength: 9,
-    maxlength: 9
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
   },
-  footerMessage: { 
-    type: String, 
-    default: "Merci de votre confiance !" 
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  footerMessage: {
+    type: String,
+    default: "Merci de votre confiance !"
   },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
+  role: {
+    type: String,
+    enum: ['admin', 'employee'],
+    default: 'admin'
+  },
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
 });
 

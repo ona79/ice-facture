@@ -13,12 +13,13 @@ module.exports = function (req, res, next) {
   try {
     // Vérification du token avec la clé secrète configurée sur Render
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // CORRECTION CRUCIALE POUR L'INVENTAIRE :
-    // Ton Login génère un token structuré comme ceci : { user: { id: "..." } }
-    // On doit extraire 'decoded.user' pour que 'req.user.id' fonctionne dans tes routes produits
-    req.user = decoded.user; 
-    
+    req.user = decoded.user;
+
+    // On définit l'ID du propriétaire (admin) pour filtrer les données
+    // Si c'est un employé, ownerId est le parentId. Si c'est un admin, c'est son propre ID.
+    req.user.ownerId = req.user.role === 'employee' ? req.user.parentId : req.user.id;
     next();
   } catch (err) {
     console.error("Erreur Auth Middleware:", err.message);

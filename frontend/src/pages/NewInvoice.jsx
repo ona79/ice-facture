@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   ArrowLeft, Plus, Minus, CheckCircle, ShoppingCart,
-  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon
+  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon, Scan, X
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { PhoneInput } from '../components/PhoneInput';
 
 // Correction de l'URL pour Render
 const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
@@ -22,6 +24,13 @@ export default function NewInvoice() {
   const [isProfileComplete, setIsProfileComplete] = useState(true);
 
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'cart'
+
+  const nameRef = useRef(null);
+  const phoneRef = useRef(null);
+  const amountRef = useRef(null);
+  const [showScanner, setShowScanner] = useState(false);
+  const scannerRef = useRef(null);
+  const submitRef = useRef(null);
 
   const navigate = useNavigate();
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
@@ -81,6 +90,52 @@ export default function NewInvoice() {
     setItems(items.map(i => i.productId === id ? { ...i, price: Number(newPrice), isPriceSet: true } : i));
   };
 
+  const startScanning = async () => {
+    setShowScanner(true);
+    setTimeout(async () => {
+      const html5QrCode = new Html5Qrcode("reader");
+      scannerRef.current = html5QrCode;
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 150 } },
+          (decodedText) => {
+            handleBarcodeFound(decodedText);
+            stopScanning();
+          },
+          () => { } // error handler
+        );
+      } catch (err) {
+        toast.error("Erreur caméra");
+        setShowScanner(false);
+      }
+    }, 100);
+  };
+
+  const stopScanning = () => {
+    if (scannerRef.current) {
+      scannerRef.current.stop().then(() => {
+        setShowScanner(false);
+      }).catch(() => setShowScanner(false));
+    } else {
+      setShowScanner(false);
+    }
+  };
+
+  const handleBarcodeFound = (code) => {
+    const found = products.find(p => p.barcode === code);
+    if (found) {
+      if (found.stock <= 0) {
+        toast.error("Stock épuisé");
+        return;
+      }
+      addItem(found._id); // Use existing addItem function
+      toast.success(`${found.name} ajouté !`);
+    } else {
+      toast.error("Produit non trouvé");
+    }
+  };
+
   // --- VALIDATION DE LA VENTE (CORRIGÉ : PAS DE REDIRECTION WHATSAPP) ---
   const handleCheckout = async () => {
     if (!isProfileComplete) return toast.error("Profil incomplet : Remplissez les paramètres");
@@ -134,13 +189,28 @@ export default function NewInvoice() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 lg:pb-0">
         {/* CATALOGUE */}
         <div className={`lg:col-span-7 space-y-4 ${activeTab === 'cart' ? 'hidden lg:block' : ''}`}>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-            <input
-              type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-[11px] font-black uppercase"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+              <input
+                type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-[11px] font-black uppercase"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    setActiveTab('cart');
+                    setTimeout(() => nameRef.current?.focus(), 100);
+                  }
+                }}
+              />
+            </div>
+            <button
+              onClick={startScanning}
+              className="bg-ice-400 text-ice-900 p-4 rounded-2xl active:scale-90 transition-all shadow-lg"
+            >
+              <Scan size={20} />
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -152,7 +222,11 @@ export default function NewInvoice() {
               >
                 <div className="text-left">
                   <p className="font-black text-[11px] uppercase tracking-tight">{p.name}</p>
-                  <p className="text-[10px] text-ice-400 font-black mt-1"><span className="text-white/20 ml-2">({p.stock} STOCK)</span></p>
+                  <p className="text-[10px] text-ice-400 font-black mt-1">
+                    <span className={`ml-2 ${p.stock <= 5 ? 'text-red-500 animate-blink' : 'text-white/20'}`}>
+                      ({p.stock} STOCK)
+                    </span>
+                  </p>
                 </div>
                 <Plus size={16} className="text-ice-400" />
               </button>
@@ -189,8 +263,9 @@ export default function NewInvoice() {
 
 
           {/* CONTROL SECTION (Moved to Top) */}
-          <div className="p-6 bg-white/[0.03] border-b border-white/10 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="p-4 bg-white/[0.03] border-b border-white/10 space-y-3">
+            {/* INFOS CLIENT */}
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)] gap-2">
               <div className="space-y-1">
                 <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Client (Lettres seul.)</label>
                 <input
@@ -199,64 +274,81 @@ export default function NewInvoice() {
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
                   className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase outline-none focus:border-ice-400/50"
+                  ref={nameRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      phoneRef.current?.focus();
+                    }
+                  }}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">WhatsApp (9 chiffres)</label>
-                <input
-                  type="text"
-                  maxLength={9}
-                  placeholder="7..."
+                <PhoneInput
+                  label="WhatsApp (Client)"
                   value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-ice-400"
+                  onChange={(val) => setCustomerPhone(val)}
+                  ref={phoneRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      amountRef.current?.focus();
+                    }
+                  }}
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Encaissé (Max: {total})</label>
-              <input
-                type="text"
-                placeholder="0"
-                value={amountPaid}
-                onChange={(e) => {
-                  let val = e.target.value.replace(/\D/g, '');
-                  if (val === "") { setAmountPaid(""); return; }
-                  if (parseInt(val, 10) > total) {
-                    setAmountPaid(total.toString());
-                    toast.error(`MAXIMUM: ${total} F`);
-                  } else { setAmountPaid(val); }
-                }}
-                className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black outline-none focus:border-ice-400/50 text-orange-500"
-              />
-            </div>
-
-            <div className="flex justify-between items-end py-2">
-              <div>
-                <p className="text-[9px] font-black uppercase text-white/30">Net à payer</p>
-                {amountPaid !== "" && parseInt(amountPaid, 10) < total && (
-                  <p className="text-[9px] font-black text-orange-500 uppercase mt-1 italic animate-pulse">
-                    Reste: {(total - parseInt(amountPaid, 10)).toLocaleString()} F
-                  </p>
-                )}
+            {/* PAIEMENT & VALIDATION (Compacté) */}
+            <div className="flex items-center gap-3 bg-black/20 p-3 rounded-[1.5rem] border border-white/5">
+              <div className="w-24 space-y-1">
+                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic leading-none block">Encaissé</label>
+                <input
+                  type="text"
+                  placeholder="0"
+                  value={amountPaid}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val === "") { setAmountPaid(""); return; }
+                    if (parseInt(val, 10) > total) {
+                      setAmountPaid(total.toString());
+                      toast.error(`MAX: ${total} F`);
+                    } else { setAmountPaid(val); }
+                  }}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-black outline-none focus:border-ice-400/50 text-orange-500"
+                  ref={amountRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCheckout();
+                    }
+                  }}
+                />
               </div>
-              <p className="text-4xl font-black italic text-ice-400 tracking-tighter">
-                {Math.round(total).toLocaleString()}<span className="text-lg ml-1">F</span>
-              </p>
-            </div>
 
-            <button
-              onClick={handleCheckout}
-              disabled={items.length === 0 || !isProfileComplete}
-              className={`w-full font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 hover:scale-[1.02] active:scale-95'}`}
-            >
-              <CheckCircle size={20} />
-              <span className="uppercase tracking-widest text-[11px]">
-                {isProfileComplete ? "Valider la vente" : "Profil Incomplet"}
-              </span>
-            </button>
+              <div className="flex-1 text-right pr-2">
+                <div className="flex flex-col items-end">
+                  <p className="text-[8px] font-black uppercase text-white/30 leading-none mb-1">Total</p>
+                  <p className="text-xl font-black italic text-ice-400 tracking-tighter leading-none whitespace-nowrap">
+                    {Math.round(total).toLocaleString()} F
+                  </p>
+                  {amountPaid !== "" && parseInt(amountPaid, 10) < total && (
+                    <p className="text-[7px] font-black text-orange-500 uppercase mt-0.5 italic animate-pulse">
+                      Restant: {(total - parseInt(amountPaid, 10)).toLocaleString()} F
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={handleCheckout}
+                disabled={items.length === 0 || !isProfileComplete}
+                className={`px-4 py-3.5 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 shadow-lg transition-all ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 active:scale-95'}`}
+              >
+                <CheckCircle size={14} /> {isProfileComplete ? "Valider" : "Erreur"}
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
@@ -278,17 +370,17 @@ export default function NewInvoice() {
                 <tbody className="divide-y divide-white/5">
                   {items.map(item => (
                     <tr key={item.productId} className="group hover:bg-white/5 transition-colors">
-                      <td className="py-3 pl-2 max-w-[100px]">
+                      <td className="py-2 pl-2 max-w-[100px]">
                         <div className="font-black text-[10px] uppercase truncate">{item.name}</div>
                       </td>
-                      <td className="py-3 text-center">
+                      <td className="py-2 text-center">
                         <div className="flex items-center justify-center bg-black/40 rounded-lg p-1 w-fit mx-auto">
                           <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1 hover:text-white text-white/50 transition-colors"><Minus size={10} /></button>
                           <span className="text-[10px] font-black w-6 text-center">{item.quantity}</span>
                           <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1 hover:text-white text-white/50 transition-colors"><Plus size={10} /></button>
                         </div>
                       </td>
-                      <td className="py-3">
+                      <td className="py-2">
                         <input
                           type="number"
                           value={item.price === 0 && !item.isPriceSet ? "" : item.price}
@@ -298,7 +390,7 @@ export default function NewInvoice() {
                           autoFocus={!item.isPriceSet}
                         />
                       </td>
-                      <td className="py-3 pr-2 text-right">
+                      <td className="py-2 pr-2 text-right">
                         <div className="text-[10px] font-black text-ice-400">{(item.price * item.quantity).toLocaleString()} F</div>
                       </td>
                     </tr>

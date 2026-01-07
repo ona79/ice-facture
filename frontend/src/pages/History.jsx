@@ -3,15 +3,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   ArrowLeft, Download, Calendar, Search,
-  FileText, Trash2, X, Lock, Eye, FilterX, Banknote, MessageCircle, ListFilter, Clock, User, Printer
+  FileText, Trash2, X, Lock, Eye, FilterX, Banknote, MessageCircle, ListFilter, Clock, User, Printer, FileDown
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { generatePDF } from '../utils/generatePDF';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
 
 export default function History() {
   const [invoices, setInvoices] = useState([]);
@@ -120,6 +121,24 @@ export default function History() {
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     }
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = filteredInvoices.map(inv => ({
+      'N° FACTURE': formatInvoiceDisplay(inv),
+      'DATE': new Date(inv.createdAt).toLocaleDateString('fr-FR'),
+      'CLIENT': inv.customerName,
+      'TOTAL (F)': inv.totalAmount,
+      'PAYÉ (F)': inv.amountPaid,
+      'RESTE (F)': inv.totalAmount - (inv.amountPaid || 0),
+      'STATUT': (inv.totalAmount - (inv.amountPaid || 0)) > 0 ? 'DETTE' : 'PAYÉ'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Factures");
+    XLSX.writeFile(workbook, `Factures_Ice_${new Date().toISOString().split('T')[0]}.xlsx`);
+    toast.success("Excel généré !");
   };
 
   const filteredInvoices = invoices.filter(inv => {
@@ -264,6 +283,15 @@ export default function History() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all font-black text-[8px] uppercase ${showOnlyDebts ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' : 'bg-white/5 border-white/10 text-white/30'}`}
           >
             <ListFilter size={12} /> Dettes
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={exportToExcel}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-green-500/10 border-green-500/20 text-green-500 transition-all font-black text-[8px] uppercase"
+          >
+            <FileDown size={12} /> Excel
           </motion.button>
 
           <div className="relative flex-1 md:w-56">

@@ -1,13 +1,14 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck } from 'lucide-react';
 import { IceInput } from '../components/IceInput';
 import { PhoneInput } from '../components/PhoneInput';
+import { COUNTRY_CODES } from '../utils/countryCodes';
 import { toast } from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -17,8 +18,13 @@ export default function Register() {
     confirmPassword: '',
     phone: ''
   });
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const emailRef = useRef(null);
+  const phoneRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
@@ -30,7 +36,22 @@ export default function Register() {
   const validate = () => {
     let tempErrors = {};
     if (!formData.shopName.trim()) tempErrors.shopName = "Le nom est requis.";
-    if (!formData.phone || formData.phone.length !== 9) tempErrors.phone = "9 chiffres requis.";
+
+    // Validation téléphone par pays
+    if (!formData.phone) {
+      tempErrors.phone = "Le numéro est requis.";
+    } else if (selectedCountry) {
+      if (formData.phone.length !== selectedCountry.digitLength) {
+        tempErrors.phone = `${selectedCountry.digitLength} chiffres requis.`;
+      } else {
+        const hasValidPrefix = selectedCountry.prefixes.some(p => formData.phone.startsWith(p));
+        if (!hasValidPrefix) {
+          tempErrors.phone = "Préfixe incorrect.";
+        }
+      }
+    } else if (formData.phone.length < 7) {
+      tempErrors.phone = "Numéro trop court.";
+    }
 
     // Validation email stricte : uniquement @gmail.com
     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
@@ -53,8 +74,8 @@ export default function Register() {
       });
     }
 
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,8}$/;
-    if (!passwordRegex.test(formData.password)) tempErrors.password = "6-8 car. (Lettres+Chiffres)";
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(formData.password)) tempErrors.password = "Mini 6 car. (Lettres+Chiffres)";
 
     if (formData.confirmPassword !== formData.password) tempErrors.confirmPassword = "Les mots de passe diffèrent.";
 
@@ -123,12 +144,38 @@ export default function Register() {
             {/* COLONNE GAUCHE */}
             <div className="space-y-5">
               <div className="relative">
-                <IceInput label="Boutique" icon={<Store size={16} />} placeholder="Donnez le nom de votre boutique..." value={formData.shopName} onChange={(e) => setFormData({ ...formData, shopName: e.target.value })} />
+                <IceInput
+                  label="Boutique"
+                  icon={<Store size={16} />}
+                  placeholder="Donnez le nom de votre boutique..."
+                  value={formData.shopName}
+                  onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      emailRef.current?.focus();
+                    }
+                  }}
+                />
                 {errors.shopName && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.shopName}</p>}
               </div>
 
               <div className="relative">
-                <IceInput label="Email" icon={<Mail size={16} />} type="email" placeholder="boutique@exemple.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                <IceInput
+                  label="Email"
+                  icon={<Mail size={16} />}
+                  type="email"
+                  placeholder="boutique@exemple.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  ref={emailRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      phoneRef.current?.focus();
+                    }
+                  }}
+                />
                 {errors.email && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.email}</p>}
               </div>
 
@@ -136,8 +183,16 @@ export default function Register() {
                 <PhoneInput
                   label="Téléphone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "") })}
+                  onChange={(val) => setFormData({ ...formData, phone: val })}
+                  onCountryChange={(country) => setSelectedCountry(country)}
                   error={errors.phone}
+                  ref={phoneRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      passwordRef.current?.focus();
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -145,17 +200,45 @@ export default function Register() {
             {/* COLONNE DROITE */}
             <div className="space-y-5">
               <div className="relative">
-                <IceInput label="Mot de passe" icon={<Lock size={16} />} type="password" maxLength={8} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} autoComplete="new-password" />
+                <IceInput
+                  label="Mot de passe"
+                  icon={<Lock size={16} />}
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  autoComplete="new-password"
+                  ref={passwordRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      confirmRef.current?.focus();
+                    }
+                  }}
+                />
                 {errors.password && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.password}</p>}
               </div>
 
               <div className="relative">
-                <IceInput label="Confirmation" icon={<ShieldCheck size={16} />} type="password" maxLength={8} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} autoComplete="new-password" />
+                <IceInput
+                  label="Confirmation"
+                  icon={<ShieldCheck size={16} />}
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  autoComplete="new-password"
+                  ref={confirmRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
                 {errors.confirmPassword && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.confirmPassword}</p>}
               </div>
 
               <div className="hidden md:block p-4 bg-white/5 rounded-2xl border border-white/5">
-                <p className="text-[8px] text-ice-100/30 uppercase font-black leading-relaxed">Sécurité : Utilisez un mélange de lettres et de chiffres (6 à 8 car.).</p>
+                <p className="text-[8px] text-ice-100/30 uppercase font-black leading-relaxed">Sécurité : Utilisez un mélange de lettres et de chiffres (au moins 6 car.).</p>
               </div>
             </div>
           </div>

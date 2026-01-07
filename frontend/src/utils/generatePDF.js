@@ -4,7 +4,7 @@ import autoTable from "jspdf-autotable";
 import QRCode from 'qrcode';
 import { toast } from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "https://ta-facture.onrender.com");
 
 export const generatePDF = async (invoice) => {
   const token = localStorage.getItem('token');

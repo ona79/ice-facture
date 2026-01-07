@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { ChevronDown, MapPin } from 'lucide-react';
 import { COUNTRY_CODES } from '../utils/countryCodes';
 
-export const PhoneInput = ({ value, onChange, label, error }) => {
+export const PhoneInput = forwardRef(({ value, onChange, label, error, onCountryChange, ...props }, ref) => {
     // État local pour le code pays (par défaut Sénégal +221)
     const [selectedCode, setSelectedCode] = useState(COUNTRY_CODES[0]);
     const [isOpen, setIsOpen] = useState(false);
@@ -10,11 +10,17 @@ export const PhoneInput = ({ value, onChange, label, error }) => {
     const handleSelect = (country) => {
         setSelectedCode(country);
         setIsOpen(false);
+        if (onCountryChange) onCountryChange(country);
+    };
+
+    const handleTextChange = (e) => {
+        const val = e.target.value.replace(/\D/g, "");
+        onChange(val);
     };
 
     return (
         <div className="flex flex-col gap-1.5 w-full relative">
-            {label && <label className="text-sm font-medium text-ice-100/70 ml-1">{label}</label>}
+            {label && <label className="text-sm font-medium text-ice-100/70 ml-1 italic uppercase text-[9px] tracking-widest">{label}</label>}
 
             <div className="flex gap-2">
                 {/* SÉLECTEUR DE PAYS */}
@@ -22,7 +28,7 @@ export const PhoneInput = ({ value, onChange, label, error }) => {
                     <button
                         type="button"
                         onClick={() => setIsOpen(!isOpen)}
-                        className="h-full bg-white/5 border border-white/10 rounded-xl px-3 flex items-center gap-2 hover:bg-white/10 transition-colors min-w-[90px]"
+                        className="h-full bg-white/5 border border-white/10 rounded-2xl px-2 flex items-center gap-1 hover:bg-white/10 transition-colors min-w-[80px]"
                     >
                         <span className="text-lg">{selectedCode.flag}</span>
                         <span className="text-sm font-bold text-white">{selectedCode.code}</span>
@@ -31,34 +37,40 @@ export const PhoneInput = ({ value, onChange, label, error }) => {
 
                     {/* DROPDOWN */}
                     {isOpen && (
-                        <div className="absolute top-12 left-0 w-[140px] max-h-60 overflow-y-auto bg-[#09090b] border border-white/10 rounded-xl shadow-2xl z-50">
+                        <div className="absolute top-14 left-0 w-[160px] max-h-60 overflow-y-auto bg-[#09090b]/95 backdrop-blur-xl border border-white/10 rounded-[1.5rem] shadow-2xl z-50 p-1">
                             {COUNTRY_CODES.map((c) => (
                                 <button
                                     key={c.country}
                                     type="button"
                                     onClick={() => handleSelect(c)}
-                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left"
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${selectedCode.code === c.code ? 'bg-ice-400/10 text-white' : 'hover:bg-white/5 text-white/50'
+                                        }`}
                                 >
-                                    <span className="text-lg">{c.flag}</span>
-                                    <span className="text-sm font-bold text-white/70">{c.code}</span>
+                                    <span className="text-xl">{c.flag}</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black">{c.code}</span>
+                                        <span className="text-[8px] uppercase tracking-tighter opacity-50">{c.country}</span>
+                                    </div>
                                 </button>
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* INPUT NUMÉRO (9 chiffres) */}
+                {/* INPUT NUMÉRO */}
                 <div className="relative flex-1">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20">
-                        <MapPin size={16} />
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/10">
+                        <MapPin size={14} />
                     </div>
                     <input
+                        {...props}
+                        ref={ref}
                         type="text"
-                        maxLength={9}
-                        placeholder="7X XXX XX XX"
+                        maxLength={selectedCode.digitLength}
+                        placeholder={"X".repeat(selectedCode.digitLength).replace(/(.{3})/g, "$1 ").trim()}
                         value={value}
-                        onChange={onChange}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all placeholder:text-white/20 text-white font-bold tracking-widest"
+                        onChange={handleTextChange}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-3 py-4 focus:outline-none focus:border-ice-400 focus:ring-4 focus:ring-ice-400/5 transition-all placeholder:text-white/5 text-white font-black tracking-[0.1em] text-sm"
                     />
                 </div>
             </div>
@@ -71,4 +83,6 @@ export const PhoneInput = ({ value, onChange, label, error }) => {
             )}
         </div>
     );
-};
+});
+
+PhoneInput.displayName = 'PhoneInput';

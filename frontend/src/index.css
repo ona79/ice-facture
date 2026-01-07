@@ -2,21 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Configuration globale du thème Glacial */
+/* Configuration globale du thème Glacial Pro */
 body {
-  @apply bg-ice-900 text-white min-h-screen font-sans antialiased;
-  background-image: radial-gradient(circle at 0% 0%, #1e293b 0%, #0f172a 100%);
+  @apply bg-[#05070a] text-white min-h-screen font-sans antialiased;
+  background-image: radial-gradient(circle at 50% -20%, #1a2a47 0%, #05070a 80%);
   background-attachment: fixed;
+  overflow-x: hidden;
 }
 
-/* Carte Glassmorphism */
+/* Carte Glassmorphism Premium */
 .glass-card {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-xl;
+  @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 shadow-2xl;
 }
 
-/* Style de barre de défilement personnalisée pour les listes */
+/* Boutons d'action style eFootball */
+.action-btn {
+  @apply flex flex-col items-center justify-center gap-2 p-4 rounded-3xl transition-all duration-300 relative overflow-hidden;
+}
+
+.action-btn::after {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300 bg-white/10;
+}
+
+.action-btn:hover::after {
+  @apply opacity-100;
+}
+
+.action-btn:active {
+  @apply scale-95;
+}
+
+/* Style de barre de défilement personnalisée */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -24,22 +43,28 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full;
+  @apply bg-white/5 rounded-full;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-ice-400/50;
+  @apply bg-white/20;
 }
 
-/* Animations de transition fluides */
-.transition-all {
-  transition-duration: 300ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Animations d'entrée */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Masquer les flèches sur les inputs de type number */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-blink {
+  animation: blink 1.5s infinite;
 }
