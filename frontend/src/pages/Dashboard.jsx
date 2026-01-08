@@ -257,18 +257,18 @@ export default function Dashboard() {
 
 
 
-        <div className="relative z-10 pt-6 pb-8 md:pt-10 md:pb-12 px-8 md:px-12 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="max-w-md text-left">
-            <div className="flex justify-between items-start mb-2">
-              <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter uppercase leading-tight">
+        <div className="relative z-10 pt-6 pb-8 md:pt-10 md:pb-12 px-4 sm:px-8 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
+          <div className="max-w-md text-left w-full md:w-auto">
+            <div className="flex justify-between items-start mb-2 gap-2">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black italic tracking-tighter uppercase leading-tight">
                 Ventes <span className="text-ice-400">{new Date().getFullYear()}</span>
               </h1>
               <button
                 onClick={() => navigate('/settings', { state: { tab: 'support' } })}
-                className="flex items-center gap-2 bg-white/10 hover:bg-ice-400 hover:text-ice-900 px-4 py-2 rounded-2xl border border-white/10 transition-all active:scale-95 group"
+                className="flex items-center gap-1 sm:gap-2 bg-white/10 hover:bg-ice-400 hover:text-ice-900 px-2 sm:px-4 py-2 rounded-2xl border border-white/10 transition-all active:scale-95 group flex-shrink-0"
               >
                 <MessageSquare size={14} className="group-hover:animate-bounce" />
-                <span className="text-[8px] font-black uppercase tracking-widest">Aide ?</span>
+                <span className="text-[8px] font-black uppercase tracking-widest hidden sm:inline">Aide ?</span>
               </button>
             </div>
             <p className="text-white/60 text-sm font-bold uppercase tracking-widest mb-6">
