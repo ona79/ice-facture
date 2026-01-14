@@ -26,8 +26,8 @@ Le but est de résoudre trois problèmes majeurs :
 - **Interface Employé** : Cacher le formulaire "Ajouter un produit" si l'utilisateur est un employé. Ils ne verront que la liste des produits (lecture seule).
 
 #### [NAVIGATION] [Navbar.jsx](file:///home/diallo/ice-facture/frontend/src/components/Navbar.jsx)
-- **Menu Responsive** : Remplacer l'overlay plein écran par une **Sidebar (Tiroir)** latérale de largeur réduite (~250px).
-- **Optimisation** : Réduire l'espacement vertical (`py-3` au lieu de `py-4`) des liens pour que le menu soit plus compact.
+- **Desktop** : Centrer parfaitement la barre de menu horizontale (`mx-auto`, `justify-center`).
+- **Mobile** : Rendre l'arrière-plan de la sidebar vertical **transparent** (effet Glass plus prononcé, moins de fond noir).
 - **Git** : Faire un commit pour toutes les modifications.
 
 #### [EMPLOYES] [Settings.jsx](file:///home/diallo/ice-facture/frontend/src/pages/Settings.jsx)
