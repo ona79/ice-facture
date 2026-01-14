@@ -38,6 +38,8 @@ export default function Settings() {
   const [employeeData, setEmployeeData] = useState({ email: '', password: '', phone: '' });
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [showDeleteEmployeeModal, setShowDeleteEmployeeModal] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -245,17 +247,25 @@ export default function Settings() {
     }
   };
 
-  const handleDeleteEmployee = async (id) => {
-    if (!window.confirm("Supprimer ce vendeur ?")) return;
+  const handleDeleteEmployee = (id) => {
+    setEmployeeToDelete(id);
+    setShowDeleteEmployeeModal(true);
+  };
+
+  const confirmEmployeeDeletion = async () => {
+    if (!employeeToDelete) return;
     const loading = toast.loading("Suppression...");
     try {
-      await axios.delete(`${API_URL}/api/auth/employees/${id}`, getAuthHeader());
+      await axios.delete(`${API_URL}/api/auth/employees/${employeeToDelete}`, getAuthHeader());
       toast.dismiss(loading);
       toast.success("Vendeur supprimé");
       fetchEmployees();
     } catch (err) {
       toast.dismiss(loading);
       toast.error("Erreur lors de la suppression");
+    } finally {
+      setShowDeleteEmployeeModal(false);
+      setEmployeeToDelete(null);
     }
   };
 
@@ -632,13 +642,10 @@ export default function Settings() {
                 onChange={(e) => setEmployeeData({ ...employeeData, email: e.target.value })}
                 required
               />
-              <IceInput
+              <PhoneInput
                 label="Téléphone"
-                type="text"
-                placeholder="7..."
                 value={employeeData.phone}
-                onChange={(e) => setEmployeeData({ ...employeeData, phone: e.target.value })}
-                required
+                onChange={(val) => setEmployeeData({ ...employeeData, phone: val })}
               />
               <IceInput
                 label="Mot de passe"
@@ -654,6 +661,40 @@ export default function Settings() {
           </div>
         </div>
       )}
-    </div >
+      {/* MODAL CONFIRMATION SUPPRESSION EMPLOYÉ */}
+      {showDeleteEmployeeModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border border-red-500/20 shadow-2xl bg-[#09090b]/90">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-4">
+                <Trash2 size={32} />
+              </div>
+              <h3 className="text-xl font-black italic uppercase text-red-500 tracking-tighter">Supprimer ce vendeur ?</h3>
+              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2 mb-6 leading-relaxed">
+                Cet employé ne pourra plus accéder à la caisse.
+              </p>
+
+              <div className="flex flex-col gap-3 pt-2 w-full">
+                <button
+                  onClick={confirmEmployeeDeletion}
+                  className="w-full py-4 rounded-xl bg-red-500 text-white font-black uppercase text-[10px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                >
+                  Confirmer la suppression
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteEmployeeModal(false);
+                    setEmployeeToDelete(null);
+                  }}
+                  className="w-full py-4 rounded-xl border border-white/5 text-white/30 font-black uppercase text-[10px] hover:bg-white/5 transition-all"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

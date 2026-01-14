@@ -30,6 +30,11 @@ Le but est de résoudre trois problèmes majeurs :
 - **Comportement** : Sur petit écran, le menu est caché. Un clic sur le bouton affiche le menu.
 - **Pourquoi ?** : Pour éviter que le menu ne prenne trop de place ou ne soit illisible sur téléphone.
 
+#### [EMPLOYES] [Settings.jsx](file:///home/diallo/ice-facture/frontend/src/pages/Settings.jsx)
+- **Modal de Suppression** : Remplacer `window.confirm()` par une vraie modale stylisée pour la suppression des vendeurs.
+- **Saisie Téléphone** : Remplacer le champ texte simple du formulaire "Nouveau Vendeur" par le composant `<PhoneInput />` (avec drapeaux et validation).
+- **Pourquoi ?** : Pour avoir le même comportement qu'à l'inscription (validation format et indicatif).
+
 #### [STABILITÉ] [index.html](file:///home/diallo/ice-facture/frontend/index.html)
 - **Viewport Mobile** : Ajouter `user-scalable=no` et `maximum-scale=1.0`.
 - **Pourquoi ?** : Empêcher le zoom accidentel et stabiliser l'application comme une application native ("ne doit pas aller partout").
