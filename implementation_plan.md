@@ -26,14 +26,17 @@ Le but est de résoudre trois problèmes majeurs :
 - **Interface Employé** : Cacher le formulaire "Ajouter un produit" si l'utilisateur est un employé. Ils ne verront que la liste des produits (lecture seule).
 
 #### [NAVIGATION] [Navbar.jsx](file:///home/diallo/ice-facture/frontend/src/components/Navbar.jsx)
-- **Menu Responsive** : Remplacer la barre fixe par un **bouton Menu** sur mobile.
-- **Comportement** : Sur petit écran, le menu est caché. Un clic sur le bouton affiche le menu.
-- **Pourquoi ?** : Pour éviter que le menu ne prenne trop de place ou ne soit illisible sur téléphone.
+- **Menu Responsive** : Remplacer l'overlay plein écran par une **Sidebar (Tiroir)** latérale de largeur réduite (~250px).
+- **Optimisation** : Réduire l'espacement vertical (`py-3` au lieu de `py-4`) des liens pour que le menu soit plus compact.
+- **Git** : Faire un commit pour toutes les modifications.
 
 #### [EMPLOYES] [Settings.jsx](file:///home/diallo/ice-facture/frontend/src/pages/Settings.jsx)
-- **Modal de Suppression** : Remplacer `window.confirm()` par une vraie modale stylisée pour la suppression des vendeurs.
-- **Saisie Téléphone** : Remplacer le champ texte simple du formulaire "Nouveau Vendeur" par le composant `<PhoneInput />` (avec drapeaux et validation).
-- **Pourquoi ?** : Pour avoir le même comportement qu'à l'inscription (validation format et indicatif).
+- **Modal de Suppression** : Ajouter un champ **Mot de passe** dans la modale de suppression d'employé.
+- **Backend** : Mettre à jour la route `DELETE /employees/:id` pour vérifier le mot de passe du gérant avant suppression.
+- **Saisie Téléphone** : (Déjà fait)
+
+#### [HISTORIQUE] [History.jsx](file:///home/diallo/ice-facture/frontend/src/pages/History.jsx)
+- **Restriction Suppression** : Masquer le bouton de suppression pour les vendeurs. Seul l'admin doit le voir.
 
 #### [STABILITÉ] [index.html](file:///home/diallo/ice-facture/frontend/index.html)
 - **Viewport Mobile** : Ajouter `user-scalable=no` et `maximum-scale=1.0`.

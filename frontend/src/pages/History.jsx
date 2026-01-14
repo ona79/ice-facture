@@ -348,7 +348,11 @@ export default function History() {
                   <button onClick={() => setModalDetail({ show: true, invoice: inv })} className="p-2 bg-white/5 text-white/40 rounded-lg hover:text-ice-400 transition-all"><Eye size={14} /></button>
                   {reste > 0 && <button onClick={() => setModalPay({ show: true, invoice: inv, amount: "" })} className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all shadow-md shadow-orange-500/10"><Banknote size={14} /></button>}
                   <button onClick={() => generatePDF({ ...inv, invoiceNumber: displayNum })} className="p-2 bg-ice-400 text-ice-900 rounded-lg hover:bg-ice-300 transition-all shadow-md shadow-ice-400/10"><Download size={14} /></button>
-                  <button onClick={() => setModalDelete({ show: true, id: inv._id, num: displayNum })} className="p-2 bg-white/5 text-red-500/30 hover:text-red-500 rounded-lg transition-all"><Trash2 size={14} /></button>
+                  {localStorage.getItem('role') === 'admin' && (
+                    <button onClick={() => setModalDelete({ show: true, id: inv._id, num: displayNum })} className="p-2 bg-white/5 text-red-500/30 hover:text-red-500 rounded-lg transition-all">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -249,20 +249,30 @@ export default function Settings() {
 
   const handleDeleteEmployee = (id) => {
     setEmployeeToDelete(id);
+    setDeletePassword(''); // Reset password field
     setShowDeleteEmployeeModal(true);
   };
 
-  const confirmEmployeeDeletion = async () => {
+  const confirmEmployeeDeletion = async (e) => {
+    e.preventDefault(); // Prevent form submission reload
     if (!employeeToDelete) return;
+    if (!deletePassword) {
+      toast.error("Mot de passe requis");
+      return;
+    }
+
     const loading = toast.loading("Suppression...");
     try {
-      await axios.delete(`${API_URL}/api/auth/employees/${employeeToDelete}`, getAuthHeader());
+      await axios.delete(`${API_URL}/api/auth/employees/${employeeToDelete}`, {
+        ...getAuthHeader(),
+        data: { password: deletePassword }
+      });
       toast.dismiss(loading);
       toast.success("Vendeur supprimé");
       fetchEmployees();
     } catch (err) {
       toast.dismiss(loading);
-      toast.error("Erreur lors de la suppression");
+      toast.error(err.response?.data?.msg || "Erreur lors de la suppression");
     } finally {
       setShowDeleteEmployeeModal(false);
       setEmployeeToDelete(null);
@@ -675,12 +685,22 @@ export default function Settings() {
               </p>
 
               <div className="flex flex-col gap-3 pt-2 w-full">
-                <button
-                  onClick={confirmEmployeeDeletion}
-                  className="w-full py-4 rounded-xl bg-red-500 text-white font-black uppercase text-[10px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
-                >
-                  Confirmer la suppression
-                </button>
+                <form onSubmit={confirmEmployeeDeletion} className="w-full space-y-3">
+                  <IceInput
+                    label="Mot de passe gérant"
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-xl bg-red-500 text-white font-black uppercase text-[10px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                  >
+                    Confirmer la suppression
+                  </button>
+                </form>
                 <button
                   onClick={() => {
                     setShowDeleteEmployeeModal(false);

@@ -230,10 +230,24 @@ router.get('/employees', auth, async (req, res) => {
 });
 
 // --- 7. SUPPRIMER UN EMPLOYÉ (ADMIN SEUL) ---
+// --- 7. SUPPRIMER UN EMPLOYÉ (ADMIN SEUL) ---
 router.delete('/employees/:id', auth, async (req, res) => {
   try {
     const adminId = req.user.id;
     const employeeId = req.params.id;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ msg: "Mot de passe requis pour supprimer un employé." });
+    }
+
+    const admin = await User.findById(adminId);
+    if (!admin) return res.status(404).json({ msg: "Admin introuvable." });
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({ msg: "Mot de passe incorrect" });
+    }
 
     // On vérifie que l'employé appartient bien à cet admin
     const employee = await User.findOne({ _id: employeeId, parentId: adminId });

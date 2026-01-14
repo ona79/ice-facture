@@ -46,17 +46,17 @@ const Navbar = () => {
                 </button>
             </div>
 
-            {/* NAV BAR DESKTOP & MOBILE MENU */}
-            <nav className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-300 ${isOpen ? 'translate-y-0 bg-[#09090b]/95 h-screen pt-20 items-start' : '-translate-y-full md:translate-y-0 md:top-4 md:h-auto md:bg-transparent md:pointer-events-none'}`}>
+            {/* NAV BAR DESKTOP & MOBILE MENU (SIDEBAR) */}
+            <nav className={`fixed inset-y-0 left-0 z-50 flex flex-col items-start transition-transform duration-300 ease-out bg-[#09090b]/95 backdrop-blur-xl border-r border-white/10 w-64 pt-20 shadow-2xl md:static md:w-auto md:h-auto md:bg-transparent md:border-none md:shadow-none md:flex-row md:pt-0 md:transform-none ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
 
-                <div className={`flex flex-col md:flex-row bg-[#1a1f26]/90 backdrop-blur-md md:rounded-full p-2 border-b md:border border-white/10 pointer-events-auto w-full md:w-auto overflow-hidden transition-all gap-2 md:gap-0 ${isOpen ? 'items-center' : ''}`}>
+                <div className="flex flex-col md:flex-row md:bg-[#1a1f26]/90 md:backdrop-blur-md md:rounded-full p-4 md:p-2 md:border md:border-white/10 w-full md:w-auto gap-2 md:gap-0">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             onClick={handleLinkClick}
                             className={({ isActive }) =>
-                                `relative px-6 py-4 md:py-2 text-sm font-bold transition-all duration-300 md:rounded-full whitespace-nowrap w-full md:w-auto text-center ${isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
+                                `relative px-6 py-3 md:py-2 text-sm font-bold transition-all duration-300 md:rounded-full whitespace-nowrap w-full md:w-auto text-left md:text-center rounded-xl ${isActive ? 'text-white bg-white/10 md:bg-transparent' : 'text-white/40 hover:text-white/70 hover:bg-white/5 md:hover:bg-transparent'
                                 }`
                             }
                         >
@@ -65,17 +65,25 @@ const Navbar = () => {
                                     {isActive && (
                                         <motion.div
                                             layoutId="nav-pill"
-                                            className="absolute inset-0 bg-white/10 md:rounded-full rounded-xl"
+                                            className="absolute inset-0 bg-white/10 md:bg-white/10 md:rounded-full rounded-xl hidden md:block" // Hidden on mobile, handled by className
                                             transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
-                                    <span className="relative z-10 text-lg md:text-sm uppercase tracking-widest">{item.name}</span>
+                                    <span className="relative z-10 text-sm uppercase tracking-widest">{item.name}</span>
                                 </>
                             )}
                         </NavLink>
                     ))}
                 </div>
             </nav>
+
+            {/* OVERLAY BACKDROP (Mobile only) */}
+            {isOpen && (
+                <div
+                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                />
+            )}
         </>
     );
 };
