@@ -126,7 +126,6 @@ export default function Products() {
                 autoFocus
                 type="password"
                 placeholder="Mot de passe..."
-                maxLength={8}
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center transition-all placeholder:text-white/20 font-bold tracking-widest"
                 style={{ colorScheme: 'dark' }}
                 value={accessPassword}
@@ -174,7 +173,6 @@ export default function Products() {
                     autoFocus
                     type="password"
                     placeholder="Mot de passe..."
-                    maxLength={8}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white outline-none focus:border-red-500 text-center transition-all placeholder:text-white/20 font-bold tracking-widest"
                     value={deletePassword}
                     onChange={(e) => setDeletePassword(e.target.value)}
@@ -189,75 +187,77 @@ export default function Products() {
         </div>
       )}
 
-      <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
-        <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-          <div className="relative">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
-            <input
-              list="product-suggestions"
-              required
-              type="text"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-              className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white uppercase placeholder:normal-case`}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  stockRef.current?.focus();
-                }
-              }}
-              ref={nameRef}
-              placeholder="Nom du produit..."
-            />
-            <datalist id="product-suggestions">
-              {products.map((p) => (
-                <option key={p._id} value={p.name} />
-              ))}
-            </datalist>
-          </div>
-
-          <div className="relative">
-            <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Quantité à ajouter</label>
-            <input
-              required
-              type="text"
-              value={newProduct.stock}
-              onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-              className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`}
-              placeholder="0"
-              ref={stockRef}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addProduct(e);
-                }
-              }}
-            />
-          </div>
-
-          {/* CODE BARRES */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Code-barres (Optionnel)</label>
+      {localStorage.getItem('role') === 'admin' && (
+        <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
+          <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
             <div className="relative">
+              <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
               <input
-                type="text" placeholder="Scanner ou saisir..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-ice-400 outline-none transition-all text-sm font-bold"
-                value={newProduct.barcode}
-                onChange={(e) => setNewProduct({ ...newProduct, barcode: e.target.value })}
+                list="product-suggestions"
+                required
+                type="text"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white uppercase placeholder:normal-case`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    stockRef.current?.focus();
+                  }
+                }}
+                ref={nameRef}
+                placeholder="Nom du produit..."
               />
-              <Scan size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+              <datalist id="product-suggestions">
+                {products.map((p) => (
+                  <option key={p._id} value={p.name} />
+                ))}
+              </datalist>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={!isFormValid}
-            className={`w-full py-5 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all active:scale-95 ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
-          >
-            Enregistrer le produit
-          </button>
-        </form>
-      </div>
+            <div className="relative">
+              <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Quantité à ajouter</label>
+              <input
+                required
+                type="text"
+                value={newProduct.stock}
+                onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`}
+                placeholder="0"
+                ref={stockRef}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addProduct(e);
+                  }
+                }}
+              />
+            </div>
+
+            {/* CODE BARRES */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Code-barres (Optionnel)</label>
+              <div className="relative">
+                <input
+                  type="text" placeholder="Scanner ou saisir..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-ice-400 outline-none transition-all text-sm font-bold"
+                  value={newProduct.barcode}
+                  onChange={(e) => setNewProduct({ ...newProduct, barcode: e.target.value })}
+                />
+                <Scan size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isFormValid}
+              className={`w-full py-5 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all active:scale-95 ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+            >
+              Enregistrer le produit
+            </button>
+          </form>
+        </div>
+      )}
 
       <div className="space-y-2 pb-10">
         {products.length === 0 ? (

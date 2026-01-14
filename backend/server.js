@@ -8,6 +8,15 @@ const mongoSanitize = require('express-mongo-sanitize');
 
 const app = express();
 
+// --- 0. CORS (EN PREMIER POUR TOUT AUTORISER) ---
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
 // --- 1. SÉCURITÉ DES HEADERS HTTP (HELMET) ---
 app.use(helmet());
 
@@ -38,13 +47,6 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
 // --- MIDDLEWARES DE BASE ---
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
 
 app.use(express.json({ limit: '10kb' })); // Protection contre les payloads trop lourd
 // Log des requêtes pour faciliter le débogage sur Render (Très utile pour voir si PATCH arrive)

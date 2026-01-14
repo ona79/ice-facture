@@ -277,7 +277,6 @@ export default function Settings() {
                 value={accessPassword}
                 onChange={(e) => setAccessPassword(e.target.value)}
                 autoComplete="new-password"
-                maxLength={8}
                 required
               />
               <button type="submit" className="w-full py-5 rounded-2xl bg-ice-400 text-ice-900 font-black uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-ice-400/20 active:scale-95 transition-all">

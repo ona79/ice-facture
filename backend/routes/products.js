@@ -18,6 +18,11 @@ router.get('/', auth, async (req, res) => {
 // --- 2. AJOUTER UN PRODUIT (UPSERT: SI EXISTE, ON AJOUTE AU STOCK) ---
 router.post('/', auth, async (req, res) => {
   try {
+    // 1. Restriction Rôle : Seul l'admin peut gérer l'inventaire
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ msg: "Action interdite : Seul le gérant peut ajouter/modifier le stock." });
+    }
+
     const { name, stock, barcode } = req.body;
 
     if (!name) {
