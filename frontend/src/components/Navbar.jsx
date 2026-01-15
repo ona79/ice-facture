@@ -25,7 +25,7 @@ const Navbar = () => {
     return (
         <>
             {/* BOUTON MOBILE (HAMBURGER) */}
-            <div className="fixed top-4 left-4 z-[100] md:hidden">
+            <div className="fixed top-4 right-4 z-[100] md:hidden">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white shadow-xl active:scale-95 transition-all"

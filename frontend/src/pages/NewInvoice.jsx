@@ -122,17 +122,44 @@ export default function NewInvoice() {
     }
   };
 
+  // Helper pour le son
+  const beep = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 1000; // 1000Hz beep
+      gainNode.gain.value = 0.1;
+      oscillator.start();
+      setTimeout(() => oscillator.stop(), 150);
+    } catch (e) {
+      console.error("Audio error", e);
+    }
+  };
+
   const handleBarcodeFound = (code) => {
+    beep(); // Son de confirmation de lecture
+
     const found = products.find(p => p.barcode === code);
     if (found) {
       if (found.stock <= 0) {
-        toast.error("Stock épuisé");
+        toast.error(`RUPTURE: ${found.name}`, { duration: 3000 });
         return;
       }
-      addItem(found._id); // Use existing addItem function
-      toast.success(`${found.name} ajouté !`);
+      addItem(found._id);
+      toast.success(`${found.name} AJOUTÉ !`, {
+        style: { border: '2px solid #00f2ff', background: 'rgba(0,0,0,0.9)', color: '#00f2ff', fontWeight: '900' },
+        icon: '✅'
+      });
     } else {
-      toast.error("Produit non trouvé");
+      // Afficher le code scanné pour débogage
+      toast.error(`Code Inconnu: ${code}`, {
+        duration: 5000,
+        style: { border: '2px solid #ff4b4b', background: 'rgba(0,0,0,0.9)', color: '#ff4b4b', fontWeight: 'bold' }
+      });
     }
   };
 
