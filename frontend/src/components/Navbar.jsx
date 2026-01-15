@@ -47,7 +47,7 @@ const Navbar = () => {
             </div>
 
             {/* NAV BAR DESKTOP & MOBILE MENU (SIDEBAR) */}
-            <nav className={`fixed inset-y-0 left-0 z-50 flex flex-col items-start transition-transform duration-300 ease-out bg-[#09090b]/40 backdrop-blur-xl border-r border-white/5 w-64 pt-20 shadow-2xl md:fixed md:top-6 md:left-0 md:right-0 md:bottom-auto md:h-auto md:w-full md:border-none md:shadow-none md:flex-row md:justify-center md:items-start md:bg-transparent md:backdrop-blur-none md:pt-0 md:transform-none md:pointer-events-none ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+            <nav className={`fixed inset-y-0 left-0 z-50 flex flex-col items-start transition-transform duration-300 ease-out bg-[#09090b]/40 backdrop-blur-xl border-r border-white/5 w-64 pt-20 shadow-2xl md:fixed md:top-2 md:left-0 md:right-0 md:bottom-auto md:h-auto md:w-full md:border-none md:shadow-none md:flex-row md:justify-center md:items-start md:bg-transparent md:backdrop-blur-none md:pt-0 md:transform-none md:pointer-events-none ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
 
                 <div className="flex flex-col md:flex-row md:bg-[#1a1f26]/80 md:backdrop-blur-xl md:rounded-full p-4 md:p-1.5 md:border md:border-white/10 w-full md:w-auto gap-2 md:gap-0 shadow-2xl pointer-events-auto">
                     {navItems.map((item) => (
