@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import { ArrowLeft, Plus, Trash2, Package, Lock, Unlock, AlertCircle, X, Scan } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,60 @@ export default function Products() {
   const navigate = useNavigate();
   const nameRef = useRef(null);
   const stockRef = useRef(null);
+  const [showScanner, setShowScanner] = useState(false);
+  const scannerRef = useRef(null);
+
+  // Helper pour le son
+  const beep = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 1000;
+      gainNode.gain.value = 0.1;
+      oscillator.start();
+      setTimeout(() => oscillator.stop(), 150);
+    } catch (e) {
+      console.error("Audio error", e);
+    }
+  };
+
+  const startScanning = async () => {
+    setShowScanner(true);
+    setTimeout(async () => {
+      const html5QrCode = new Html5Qrcode("reader");
+      scannerRef.current = html5QrCode;
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 150 } },
+          (decodedText) => {
+            beep();
+            setNewProduct(prev => ({ ...prev, barcode: decodedText }));
+            stopScanning();
+            toast.success("Code scanné !", { icon: '✅', style: { border: '1px solid #00f2ff', background: '#000', color: '#00f2ff' } });
+          },
+          () => { }
+        );
+      } catch (err) {
+        toast.error("Erreur caméra");
+        setShowScanner(false);
+      }
+    }, 100);
+  };
+
+  const stopScanning = () => {
+    if (scannerRef.current) {
+      scannerRef.current.stop().then(() => {
+        setShowScanner(false);
+      }).catch(() => setShowScanner(false));
+    } else {
+      setShowScanner(false);
+    }
+  };
 
   // Header de sécurité avec Token
   const getAuthHeader = () => ({
@@ -189,7 +244,7 @@ export default function Products() {
 
       {localStorage.getItem('role') === 'admin' && (
         <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
-          <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+          <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1.5fr_auto] gap-4 items-end">
             <div className="relative">
               <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
               <input
@@ -216,7 +271,7 @@ export default function Products() {
             </div>
 
             <div className="relative">
-              <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Quantité à ajouter</label>
+              <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Quantité</label>
               <input
                 required
                 type="text"
@@ -240,20 +295,26 @@ export default function Products() {
               <div className="relative">
                 <input
                   type="text" placeholder="Scanner ou saisir..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 pl-12 focus:border-ice-400 outline-none transition-all text-sm font-bold"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 focus:border-ice-400 outline-none transition-all text-sm font-bold"
                   value={newProduct.barcode}
                   onChange={(e) => setNewProduct({ ...newProduct, barcode: e.target.value })}
                 />
-                <Scan size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+                <button
+                  type="button"
+                  onClick={startScanning}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 p-2 text-white/20 hover:text-ice-400 transition-colors"
+                >
+                  <Scan size={18} />
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={!isFormValid}
-              className={`w-full py-5 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all active:scale-95 ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+              className={`px-8 py-3.5 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all active:scale-95 whitespace-nowrap ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
             >
-              Enregistrer le produit
+              Enregistrer
             </button>
           </form>
         </div>
@@ -292,6 +353,24 @@ export default function Products() {
           ))
         )}
       </div>
+      {/* SCANNER OVERLAY */}
+      {showScanner && (
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
+            <button
+              onClick={stopScanning}
+              className="absolute top-4 right-4 text-white/50 hover:text-white bg-black/50 rounded-full p-2"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-center font-black uppercase text-xl mb-6 text-ice-400">Scanner un produit</h3>
+            <div id="reader" className="w-full rounded-2xl overflow-hidden border-2 border-ice-400/30 shadow-[0_0_30px_rgba(0,242,255,0.2)]"></div>
+            <p className="text-center text-white/40 text-xs font-bold uppercase mt-6 tracking-widest">
+              Placez le code-barre devant la caméra
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
