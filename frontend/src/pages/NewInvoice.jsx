@@ -422,6 +422,25 @@ export default function NewInvoice() {
           <ShoppingCart size={14} />
         </button>
       </div>
+      {/* SCANNER OVERLAY */}
+      {showScanner && (
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
+            <button
+              onClick={stopScanning}
+              className="absolute top-4 right-4 text-white/50 hover:text-white bg-black/50 rounded-full p-2"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-center font-black uppercase text-xl mb-6 text-ice-400">Scanner un produit</h3>
+            <div id="reader" className="w-full rounded-2xl overflow-hidden border-2 border-ice-400/30 shadow-[0_0_30px_rgba(0,242,255,0.2)]"></div>
+            <p className="text-center text-white/40 text-xs font-bold uppercase mt-6 tracking-widest">
+              Placez le code-barre devant la caméra
+            </p>
+          </div>
+        </div>
+      )}
+
     </motion.div>
   );
 }
