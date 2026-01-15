@@ -147,11 +147,23 @@ export default function NewInvoice() {
     const cleanCode = code ? code.toString().trim() : "";
     console.log("Scanned:", cleanCode);
 
-    // Recherche insensible à la casse et sans espaces
-    const found = products.find(p => {
-      const pCode = p.barcode ? p.barcode.toString().trim() : "";
-      return pCode === cleanCode;
-    });
+    // Fonction de recherche intelligente (essaie plusieurs variantes)
+    const findProduct = (searchCode) => {
+      return products.find(p => {
+        const pCode = p.barcode ? p.barcode.toString().trim() : "";
+        if (pCode === searchCode) return true;
+
+        // Essai avec un "0" au début (UPC -> EAN)
+        if (pCode === "0" + searchCode) return true;
+
+        // Essai sans le "0" du début (EAN -> UPC)
+        if (searchCode.startsWith("0") && pCode === searchCode.substring(1)) return true;
+
+        return false;
+      });
+    };
+
+    const found = findProduct(cleanCode);
 
     if (found) {
       if (found.stock <= 0) {

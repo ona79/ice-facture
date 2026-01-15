@@ -30,19 +30,38 @@ router.post('/', auth, async (req, res) => {
     }
 
     const cleanName = name.trim();
+    const cleanBarcode = barcode ? barcode.trim() : "";
     const quantityToAdd = Number(stock) || 0;
 
-    // Recherche insensible à la casse pour le même utilisateur propriétaire
-    // On peut aussi chercher par code-barres si présent
-    let query = { userId: req.user.ownerId, $or: [{ name: { $regex: new RegExp(`^${cleanName}$`, 'i') } }] };
-    if (barcode) query.$or.push({ barcode });
+    // Recherche intelligente : nom OU code-barres (avec variantes)
+    let query = {
+      userId: req.user.ownerId,
+      $or: [{ name: { $regex: new RegExp(`^${cleanName}$`, 'i') } }]
+    };
+
+    // Si un code-barres est fourni, on cherche aussi par code-barres (avec variantes UPC/EAN)
+    if (cleanBarcode) {
+      const barcodeVariants = [cleanBarcode];
+
+      // Ajouter variante avec "0" au début
+      if (!cleanBarcode.startsWith("0")) {
+        barcodeVariants.push("0" + cleanBarcode);
+      }
+
+      // Ajouter variante sans "0" au début
+      if (cleanBarcode.startsWith("0") && cleanBarcode.length > 1) {
+        barcodeVariants.push(cleanBarcode.substring(1));
+      }
+
+      query.$or.push({ barcode: { $in: barcodeVariants } });
+    }
 
     let product = await Product.findOne(query);
 
     if (product) {
       // SI LE PRODUIT EXISTE -> ON AUGMENTE LE STOCK
       product.stock += quantityToAdd;
-      if (barcode) product.barcode = barcode; // Mise à jour du code-barres si nouveau
+      if (cleanBarcode) product.barcode = cleanBarcode; // Mise à jour du code-barres si nouveau
       await product.save();
       return res.status(200).json(product);
     } else {
@@ -52,7 +71,7 @@ router.post('/', auth, async (req, res) => {
         name: cleanName,
         price: 0,
         stock: quantityToAdd,
-        barcode: barcode || ""
+        barcode: cleanBarcode
       });
       const savedProduct = await newProduct.save();
       return res.status(201).json(savedProduct);
