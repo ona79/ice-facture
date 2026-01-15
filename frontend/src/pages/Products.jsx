@@ -53,7 +53,7 @@ export default function Products() {
           { fps: 10, qrbox: { width: 250, height: 150 } },
           (decodedText) => {
             beep();
-            setNewProduct(prev => ({ ...prev, barcode: decodedText }));
+            setNewProduct(prev => ({ ...prev, barcode: decodedText.trim() }));
             stopScanning();
             toast.success("Code scanné !", { icon: '✅', style: { border: '1px solid #00f2ff', background: '#000', color: '#00f2ff' } });
           },
@@ -131,8 +131,12 @@ export default function Products() {
   const addProduct = async (e) => {
     e.preventDefault();
     const loading = toast.loading("Ajout en cours...");
+
+    // Nettoyage des données (trim code-barres)
+    const productToSend = { ...newProduct, barcode: newProduct.barcode.trim() };
+
     try {
-      await axios.post(`${API_URL}/api/products`, newProduct, getAuthHeader());
+      await axios.post(`${API_URL}/api/products`, productToSend, getAuthHeader());
       toast.dismiss(loading);
       toast.success("Produit ajouté !");
       setNewProduct({ name: '', stock: '', barcode: '' });

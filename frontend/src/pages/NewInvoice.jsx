@@ -141,9 +141,18 @@ export default function NewInvoice() {
   };
 
   const handleBarcodeFound = (code) => {
-    beep(); // Son de confirmation de lecture
+    beep(); // Son de confirmation
 
-    const found = products.find(p => p.barcode === code);
+    // Nettoyage du code scanné (espaces invisibles)
+    const cleanCode = code ? code.toString().trim() : "";
+    console.log("Scanned:", cleanCode);
+
+    // Recherche insensible à la casse et sans espaces
+    const found = products.find(p => {
+      const pCode = p.barcode ? p.barcode.toString().trim() : "";
+      return pCode === cleanCode;
+    });
+
     if (found) {
       if (found.stock <= 0) {
         toast.error(`RUPTURE: ${found.name}`, { duration: 3000 });
@@ -155,8 +164,8 @@ export default function NewInvoice() {
         icon: '✅'
       });
     } else {
-      // Afficher le code scanné pour débogage
-      toast.error(`Code Inconnu: ${code}`, {
+      console.log("Not found in:", products.map(p => p.barcode));
+      toast.error(`Code Inconnu: ${cleanCode}`, {
         duration: 5000,
         style: { border: '2px solid #ff4b4b', background: 'rgba(0,0,0,0.9)', color: '#ff4b4b', fontWeight: 'bold' }
       });
