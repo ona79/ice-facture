@@ -33,3 +33,10 @@ logs
 *.njsproj
 *.sln
 *.sw?
+
+# Binary files and installers
+*.deb
+*.rpm
+*.exe
+*.dmg
+*.pkg

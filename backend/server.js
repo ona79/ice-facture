@@ -60,6 +60,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/expenses', require('./routes/expenses'));
+app.use('/api/chat', require('./routes/chat'));
 
 // --- CONNEXION MONGODB ---
 const uri = process.env.MONGO_URI;

@@ -25,6 +25,8 @@ export default function Expenses() {
     const [expenses, setExpenses] = useState([]);
     const [newExpense, setNewExpense] = useState({ description: '', amount: '', category: 'Autre', date: new Date().toISOString().split('T')[0] });
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [expenseToDelete, setExpenseToDelete] = useState(null);
     const navigate = useNavigate();
     const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
 
@@ -57,11 +59,18 @@ export default function Expenses() {
         }
     };
 
-    const handleDeleteExpense = async (id) => {
-        if (!window.confirm("Supprimer cette dépense ?")) return;
+    const handleDeleteExpense = (expense) => {
+        setExpenseToDelete(expense);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!expenseToDelete) return;
         try {
-            await axios.delete(`${API_URL}/api/expenses/${id}`, config);
+            await axios.delete(`${API_URL}/api/expenses/${expenseToDelete._id}`, config);
             toast.success("Supprimé");
+            setShowDeleteModal(false);
+            setExpenseToDelete(null);
             fetchExpenses();
         } catch (err) {
             toast.error("Erreur suppression");
@@ -141,7 +150,7 @@ export default function Expenses() {
                                 </div>
                                 <div className="flex items-center gap-6">
                                     <p className="font-black text-sm text-red-400">-{e.amount.toLocaleString()} F</p>
-                                    <button onClick={() => handleDeleteExpense(e._id)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
+                                    <button onClick={() => handleDeleteExpense(e)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -215,6 +224,57 @@ export default function Expenses() {
                                     Enregistrer la dépense
                                 </button>
                             </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* MODAL SUPPRESSION */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                            className="glass-card w-full max-w-md p-8 rounded-[3rem] border-white/10 relative shadow-2xl bg-[#09090b]"
+                        >
+                            <div className="text-center mb-6">
+                                <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl inline-block mb-4">
+                                    <Trash2 size={32} />
+                                </div>
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter mb-2">
+                                    Supprimer cette dépense ?
+                                </h3>
+                                {expenseToDelete && (
+                                    <div className="mt-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+                                        <p className="font-black text-sm uppercase">{expenseToDelete.description}</p>
+                                        <p className="text-xs text-white/40 mt-1">
+                                            {new Date(expenseToDelete.date).toLocaleDateString('fr-FR')} • {expenseToDelete.category}
+                                        </p>
+                                        <p className="font-black text-red-400 mt-2">-{expenseToDelete.amount.toLocaleString()} F</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setExpenseToDelete(null);
+                                    }}
+                                    className="flex-1 py-4 bg-white/5 border border-white/10 text-white/60 rounded-2xl font-black uppercase text-[11px] hover:bg-white/10 active:scale-95 transition-all"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                                >
+                                    OK
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}
