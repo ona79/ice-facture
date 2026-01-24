@@ -11,6 +11,7 @@ import Expenses from './pages/Expenses';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Navbar from './components/Navbar';
+import Landing from './pages/Landing';
 
 // L'import de InvoiceDetail a été supprimé ici car le fichier n'existe plus
 
@@ -52,7 +53,12 @@ function App() {
       <Navbar />
 
       <Routes>
+
         {/* ROUTES PUBLIQUES */}
+        <Route
+          path="/"
+          element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" />}
+        />
         <Route
           path="/login"
           element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
@@ -102,7 +108,7 @@ function App() {
         />
 
         {/* REDIRECTION PAR DÉFAUT */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

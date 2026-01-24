@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ThemeToggle from './ThemeToggle';
+import { useOfflineSync } from '../hooks/useOfflineSync';
+import { Wifi, WifiOff } from 'lucide-react';
 
 const Navbar = () => {
+    const { isOnline, offlineQueue } = useOfflineSync();
     const location = useLocation();
+    const [isOpen, setIsOpen] = useState(false); // Moved UP
     const hideOnPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
 
-    if (hideOnPaths.some(path => location.pathname.startsWith(path))) {
+    // Hide on Landing Page (root path) and auth pages
+    if (location.pathname === '/' || hideOnPaths.some(path => location.pathname.startsWith(path))) {
         return null;
     }
 
@@ -16,8 +22,6 @@ const Navbar = () => {
         { name: 'Stock', path: '/products' },
         { name: 'Factures', path: '/history' },
     ];
-
-    const [isOpen, setIsOpen] = React.useState(false);
 
     // Fermer le menu après un clic (mobile)
     const handleLinkClick = () => setIsOpen(false);
@@ -74,6 +78,20 @@ const Navbar = () => {
                             )}
                         </NavLink>
                     ))}
+                </div>
+                <div className="hidden md:flex items-center ml-4 gap-2">
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${isOnline ? 'border-green-500/20 bg-green-500/10 text-green-500' : 'border-red-500/20 bg-red-500/10 text-red-500'} transition-all`}>
+                        {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+                        <span className="text-[10px] font-black uppercase tracking-widest hidden lg:inline">
+                            {isOnline ? 'EN LIGNE' : 'HORS-LIGNE'}
+                        </span>
+                        {!isOnline && offlineQueue.length > 0 && (
+                            <div className="ml-1 bg-red-500 text-white text-[9px] font-bold px-1.5 rounded-full animate-bounce">
+                                {offlineQueue.length}
+                            </div>
+                        )}
+                    </div>
+                    <ThemeToggle />
                 </div>
             </nav>
 

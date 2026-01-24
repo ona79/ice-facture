@@ -4,34 +4,19 @@ const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { validate, registerSchema, loginSchema } = require('../middleware/validate');
 
 // --- 1. INSCRIPTION (REGISTER) ---
-router.post('/register', async (req, res) => {
+router.post('/register', validate(registerSchema), async (req, res) => {
   try {
     const { shopName, email, password, phone } = req.body;
-
-    // Conversion de l'email en minuscules
     const cleanEmail = email.toLowerCase().trim();
 
-    // Restriction stricte aux emails Gmail
-    if (!cleanEmail.endsWith('@gmail.com')) {
-      return res.status(400).json({ msg: "Seuls les comptes Gmail (@gmail.com) sont autorisés." });
-    }
-
-    // Validation téléphone : entre 7 et 10 chiffres (validation stricte faite sur le frontend)
-    if (!phone || phone.length < 7 || phone.length > 10) {
-      return res.status(400).json({ msg: "Format de téléphone incorrect." });
-    }
-
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
-    if (!password || !passwordRegex.test(password)) {
-      return res.status(400).json({
-        msg: "Le mot de passe doit contenir des lettres et des chiffres (au moins 6 caractères)."
-      });
-    }
+    // Note: La validation du format (Gmail, téléphone, password) est désormais gérée par Zod via le middleware validate.
 
     let userEmail = await User.findOne({ email: cleanEmail });
     if (userEmail) return res.status(400).json({ msg: "Cet email est déjà utilisé" });
+
 
     let userPhone = await User.findOne({ phone });
     if (userPhone) return res.status(400).json({ msg: "Ce numéro de téléphone est déjà utilisé" });
@@ -64,7 +49,7 @@ router.post('/register', async (req, res) => {
 });
 
 // --- 2. CONNEXION (LOGIN) ---
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
 

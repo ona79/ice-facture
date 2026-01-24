@@ -13,6 +13,11 @@ import { PhoneInput } from '../components/PhoneInput';
 // Correction de l'URL pour Render
 const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
 
+// ... imports
+import { useOfflineSync } from '../hooks/useOfflineSync';
+import confetti from 'canvas-confetti';
+import { playSuccessSound, playClickSound } from '../utils/audio';
+
 export default function NewInvoice() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +39,9 @@ export default function NewInvoice() {
 
   const navigate = useNavigate();
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+
+  // Hook Offline
+  const { isOnline, addToOfflineQueue } = useOfflineSync();
 
   useEffect(() => {
     // Vérification du profil
@@ -77,6 +85,10 @@ export default function NewInvoice() {
     } else {
       setItems([...items, { productId: product._id, name: product.name, price: 0, quantity: 1, isPriceSet: false }]);
     }
+
+    // Feedback
+    playClickSound();
+    if (navigator.vibrate) navigator.vibrate(50);
   };
 
   const updateQuantity = (id, q) => {
@@ -184,7 +196,7 @@ export default function NewInvoice() {
     }
   };
 
-  // --- VALIDATION DE LA VENTE (CORRIGÉ : PAS DE REDIRECTION WHATSAPP) ---
+  // --- VALIDATION DE LA VENTE ---
   const handleCheckout = async () => {
     if (!isProfileComplete) return toast.error("Profil incomplet : Remplissez les paramètres");
     if (items.length === 0) return toast.error("Panier vide");
@@ -196,28 +208,46 @@ export default function NewInvoice() {
       return toast.error("L'ENCAISSEMENT NE PEUT PAS DÉPASSER LE TOTAL");
     }
 
-    const loadingToast = toast.loading("Enregistrement de la vente...");
     const invoiceNum = createInvoiceID();
+    const invoiceData = {
+      invoiceNumber: invoiceNum,
+      items,
+      totalAmount: total,
+      amountPaid: finalPaid,
+      customerName: customerName.trim().toUpperCase(),
+      customerPhone: customerPhone,
+    };
+
+    // PREMIUM EFFECTS
+    playSuccessSound();
+    if (navigator.vibrate) navigator.vibrate([100]); // Vibration simple court
+
+    // LOGIQUE OFF / ON LINE
+    if (!isOnline) {
+      setTimeout(() => {
+        addToOfflineQueue(invoiceData);
+        // Reset form comme si c'était un succès
+        setItems([]);
+        setAmountPaid("");
+        setCustomerName("");
+        setCustomerPhone("");
+        setTotal(0);
+        navigate('/dashboard');
+      }, 1000); // Petit délai pour laisser les effets jouer
+      return;
+    }
+
+    const loadingToast = toast.loading("Enregistrement de la vente...");
 
     try {
-      // On envoie les données au serveur pour enregistrement
-      await axios.post(`${API_URL}/api/invoices`, {
-        invoiceNumber: invoiceNum,
-        items,
-        totalAmount: total,
-        amountPaid: finalPaid,
-        customerName: customerName.trim().toUpperCase(),
-        customerPhone: customerPhone, // Le numéro est juste sauvegardé ici
-      }, config);
+      await axios.post(`${API_URL}/api/invoices`, invoiceData, config);
 
       toast.dismiss(loadingToast);
       toast.success(`Vente enregistrée : ${invoiceNum}`);
-
-      // Retour au dashboard directement après la réussite
-      navigate('/dashboard');
+      setTimeout(() => navigate('/dashboard'), 800);
     } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error("Erreur serveur lors de la vente");
+      toast.error("Erreur serveur. Vérifiez votre connexion.");
     }
   };
 

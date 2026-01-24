@@ -66,13 +66,13 @@ const uri = process.env.MONGO_URI;
 
 mongoose.set('strictQuery', false);
 
-if (!uri) {
-  console.error("❌ ERREUR : La variable MONGO_URI n'est pas définie dans l'environnement !");
-  process.exit(1);
-}
-
-mongoose.connect(uri)
-  .then(() => {
+// --- FONCTION DE DÉMARRAGE ---
+const startServer = async () => {
+  try {
+    if (!uri) {
+      throw new Error("MONGO_URI is not defined");
+    }
+    await mongoose.connect(uri);
     console.log("✅ CONNEXION RÉUSSIE : Base de données liée.");
 
     // Correction Render : On écoute sur 0.0.0.0
@@ -80,9 +80,16 @@ mongoose.connect(uri)
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 SERVEUR : Lancé sur le port ${PORT}`);
     });
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error("❌ ERREUR CRITIQUE : Impossible de se connecter à MongoDB.");
     console.error("Détails :", err.message);
     process.exit(1);
-  });
+  }
+};
+
+// Démarrer uniquement si le fichier est exécuté directement
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = app;
