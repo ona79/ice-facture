@@ -9,6 +9,7 @@ import showcase4 from '../assets/showcase4.png';
 import showcase5 from '../assets/showcase5.png';
 import showcase6 from '../assets/showcase6.png';
 import showcase7 from '../assets/showcase7.png';
+import showcase8 from '../assets/showcase8.png';
 
 export default function Landing() {
     const navigate = useNavigate();
@@ -58,7 +59,7 @@ export default function Landing() {
                 {/* MARQUEE CAROUSEL (Infinite Scroll) */}
                 <div className="relative w-full max-w-6xl mx-auto mb-16 overflow-hidden mask-linear-fade">
                     <div className="flex gap-6 animate-marquee">
-                        {[showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7].map((img, idx) => (
+                        {[showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8, showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8].map((img, idx) => (
                             <div key={idx} className="min-w-[280px] md:min-w-[320px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent opacity-30 group-hover:opacity-0 transition-opacity" />
                                 <img src={img} alt={`App Screen ${idx}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" />

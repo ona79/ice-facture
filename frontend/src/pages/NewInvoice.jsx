@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   ArrowLeft, Plus, Minus, CheckCircle, ShoppingCart,
-  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon, Scan, X
+  Search, AlertCircle, Banknote, User, Trash2, Settings as SettingsIcon, Scan, X, Printer
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { motion } from 'framer-motion';
@@ -17,6 +17,8 @@ const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com
 import { useOfflineSync } from '../hooks/useOfflineSync';
 import confetti from 'canvas-confetti';
 import { playSuccessSound, playClickSound } from '../utils/audio';
+import { useReactToPrint } from 'react-to-print';
+import Receipt from '../components/Receipt';
 
 export default function NewInvoice() {
   const [products, setProducts] = useState([]);
@@ -27,6 +29,7 @@ export default function NewInvoice() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [isProfileComplete, setIsProfileComplete] = useState(true);
+  const [shopName, setShopName] = useState(localStorage.getItem('shopName') || "MA BOUTIQUE");
 
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'cart'
 
@@ -36,6 +39,13 @@ export default function NewInvoice() {
   const [showScanner, setShowScanner] = useState(false);
   const scannerRef = useRef(null);
   const submitRef = useRef(null);
+
+  // Printing Logic
+  const receiptRef = useRef();
+  const [lastInvoice, setLastInvoice] = useState(null); // To store data for printing
+  const handlePrint = useReactToPrint({
+    content: () => receiptRef.current,
+  });
 
   const navigate = useNavigate();
   const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
@@ -112,8 +122,8 @@ export default function NewInvoice() {
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 150 } },
           (decodedText) => {
+            // FAST SCAN MODE enabled: We don't stop scanning anymore
             handleBarcodeFound(decodedText);
-            stopScanning();
           },
           () => { } // error handler
         );
@@ -152,8 +162,18 @@ export default function NewInvoice() {
     }
   };
 
+  // State for camera flash effect
+  const [scanFlash, setScanFlash] = useState(false);
+
   const handleBarcodeFound = (code) => {
+    // Debounce: ignore scan if flash is active to prevent double adds too fast
+    if (scanFlash) return;
+
     beep(); // Son de confirmation
+
+    // Visual Flash Effect
+    setScanFlash(true);
+    setTimeout(() => setScanFlash(false), 500);
 
     // Nettoyage du code scanné (espaces invisibles)
     const cleanCode = code ? code.toString().trim() : "";
@@ -226,14 +246,16 @@ export default function NewInvoice() {
     if (!isOnline) {
       setTimeout(() => {
         addToOfflineQueue(invoiceData);
-        // Reset form comme si c'était un succès
+        setLastInvoice(invoiceData); // Store for printing
+        setShowSuccessModal(true);   // Show modal instead of nav
+
+        // Reset form data in background
         setItems([]);
         setAmountPaid("");
         setCustomerName("");
         setCustomerPhone("");
         setTotal(0);
-        navigate('/dashboard');
-      }, 1000); // Petit délai pour laisser les effets jouer
+      }, 500);
       return;
     }
 
@@ -244,12 +266,25 @@ export default function NewInvoice() {
 
       toast.dismiss(loadingToast);
       toast.success(`Vente enregistrée : ${invoiceNum}`);
-      setTimeout(() => navigate('/dashboard'), 800);
+
+      setLastInvoice(invoiceData); // Store for printing
+      setShowSuccessModal(true);   // Show modal instead of nav
+
+      // Cleanup for next sale
+      setItems([]);
+      setAmountPaid("");
+      setCustomerName("");
+      setCustomerPhone("");
+      setTotal(0);
+
     } catch (err) {
       toast.dismiss(loadingToast);
       toast.error("Erreur serveur. Vérifiez votre connexion.");
     }
   };
+
+  // State for Success Modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   return (
     <motion.div
@@ -258,6 +293,47 @@ export default function NewInvoice() {
       transition={{ duration: 0.3 }}
       className="p-4 max-w-7xl mx-auto min-h-screen text-white font-sans"
     >
+      {/* HIDDEN RECEIPT COMPONENT */}
+      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} />
+
+      {/* SUCCESS MODAL OVERLAY */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
+          <div className="bg-white/10 border border-white/20 p-8 rounded-[2.5rem] max-w-md w-full text-center relative shadow-[0_0_50px_rgba(0,242,255,0.2)]">
+            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
+              <CheckCircle size={40} className="text-white" />
+            </div>
+
+            <h2 className="text-2xl font-black uppercase text-white mb-2 tracking-tighter">Vente Réussie !</h2>
+            <p className="text-ice-400 font-bold text-lg mb-8">{lastInvoice?.invoiceNumber}</p>
+
+            <div className="grid grid-cols-1 gap-4">
+              <button
+                onClick={handlePrint}
+                className="py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl"
+              >
+                <div className="bg-black text-white p-1 rounded"><Printer size={16} /></div>
+                Imprimer Ticket
+              </button>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => { setShowSuccessModal(false); /* Stay for next sale */ }}
+                  className="py-4 rounded-xl bg-ice-400/10 text-ice-400 border border-ice-400/30 font-bold uppercase text-xs hover:bg-ice-400/20"
+                >
+                  <Plus size={16} className="inline mr-1" /> Nouvelle Vente
+                </button>
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="py-4 rounded-xl bg-white/5 text-white/50 border border-white/10 font-bold uppercase text-xs hover:bg-white/10"
+                >
+                  Quitter
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-white/30 font-black uppercase text-[10px] hover:text-white transition-colors">
           <ArrowLeft size={14} /> Annuler
@@ -511,9 +587,12 @@ export default function NewInvoice() {
               <X size={24} />
             </button>
             <h3 className="text-center font-black uppercase text-xl mb-6 text-ice-400">Scanner un produit</h3>
-            <div id="reader" className="w-full rounded-2xl overflow-hidden border-2 border-ice-400/30 shadow-[0_0_30px_rgba(0,242,255,0.2)]"></div>
+            <div id="reader" className="w-full rounded-2xl overflow-hidden border-2 border-ice-400/30 shadow-[0_0_30px_rgba(0,242,255,0.2)] relative">
+              {/* Flash Overlay */}
+              <div className={`absolute inset-0 bg-white/30 z-10 transition-opacity duration-200 pointer-events-none ${scanFlash ? 'opacity-100' : 'opacity-0'}`} />
+            </div>
             <p className="text-center text-white/40 text-xs font-bold uppercase mt-6 tracking-widest">
-              Placez le code-barre devant la caméra
+              Mode Rafale Actif ⚡
             </p>
           </div>
         </div>

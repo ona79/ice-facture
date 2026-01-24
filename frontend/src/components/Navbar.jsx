@@ -29,7 +29,10 @@ const Navbar = () => {
     return (
         <>
             {/* BOUTON MOBILE (HAMBURGER) */}
-            <div className="fixed top-4 right-4 z-[100] md:hidden">
+            <div className="fixed top-4 right-4 z-[100] md:hidden flex items-center gap-3">
+                {/* Mobile Connectivity Dot */}
+                <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500 animate-pulse'} transition-colors`} />
+
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white shadow-xl active:scale-95 transition-all"
