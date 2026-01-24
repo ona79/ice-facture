@@ -36,7 +36,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
         parentId: user.parentId
       }
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       token,
@@ -68,7 +68,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
         parentId: user.parentId
       }
     };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       token,
