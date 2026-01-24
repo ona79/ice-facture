@@ -29,9 +29,10 @@ const Navbar = () => {
     return (
         <>
             {/* BOUTON MOBILE (HAMBURGER) */}
+            {/* BOUTON MOBILE (HAMBURGER) */}
             <div className="fixed top-4 right-4 z-[100] md:hidden flex items-center gap-3">
-                {/* Mobile Connectivity Dot */}
-                <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500 animate-pulse'} transition-colors`} />
+                {/* Mobile Connectivity Dot - Now simpler and always visible on mobile */}
+                <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-pulse'}`} />
 
                 <button
                     onClick={() => setIsOpen(!isOpen)}

@@ -131,6 +131,11 @@ export const generatePDF = async (invoice) => {
   doc.setFont("helvetica", "italic");
   doc.text("Merci de votre confiance !", width / 2, 200, { align: "center" });
 
+  // DATE ET HEURE D'IMPRESSION (Ajouté suite demande utilisateur)
+  doc.setFontSize(6);
+  doc.setTextColor(150); // Gris
+  doc.text(`Imprimé le : ${new Date().toLocaleString()}`, width / 2, 204, { align: "center" });
+
   doc.save(`FACT_${invoice.invoiceNumber}.pdf`);
 };
 // --- FIN DE LA FONCTION GENERATEPDF ---
