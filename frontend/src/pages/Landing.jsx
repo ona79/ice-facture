@@ -94,6 +94,19 @@ export default function Landing() {
                     </motion.button>
                 )}
 
+                {/* IOS INSTALL HINT (Visible only on iOS) */}
+                {/iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone && (
+                    <div className="mb-12 mx-6 p-4 glass-card rounded-2xl border border-white/10 text-center animate-pulse">
+                        <p className="text-[10px] font-bold text-white/60 uppercase mb-2">Pour installer sur iPhone :</p>
+                        <div className="flex items-center justify-center gap-2 text-[10px] font-black text-ice-400">
+                            <span>Appuyez sur</span>
+                            <span className="p-1 bg-white/10 rounded">Partager ⎋</span>
+                            <span>puis</span>
+                            <span className="p-1 bg-white/10 rounded">Sur l'écran d'accueil ⊞</span>
+                        </div>
+                    </div>
+                )}
+
                 {/* FEATURES GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-16 w-full">
                     <div className="glass-card p-6 rounded-3xl border border-white/5 bg-white/[0.02]">

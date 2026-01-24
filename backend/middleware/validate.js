@@ -25,7 +25,8 @@ const validate = (schema) => (req, res, next) => {
     } catch (err) {
         if (err instanceof z.ZodError) {
             // On ne renvoie que le premier message d'erreur pour rester simple
-            return res.status(400).json({ msg: err.errors[0].message });
+            const message = err.errors?.[0]?.message || "Erreur de validation";
+            return res.status(400).json({ msg: message });
         }
         next(err);
     }
