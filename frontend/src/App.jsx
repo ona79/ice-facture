@@ -12,7 +12,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
-import ChatBot from './components/ChatBot';
+// import ChatBot from './components/ChatBot'; // Désactivé temporairement
 
 // L'import de InvoiceDetail a été supprimé ici car le fichier n'existe plus
 
@@ -112,8 +112,8 @@ function App() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
-      {/* AI ChatBot - Visible uniquement pour les utilisateurs connectés */}
-      {isAuthenticated && <ChatBot />}
+      {/* AI ChatBot - Désactivé temporairement */}
+      {/* {isAuthenticated && <ChatBot />} */}
     </BrowserRouter>
   );
 }
