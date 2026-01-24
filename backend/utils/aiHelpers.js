@@ -4,25 +4,105 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
+ * List of Gemini models to try in order (fallback system)
+ * Each model has different capabilities and token limits
+ */
+const GEMINI_MODELS = [
+    {
+        name: 'gemini-1.5-flash',
+        maxTokens: 8000,
+        description: 'Rapide et efficace'
+    },
+    {
+        name: 'gemini-1.5-flash-8b',
+        maxTokens: 4000,
+        description: 'Ultra-rapide, contexte réduit'
+    },
+    {
+        name: 'gemini-1.5-pro',
+        maxTokens: 30000,
+        description: 'Puissant, contexte large'
+    },
+    {
+        name: 'gemini-2.0-flash-exp',
+        maxTokens: 8000,
+        description: 'Version expérimentale'
+    }
+];
+
+/**
+ * Truncate data context to fit within token limits
+ * @param {object} dataContext - Full data context
+ * @param {number} maxTokens - Maximum allowed tokens
+ * @returns {string} - Truncated JSON string
+ */
+function truncateContext(dataContext, maxTokens) {
+    let contextStr = JSON.stringify(dataContext, null, 2);
+    const estimatedTokens = contextStr.length / 4; // Rough estimate: 1 token ≈ 4 chars
+
+    if (estimatedTokens <= maxTokens * 0.6) { // Use 60% of max for safety
+        return contextStr;
+    }
+
+    // Truncate arrays in the context
+    const truncated = JSON.parse(JSON.stringify(dataContext));
+
+    if (truncated.invoices && truncated.invoices.length > 5) {
+        truncated.invoices = truncated.invoices.slice(0, 5);
+        truncated._note = "Données limitées pour économiser l'espace";
+    }
+    if (truncated.products && truncated.products.length > 10) {
+        truncated.products = truncated.products.slice(0, 10);
+    }
+    if (truncated.expenses && truncated.expenses.length > 5) {
+        truncated.expenses = truncated.expenses.slice(0, 5);
+    }
+
+    contextStr = JSON.stringify(truncated, null, 2);
+
+    // If still too long, use summary only
+    if (contextStr.length / 4 > maxTokens * 0.6) {
+        return JSON.stringify({
+            summary: "Contexte résumé pour économiser l'espace",
+            invoiceStats: truncated.invoiceStats,
+            productStats: truncated.productStats,
+            expenseStats: truncated.expenseStats
+        }, null, 2);
+    }
+
+    return contextStr;
+}
+
+/**
  * Analyze user query and generate response with data context
+ * Uses multiple Gemini models with fallback mechanism
  * @param {string} userMessage - User's question
  * @param {object} dataContext - Data from MongoDB (invoices, products, etc.)
  * @returns {Promise<string>} - AI generated response
  */
 async function generateAIResponse(userMessage, dataContext) {
-    try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    let lastError = null;
 
-        // Build context prompt with data
-        const systemPrompt = `Tu es un assistant IA pour une application de facturation appelée "Ice Facture". 
+    // Try each model in sequence until one works
+    for (const modelConfig of GEMINI_MODELS) {
+        try {
+            console.log(`[AI] Tentative avec ${modelConfig.name}...`);
+
+            const model = genAI.getGenerativeModel({ model: modelConfig.name });
+
+            // Truncate context based on model's token limit
+            const contextStr = truncateContext(dataContext, modelConfig.maxTokens);
+
+            // Build context prompt with data
+            const systemPrompt = `Tu es un assistant IA pour une application de facturation appelée "Ice Facture". 
 Tu aides l'utilisateur à comprendre ses données commerciales et à prendre des décisions.
 
 CONTEXTE DES DONNÉES:
-${JSON.stringify(dataContext, null, 2)}
+${contextStr}
 
 INSTRUCTIONS:
 - Réponds en français uniquement
-- Sois concis et précis
+- Sois concis et précis (max 150 mots)
 - Utilise les données fournies pour répondre
 - Si les données sont vides, mentionne gentiment qu'il n'y a pas encore de données
 - Utilise des émojis pour rendre les réponses plus engageantes 
@@ -33,22 +113,35 @@ Question de l'utilisateur: ${userMessage}
 
 Réponds de manière claire et utile basée sur les données fournies.`;
 
-        const result = await model.generateContent(systemPrompt);
-        const response = await result.response;
-        return response.text();
-    } catch (error) {
-        console.error('Gemini API Error:', error);
+            const result = await model.generateContent(systemPrompt);
+            const response = await result.response;
+            const text = response.text();
 
-        // Handle specific error cases
-        if (error.message?.includes('API_KEY')) {
-            return "❌ Erreur: Clé API Gemini invalide ou manquante.";
-        }
-        if (error.message?.includes('quota')) {
-            return "⚠️ Limite de requêtes atteinte. Veuillez réessayer dans quelques instants.";
-        }
+            console.log(`[AI] ✅ Succès avec ${modelConfig.name}`);
+            return text;
 
-        return "❌ Désolé, une erreur s'est produite. Veuillez réessayer.";
+        } catch (error) {
+            console.error(`[AI] ❌ Échec avec ${modelConfig.name}:`, error.message);
+            lastError = error;
+
+            // If API key error, don't try other models
+            if (error.message?.includes('API_KEY') || error.message?.includes('API key')) {
+                return "❌ Erreur: Clé API Gemini invalide ou manquante. Vérifiez votre configuration.";
+            }
+
+            // Continue to next model
+            continue;
+        }
     }
+
+    // All models failed
+    console.error('[AI] ❌ Tous les modèles ont échoué');
+
+    if (lastError?.message?.includes('quota') || lastError?.message?.includes('RESOURCE_EXHAUSTED')) {
+        return "⚠️ Limite de requêtes atteinte. Veuillez réessayer dans quelques instants.";
+    }
+
+    return "❌ Désolé, le service IA est temporairement indisponible. Veuillez réessayer.";
 }
 
 /**
