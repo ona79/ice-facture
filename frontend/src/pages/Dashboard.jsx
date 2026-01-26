@@ -173,8 +173,6 @@ export default function Dashboard() {
     window.location.reload();
   };
 
-
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -183,18 +181,18 @@ export default function Dashboard() {
     >
       {/* SHOP NAME AT TOP-LEFT WITH ANIMATION */}
       <motion.div
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="absolute top-14 lg:top-4 left-6 md:left-10 z-[60] flex items-center gap-2 md:gap-3 whitespace-nowrap"
+        className="fixed top-4 left-6 md:left-10 z-[110] flex items-center gap-2 md:gap-3 whitespace-nowrap pointer-events-none"
       >
-        <div className="w-1 h-6 md:h-8 bg-ice-400 rounded-full shadow-[0_0_15px_rgba(0,242,255,0.6)]" />
-        <h2 className="text-lg md:text-2xl font-black italic uppercase tracking-tighter text-white/90 drop-shadow-2xl">
+        <div className="w-1 h-5 md:h-6 bg-ice-400 rounded-full shadow-[0_0_15px_rgba(0,242,255,0.6)]" />
+        <h2 className="text-sm md:text-lg font-black italic uppercase tracking-tighter text-white/90 drop-shadow-2xl">
           {currentShopName}
         </h2>
       </motion.div>
 
-      {/* MODAL DÉTAILS - (Inchangé pour la fonctionnalité) */}
+      {/* MODAL DÉTAILS */}
       <AnimatePresence>
         {modalDetail.show && (
           <motion.div
@@ -209,7 +207,12 @@ export default function Dashboard() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="glass-card w-full max-w-md p-6 rounded-[2rem] border-white/10 relative shadow-2xl"
             >
-              <button onClick={() => setModalDetail({ show: false })} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"><X size={20} /></button>
+              <button
+                onClick={() => setModalDetail({ show: false })}
+                className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
               <div className="mb-6">
                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
                 <p className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
@@ -218,7 +221,7 @@ export default function Dashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-white/5 text-[9px] font-black uppercase text-ice-400/50">
                     <tr>
-                      <th className="p-3">Article</th>
+                      <th className="p-3 text-left">Article</th>
                       <th className="p-3 text-center">Qté</th>
                       <th className="p-3 text-right">Total</th>
                     </tr>
@@ -235,7 +238,7 @@ export default function Dashboard() {
                 </table>
               </div>
               <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-end">
-                <div>
+                <div className="text-left">
                   <p className="text-[8px] font-black uppercase text-white/20 mb-1">Total Facture</p>
                   <p className="text-3xl font-black italic text-ice-400 leading-none">{modalDetail.invoice.totalAmount.toLocaleString()} F</p>
                 </div>
@@ -251,11 +254,9 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* HERO SECTION - Sales Chart (Like the Messi banner) */}
+      {/* HERO SECTION - Sales Chart */}
       <div className="relative mb-8 rounded-[2.5rem] overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a1120] to-[#1a2a47] opacity-90" />
-
-
 
         <div className="relative z-10 pt-6 pb-8 md:pt-10 md:pb-12 px-4 sm:px-8 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
           <div className="max-w-md text-left w-full md:w-auto">
@@ -298,15 +299,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ACTION GRID (Professional Buttons) rotated for 6 items on desktop */}
+      {/* ACTION GRID */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-        {/* Action: Vendre */}
         <button onClick={() => navigate('/new-invoice')} className="action-btn bg-cyan-600/90 text-white shadow-lg shadow-cyan-900/40">
           <div className="p-3 bg-white/20 rounded-2xl"><PlusCircle size={24} /></div>
           <span className="text-[10px] font-black uppercase tracking-widest">Vendre</span>
         </button>
 
-        {/* Action: Stock */}
         <button onClick={() => navigate('/products')} className="action-btn bg-pink-600/90 text-white shadow-lg shadow-pink-900/40">
           <div className="p-3 bg-white/20 rounded-2xl relative">
             <Package size={24} />
@@ -315,13 +314,11 @@ export default function Dashboard() {
           <span className="text-[10px] font-black uppercase tracking-widest">Stock</span>
         </button>
 
-        {/* Action: Factures */}
         <button onClick={() => navigate('/history')} className="action-btn bg-purple-600/90 text-white shadow-lg shadow-purple-900/40">
           <div className="p-3 bg-white/20 rounded-2xl"><FileText size={24} /></div>
           <span className="text-[10px] font-black uppercase tracking-widest">Factures</span>
         </button>
 
-        {/* Action: Charges */}
         {localStorage.getItem('role') === 'admin' && (
           <button onClick={() => navigate('/expenses')} className="action-btn bg-red-600/90 text-white shadow-lg shadow-red-900/40">
             <div className="p-3 bg-white/20 rounded-2xl"><Wallet size={24} /></div>
@@ -329,20 +326,18 @@ export default function Dashboard() {
           </button>
         )}
 
-        {/* Action: Paramètres */}
         <button onClick={() => navigate('/settings')} className="action-btn bg-lime-500/90 text-black shadow-lg shadow-lime-900/40">
           <div className="p-3 bg-black/10 rounded-2xl"><SettingsIcon size={24} /></div>
           <span className="text-[10px] font-black uppercase tracking-widest">{localStorage.getItem('role') === 'admin' ? 'Réglages' : 'Compte'}</span>
         </button>
 
-        {/* Action: Déconnexion */}
         <button onClick={handleLogout} className="action-btn bg-orange-500/90 text-white shadow-lg shadow-orange-900/40 col-span-2 md:col-span-1">
           <div className="p-3 bg-white/20 rounded-2xl"><LogOut size={24} /></div>
           <span className="text-[10px] font-black uppercase tracking-widest">Quitter</span>
         </button>
       </div>
 
-      {/* STOCK ALERTS (Visible seulement s'il y a des produits < 5) */}
+      {/* STOCK ALERTS */}
       {lowStockProducts.length > 0 && (
         <div className="mb-10 space-y-4 animate-in fade-in slide-in-from-bottom-5 duration-700">
           <div className="flex items-center gap-2 px-2">
@@ -370,7 +365,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* BOTTOM SECTION - Recent Operations */}
+      {/* BOTTOM SECTION */}
       <div className="space-y-6">
         <div className="flex justify-between items-end px-2">
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 italic">Dernières Opérations</h3>
@@ -384,7 +379,7 @@ export default function Dashboard() {
                 <div className="p-3 bg-white/5 rounded-2xl text-ice-400 group-hover:bg-ice-400 group-hover:text-black transition-all">
                   <FileText size={18} />
                 </div>
-                <div>
+                <div className="text-left">
                   <p className="font-black text-xs uppercase truncate max-w-[120px]">{inv.invoiceNumber}</p>
                   <p className="text-[9px] font-bold text-white/30 uppercase">{new Date(inv.createdAt).toLocaleDateString('fr-FR')}</p>
                 </div>
