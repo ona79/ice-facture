@@ -56,28 +56,26 @@ export default function Landing() {
                 </motion.div>
 
                 {/* SCREENSHOTS CAROUSEL (Simple Grid for now) */}
-                {/* MARQUEE CAROUSEL (Infinite Scroll) */}
                 <div className="relative w-full max-w-6xl mx-auto mb-16 overflow-hidden mask-linear-fade">
-                    <div className="flex gap-6 animate-marquee">
+                    <motion.div
+                        className="flex gap-6 w-max"
+                        animate={{ x: ["0%", "-50%"] }}
+                        transition={{
+                            duration: 40,
+                            ease: "linear",
+                            repeat: Infinity
+                        }}
+                    >
                         {[showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8, showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8].map((img, idx) => (
                             <div key={idx} className="min-w-[280px] md:min-w-[320px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent opacity-30 group-hover:opacity-0 transition-opacity" />
                                 <img src={img} alt={`App Screen ${idx}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" />
                             </div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
 
                 <style>{`
-                    @keyframes marquee {
-                        0% { transform: translateX(0); }
-                        100% { transform: translateX(-50%); }
-                    }
-                    .animate-marquee {
-                        display: flex;
-                        width: max-content;
-                        animation: marquee 40s linear infinite;
-                    }
                     .mask-linear-fade {
                         mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
                     }

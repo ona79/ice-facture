@@ -35,6 +35,7 @@ export default function NewInvoice() {
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [isProfileComplete, setIsProfileComplete] = useState(true);
   const [shopName, setShopName] = useState(localStorage.getItem('shopName') || "MA BOUTIQUE");
+  const [shopPhone, setShopPhone] = useState("");
 
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'cart'
 
@@ -62,6 +63,9 @@ export default function NewInvoice() {
     // Vérification du profil
     axios.get(`${API_URL}/api/auth/profile`, config)
       .then(res => {
+        if (res.data.shopName) setShopName(res.data.shopName);
+        if (res.data.phone) setShopPhone(res.data.phone);
+
         if (!res.data.address || !res.data.phone) {
           setIsProfileComplete(false);
         } else {
@@ -304,7 +308,7 @@ export default function NewInvoice() {
       className="p-4 max-w-7xl mx-auto min-h-screen text-white font-sans"
     >
       {/* HIDDEN RECEIPT COMPONENT */}
-      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} />
+      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopPhone={shopPhone} />
 
       {/* SUCCESS MODAL OVERLAY */}
       {showSuccessModal && (

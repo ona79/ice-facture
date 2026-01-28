@@ -215,7 +215,18 @@ export default function Dashboard() {
               </button>
               <div className="mb-6">
                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
-                <p className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+                <div className="flex flex-col gap-1 mt-1">
+                  <p className="text-[10px] font-black uppercase text-white/70 tracking-[0.1em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+                  {modalDetail.invoice.customerPhone && (
+                    <p className="text-[9px] font-bold text-ice-400/60 uppercase">Tél: {modalDetail.invoice.customerPhone}</p>
+                  )}
+                  <p className="text-[8px] font-medium text-white/30 uppercase tracking-widest">
+                    {new Date(modalDetail.invoice.createdAt).toLocaleString('fr-FR', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}
+                  </p>
+                </div>
               </div>
               <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02]">
                 <table className="w-full text-left border-collapse">

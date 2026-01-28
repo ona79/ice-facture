@@ -211,7 +211,18 @@ export default function History() {
             <button onClick={() => setModalDetail({ show: false })} className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors"><X size={18} /></button>
             <div className="mb-4">
               <h3 className="text-lg font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
-              <p className="text-[8px] font-black uppercase text-white/30 tracking-[0.2em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+              <div className="flex flex-col gap-0.5 mt-1">
+                <p className="text-[9px] font-black uppercase text-white/70 tracking-[0.1em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+                {modalDetail.invoice.customerPhone && (
+                  <p className="text-[8px] font-bold text-ice-400/60 uppercase">Tél: {modalDetail.invoice.customerPhone}</p>
+                )}
+                <p className="text-[7px] font-medium text-white/30 uppercase tracking-[0.2em]">
+                  {new Date(modalDetail.invoice.createdAt).toLocaleString('fr-FR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                  })}
+                </p>
+              </div>
             </div>
             <div className="overflow-hidden rounded-xl border border-white/5 bg-white/[0.02]">
               <table className="w-full text-left border-collapse">
