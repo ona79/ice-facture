@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');

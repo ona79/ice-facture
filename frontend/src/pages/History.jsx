@@ -12,7 +12,7 @@ import { generatePDF } from '../utils/generatePDF';
 import { IceInput } from '../components/IceInput';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function History() {
   const [invoices, setInvoices] = useState([]);
@@ -145,7 +145,8 @@ export default function History() {
     const term = searchTerm.toLowerCase().trim();
     const displayNum = formatInvoiceDisplay(inv).toLowerCase();
     const clientName = (inv.customerName || "client passager").toLowerCase();
-    const isSearchMatch = displayNum.includes(term) || clientName.includes(term);
+    const clientPhone = (inv.customerPhone || "").toLowerCase();
+    const isSearchMatch = displayNum.includes(term) || clientName.includes(term) || clientPhone.includes(term);
     const isToday = new Date(inv.createdAt).toDateString() === new Date().toDateString();
     const isDette = (inv.totalAmount - (inv.amountPaid || 0)) > 0;
 
@@ -155,7 +156,7 @@ export default function History() {
     return match;
   });
 
-  const totalDettes = invoices.reduce((acc, inv) => {
+  const totalDettes = filteredInvoices.reduce((acc, inv) => {
     const reste = inv.totalAmount - (inv.amountPaid || 0);
     return reste > 0 ? acc + reste : acc;
   }, 0);
@@ -265,7 +266,9 @@ export default function History() {
       <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-white/20 mb-4 font-black uppercase text-[8px] tracking-[0.2em] hover:text-ice-400"><ArrowLeft size={12} /> Dashboard</button>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
-        <h1 className="text-3xl font-black italic tracking-tighter uppercase">FACTURES</h1>
+        <h1 className="text-3xl font-black italic tracking-tighter uppercase">
+          FACTURES <span className="text-ice-400 text-sm">({filteredInvoices.length})</span>
+        </h1>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -307,7 +310,13 @@ export default function History() {
           <Banknote size={20} className="text-orange-500/20" />
         </div>
         <div className="glass-card p-4 rounded-[1.5rem] border-white/5 bg-white/[0.01] flex items-center justify-between shadow-lg">
-          <div><p className="text-[8px] font-black uppercase text-white/20 mb-1">Ventes</p><h2 className="text-xl font-black italic text-white leading-none">{filteredInvoices.length}</h2></div>
+          <div>
+            <p className="text-[8px] font-black uppercase text-white/20 mb-1">Nombre / Total</p>
+            <h2 className="text-xl font-black italic text-white leading-none">
+              {filteredInvoices.length}
+              <span className="text-[10px] text-white/20 not-italic ml-2"> / {invoices.length}</span>
+            </h2>
+          </div>
           <FileText size={20} className="text-white/10" />
         </div>
       </div>

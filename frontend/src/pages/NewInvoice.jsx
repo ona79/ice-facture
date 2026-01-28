@@ -11,7 +11,8 @@ import toast from 'react-hot-toast';
 import { PhoneInput } from '../components/PhoneInput';
 
 // Correction de l'URL pour Render
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+// Correction de l'URL pour Render / Local
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ... imports
 import { useOfflineSync } from '../hooks/useOfflineSync';
@@ -28,6 +29,10 @@ export default function NewInvoice() {
   const [amountPaid, setAmountPaid] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customers, setCustomers] = useState([]); // All unique customers from backend
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [isProfileComplete, setIsProfileComplete] = useState(true);
   const [shopName, setShopName] = useState(localStorage.getItem('shopName') || "MA BOUTIQUE");
 
@@ -44,7 +49,7 @@ export default function NewInvoice() {
   const receiptRef = useRef();
   const [lastInvoice, setLastInvoice] = useState(null); // To store data for printing
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
+    contentRef: receiptRef,
   });
 
   const navigate = useNavigate();
@@ -69,6 +74,11 @@ export default function NewInvoice() {
     axios.get(`${API_URL}/api/products`, config)
       .then(res => setProducts(res.data))
       .catch(err => console.error("Erreur produits:", err));
+
+    // Chargement des clients pour suggestions
+    axios.get(`${API_URL}/api/invoices/customers`, config)
+      .then(res => setCustomers(res.data))
+      .catch(err => console.error("Erreur clients:", err));
   }, []);
 
   // Recalcul du total
@@ -421,21 +431,87 @@ export default function NewInvoice() {
             {/* INFOS CLIENT */}
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)] gap-2">
               <div className="space-y-1">
-                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">Client (Lettres seul.)</label>
-                <input
-                  type="text"
-                  placeholder="NOM..."
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase outline-none focus:border-ice-400/50"
-                  ref={nameRef}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      phoneRef.current?.focus();
-                    }
-                  }}
-                />
+                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">
+                  Client {customers.length > 0 ? `(${customers.length} ENREGISTRÉS)` : "(LETTRES SEUL.)"}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="NOM..."
+                    value={customerName}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      setCustomerName(val.replace(/[^a-zA-Z\sÀ-ÿ]/g, ''));
+
+                      if (val.trim().length > 0) {
+                        const filtered = customers.filter(c =>
+                          c.name && c.name.toString().toUpperCase().includes(val.toUpperCase())
+                        );
+                        setFilteredCustomers(filtered);
+                        setShowSuggestions(filtered.length > 0);
+                        setActiveSuggestionIndex(-1);
+                      } else {
+                        setShowSuggestions(false);
+                      }
+                    }}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase outline-none focus:border-ice-400/50"
+                    ref={nameRef}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (activeSuggestionIndex < filteredCustomers.length - 1) {
+                          setActiveSuggestionIndex(activeSuggestionIndex + 1);
+                        }
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (activeSuggestionIndex > 0) {
+                          setActiveSuggestionIndex(activeSuggestionIndex - 1);
+                        }
+                      } else if (e.key === 'Enter') {
+                        if (showSuggestions && activeSuggestionIndex !== -1) {
+                          e.preventDefault();
+                          const selected = filteredCustomers[activeSuggestionIndex];
+                          setCustomerName(selected.name);
+                          setCustomerPhone(selected.phone || "");
+                          setShowSuggestions(false);
+                          phoneRef.current?.focus();
+                        } else if (customerName.trim()) {
+                          // Si un nom est saisi mais pas de suggestion active, on passe au tel
+                          e.preventDefault();
+                          setShowSuggestions(false);
+                          phoneRef.current?.focus();
+                        }
+                      } else if (e.key === 'Escape') {
+                        setShowSuggestions(false);
+                      }
+                    }}
+                    onBlur={() => {
+                      // On attend un peu pour permettre le clic sur une suggestion
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                  />
+                  {showSuggestions && filteredCustomers.length > 0 && (
+                    <div className="absolute z-[400] top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
+                      {filteredCustomers.map((c, index) => (
+                        <div
+                          key={index}
+                          className={`p-3 text-[10px] font-black uppercase cursor-pointer transition-colors ${index === activeSuggestionIndex ? 'bg-ice-400 text-ice-900' : 'hover:bg-white/5 text-white/70'}`}
+                          onClick={() => {
+                            setCustomerName(c.name);
+                            setCustomerPhone(c.phone || "");
+                            setShowSuggestions(false);
+                            phoneRef.current?.focus();
+                          }}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span>{c.name}</span>
+                            <span className="text-[8px] opacity-50">{c.phone}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1">

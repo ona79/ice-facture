@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 // Correction : Remplace bien par ton URL réelle si le .env ne charge pas
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Products() {
   const [products, setProducts] = useState([]);

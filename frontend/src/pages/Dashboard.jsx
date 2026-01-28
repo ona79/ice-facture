@@ -25,7 +25,7 @@ import SalesChart from '../components/SalesChart';
 import { generatePDF } from '../utils/generatePDF';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Dashboard() {
   const [allInvoices, setAllInvoices] = useState([]);

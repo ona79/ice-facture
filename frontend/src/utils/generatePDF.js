@@ -4,7 +4,7 @@ import autoTable from "jspdf-autotable";
 import QRCode from 'qrcode';
 import { toast } from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "https://ta-facture.onrender.com");
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "http://localhost:5000");
 
 export const generatePDF = async (invoice) => {
   const token = localStorage.getItem('token');
@@ -56,16 +56,23 @@ export const generatePDF = async (invoice) => {
   doc.setDrawColor(0);
 
   // Client
-  doc.rect(5, yInfo, (width / 2) - 7, 12);
+  doc.rect(5, yInfo, (width / 2) - 7, 14); // Augmenté de 12 à 14 pour le téléphone
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.text("CLIENT :", 7, yInfo + 4);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text((invoice.customerName || "Passager").toUpperCase(), 7, yInfo + 9);
+  doc.text((invoice.customerName || "Passager").toUpperCase(), 7, yInfo + 8.5);
+
+  if (invoice.customerPhone && invoice.customerPhone.trim() !== "") {
+    doc.setFontSize(7);
+    doc.setTextColor(80);
+    doc.text(`Tél: ${invoice.customerPhone}`, 7, yInfo + 12);
+    doc.setTextColor(0);
+  }
 
   // Date / N°
-  doc.rect((width / 2) + 2, yInfo, (width / 2) - 7, 12);
+  doc.rect((width / 2) + 2, yInfo, (width / 2) - 7, 14); // Aligné avec le cadre client
   doc.setFontSize(8);
   doc.text(`Date : ${new Date(invoice.createdAt).toLocaleDateString()}`, (width / 2) + 4, yInfo + 5);
   doc.setFont("helvetica", "bold");

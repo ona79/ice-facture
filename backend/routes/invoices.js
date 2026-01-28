@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 
 // --- 1. RÉCUPÉRER TOUTES LES FACTURES ---
 router.get('/', auth, async (req, res) => {
@@ -13,6 +14,35 @@ router.get('/', auth, async (req, res) => {
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ error: "Erreur lors de la récupération des factures" });
+  }
+});
+
+router.get('/customers', auth, async (req, res) => {
+  try {
+    const ownerId = req.user.ownerId;
+    // find() est plus fiable que aggregate() pour le casting automatique des IDs chez Mongoose
+    const invoices = await Invoice.find({ userId: ownerId }).select('customerName customerPhone');
+
+    const uniqueCustomers = {};
+    invoices.forEach(inv => {
+      const name = (inv.customerName || "").trim().toUpperCase();
+      // On ignore le client par défaut
+      if (name && name !== "CLIENT PASSAGER") {
+        if (!uniqueCustomers[name]) {
+          uniqueCustomers[name] = inv.customerPhone || "";
+        }
+      }
+    });
+
+    const result = Object.keys(uniqueCustomers).map(name => ({
+      name,
+      phone: uniqueCustomers[name]
+    })).sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json(result);
+  } catch (err) {
+    console.error("Erreur clients:", err);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération des clients" });
   }
 });
 

@@ -4,7 +4,7 @@ import { MessageCircle, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ChatBot() {
     const [isOpen, setIsOpen] = useState(false);

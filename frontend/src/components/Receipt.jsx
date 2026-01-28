@@ -9,7 +9,7 @@ const Receipt = forwardRef(({ invoice, shopName }, ref) => {
     };
 
     return (
-        <div style={{ display: 'none' }}>
+        <div className="sr-only" style={{ position: 'absolute', left: '-9999px' }}>
             <div ref={ref} className="printable-receipt">
                 <style>
                     {`
@@ -52,6 +52,9 @@ const Receipt = forwardRef(({ invoice, shopName }, ref) => {
 
                 <div style={{ marginBottom: '5px' }}>
                     <p>CLIENT: <span className="font-bold">{invoice.customerName || "PASSAGER"}</span></p>
+                    {invoice.customerPhone && invoice.customerPhone.trim() !== "" && (
+                        <p style={{ fontSize: '10px', marginTop: '2px' }}>TEL: <span className="font-bold">{invoice.customerPhone}</span></p>
+                    )}
                 </div>
 
                 <div className="divider" />

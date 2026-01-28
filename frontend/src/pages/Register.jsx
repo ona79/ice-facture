@@ -8,7 +8,7 @@ import { PhoneInput } from '../components/PhoneInput';
 import { COUNTRY_CODES } from '../utils/countryCodes';
 import { toast } from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ta-facture.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Register() {
   const [formData, setFormData] = useState({

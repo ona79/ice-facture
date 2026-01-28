@@ -23,28 +23,7 @@ app.use(helmet());
 // --- 2. PROTECTION CONTRE LES INJECTIONS NOSQL ---
 app.use(mongoSanitize());
 
-// --- 3. CONFIGURATION DES LIMITES DE REQUÊTES (RATE LIMITING) ---
-// Limiteur général (prévenir les abus globaux)
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limite chaque IP à 100 requêtes par fenêtre
-  message: { msg: "Trop de requêtes, veuillez réessayer plus tard." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Limiteur strict pour l'authentification (prévenir le brute-force)
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 heure
-  max: 10, // Max 10 tentatives de connexion/inscription par heure par IP
-  message: { msg: "Trop de tentatives de connexion, compte bloqué temporairement (1h)." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.use('/api/', generalLimiter);
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
+// --- CONFIGURATION DES LIMITES DÉSACTIVÉE POUR LES TESTS ---
 
 // --- MIDDLEWARES DE BASE ---
 
