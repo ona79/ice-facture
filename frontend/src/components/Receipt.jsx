@@ -1,12 +1,14 @@
 import React, { forwardRef } from 'react';
 
-const Receipt = forwardRef(({ invoice, shopName, shopPhone }, ref) => {
+const Receipt = forwardRef(({ invoice, shopName, shopPhone, footerMessage }, ref) => {
     if (!invoice) return null;
 
     const formatDate = (dateString) => {
         if (!dateString) return new Date().toLocaleString();
         return new Date(dateString).toLocaleString();
     };
+
+    const footerText = footerMessage || "MERCI DE VOTRE VISITE !";
 
     return (
         <div className="sr-only" style={{ position: 'absolute', left: '-9999px' }}>
@@ -93,9 +95,9 @@ const Receipt = forwardRef(({ invoice, shopName, shopPhone }, ref) => {
                 <div className="divider" />
 
                 <div className="receipt-footer text-center">
-                    <p>MERCI DE VOTRE VISITE !</p>
+                    <p>{footerText}</p>
                     <p>Powered by Ice Facture</p>
-                    <p style={{ marginTop: '5px', fontSize: '8px', color: '#555' }}>Imprimé le : {new Date().toLocaleString()}</p>
+
                 </div>
             </div>
         </div>

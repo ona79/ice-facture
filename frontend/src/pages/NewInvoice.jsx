@@ -36,6 +36,7 @@ export default function NewInvoice() {
   const [isProfileComplete, setIsProfileComplete] = useState(true);
   const [shopName, setShopName] = useState(localStorage.getItem('shopName') || "MA BOUTIQUE");
   const [shopPhone, setShopPhone] = useState("");
+  const [footerMessage, setFooterMessage] = useState("");
 
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'cart'
 
@@ -65,6 +66,7 @@ export default function NewInvoice() {
       .then(res => {
         if (res.data.shopName) setShopName(res.data.shopName);
         if (res.data.phone) setShopPhone(res.data.phone);
+        if (res.data.footerMessage) setFooterMessage(res.data.footerMessage);
 
         if (!res.data.address || !res.data.phone) {
           setIsProfileComplete(false);
@@ -308,7 +310,7 @@ export default function NewInvoice() {
       className="p-4 max-w-7xl mx-auto min-h-screen text-white font-sans"
     >
       {/* HIDDEN RECEIPT COMPONENT */}
-      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopPhone={shopPhone} />
+      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopPhone={shopPhone} footerMessage={footerMessage} />
 
       {/* SUCCESS MODAL OVERLAY */}
       {showSuccessModal && (

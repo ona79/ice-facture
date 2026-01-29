@@ -22,11 +22,11 @@ export const generatePDF = async (invoice) => {
     console.error("Erreur profil PDF", err);
   }
 
-  // --- CONFIGURATION A5 PORTRAIT ---
+  // --- CONFIGURATION A4 PORTRAIT (Pour impression économique et découpe) ---
   const doc = new jsPDF({
     orientation: "p",
     unit: "mm",
-    format: "a5"
+    format: "a4"
   });
 
   const width = doc.internal.pageSize.getWidth();
@@ -56,27 +56,27 @@ export const generatePDF = async (invoice) => {
   doc.setDrawColor(0);
 
   // Client
-  doc.rect(5, yInfo, (width / 2) - 7, 14); // Augmenté de 12 à 14 pour le téléphone
+  doc.rect(5, yInfo, (width / 2) - 7, 11); // Hauteur réduite de 14 >> 11
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
-  doc.text("CLIENT :", 7, yInfo + 4);
+  doc.text("CLIENT :", 7, yInfo + 3);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text((invoice.customerName || "Passager").toUpperCase(), 7, yInfo + 8.5);
+  doc.text((invoice.customerName || "Passager").toUpperCase(), 7, yInfo + 6.5);
 
   if (invoice.customerPhone && invoice.customerPhone.trim() !== "") {
     doc.setFontSize(7);
     doc.setTextColor(80);
-    doc.text(`Tél: ${invoice.customerPhone}`, 7, yInfo + 12);
+    doc.text(`Tél: ${invoice.customerPhone}`, 7, yInfo + 9.5);
     doc.setTextColor(0);
   }
 
   // Date / N°
-  doc.rect((width / 2) + 2, yInfo, (width / 2) - 7, 14); // Aligné avec le cadre client
+  doc.rect((width / 2) + 2, yInfo, (width / 2) - 7, 11);
   doc.setFontSize(8);
-  doc.text(`Date : ${new Date(invoice.createdAt).toLocaleDateString()}`, (width / 2) + 4, yInfo + 5);
+  doc.text(`Date : ${new Date(invoice.createdAt).toLocaleDateString()}`, (width / 2) + 4, yInfo + 4);
   doc.setFont("helvetica", "bold");
-  doc.text(`N° : ${invoice.invoiceNumber.split('-').pop()}`, (width / 2) + 4, yInfo + 10);
+  doc.text(`N° : ${invoice.invoiceNumber.split('-').pop()}`, (width / 2) + 4, yInfo + 8.5);
 
   // --- TABLEAU ---
   const tableRows = invoice.items.map(item => [
@@ -87,7 +87,7 @@ export const generatePDF = async (invoice) => {
   ]);
 
   autoTable(doc, {
-    startY: yInfo + 15,
+    startY: yInfo + 13,
     margin: { left: 5, right: 5 },
     head: [["Qté", "Désignation", "P.U", "Montant"]],
     body: tableRows,
@@ -117,6 +117,13 @@ export const generatePDF = async (invoice) => {
   let finalY = doc.lastAutoTable.finalY + 5;
   const boxW = 60;
   const boxX = width - boxW - 5;
+  const boxH = 20; // Aproximately needed height
+
+  // Check if we need a new page for the totals
+  if (finalY + boxH > 280) { // 297mm is A4 height, leaving some margin
+    doc.addPage();
+    finalY = 20; // Reset Y on new page
+  }
 
   doc.rect(boxX, finalY, boxW, 18);
   doc.setFontSize(9);
@@ -133,15 +140,12 @@ export const generatePDF = async (invoice) => {
   doc.text("Reste à Payer:", boxX + 2, finalY + 15);
   doc.text(formatF(reste), width - 7, finalY + 15, { align: "right" });
 
-  // --- FOOTER ---
+  // --- FOOTER DYNAMIQUE ---
+  // Placé juste en dessous du cadre TOTAL
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
-  doc.text("Merci de votre confiance !", width / 2, 200, { align: "center" });
-
-  // DATE ET HEURE D'IMPRESSION (Ajouté suite demande utilisateur)
-  doc.setFontSize(6);
-  doc.setTextColor(150); // Gris
-  doc.text(`Imprimé le : ${new Date().toLocaleString()}`, width / 2, 204, { align: "center" });
+  const footerText = userData.footerMessage || "Merci de votre confiance !";
+  doc.text(footerText, width / 2, finalY + 25, { align: "center" });
 
   doc.save(`FACT_${invoice.invoiceNumber}.pdf`);
 };
