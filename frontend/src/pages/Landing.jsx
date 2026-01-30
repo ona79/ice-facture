@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, Shield, Store, ChevronRight, Download, Zap, Lock, TrendingUp } from 'lucide-react';
-import showcase1 from '../assets/showcase1.png';
-import showcase2 from '../assets/showcase2.png';
+import promo1 from '../assets/promo1.jpg';
+import promo2 from '../assets/promo2.jpg';
 import showcase3 from '../assets/showcase3.png';
 import showcase4 from '../assets/showcase4.png';
 import showcase5 from '../assets/showcase5.png';
@@ -66,7 +66,7 @@ export default function Landing() {
                             repeat: Infinity
                         }}
                     >
-                        {[showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8, showcase1, showcase2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8].map((img, idx) => (
+                        {[promo1, promo2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8, promo1, promo2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8].map((img, idx) => (
                             <div key={idx} className="min-w-[280px] md:min-w-[320px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent opacity-30 group-hover:opacity-0 transition-opacity" />
                                 <img src={img} alt={`App Screen ${idx}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" />
