@@ -252,7 +252,6 @@ export default function Products() {
             <div className="relative">
               <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
               <input
-                list="product-suggestions"
                 required
                 type="text"
                 value={newProduct.name}
@@ -266,12 +265,29 @@ export default function Products() {
                 }}
                 ref={nameRef}
                 placeholder="Nom du produit..."
+                autoComplete="off"
               />
-              <datalist id="product-suggestions">
-                {products.map((p) => (
-                  <option key={p._id} value={p.name} />
-                ))}
-              </datalist>
+
+              {/* Custom Suggestions for Mobile & PC */}
+              {newProduct.name.length > 0 && products.some(p => p.name.toUpperCase().includes(newProduct.name.toUpperCase()) && p.name.toUpperCase() !== newProduct.name.toUpperCase()) && (
+                <div className="absolute z-[50] left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
+                  {products
+                    .filter(p => p.name.toUpperCase().includes(newProduct.name.toUpperCase()))
+                    .slice(0, 5)
+                    .map((p) => (
+                      <div
+                        key={p._id}
+                        className="p-3 text-[10px] font-black uppercase cursor-pointer hover:bg-white/5 text-white/70 border-b border-white/5 last:border-0"
+                        onMouseDown={(e) => {
+                          e.preventDefault(); // Mobile fix
+                          setNewProduct({ ...newProduct, name: p.name });
+                        }}
+                      >
+                        {p.name}
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
 
             <div className="relative">

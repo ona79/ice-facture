@@ -386,7 +386,9 @@ export default function NewInvoice() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
             {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(p => (
               <button
-                key={p._id} onClick={() => addItem(p._id)}
+                key={p._id}
+                onClick={() => addItem(p._id)}
+                onMouseDown={(e) => e.preventDefault()} // Keep keyboard open
                 className={`p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex justify-between items-center hover:border-ice-400/50 transition-all ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95'}`}
                 disabled={p.stock <= 0}
               >
@@ -502,6 +504,13 @@ export default function NewInvoice() {
                         <div
                           key={index}
                           className={`p-3 text-[10px] font-black uppercase cursor-pointer transition-colors ${index === activeSuggestionIndex ? 'bg-ice-400 text-ice-900' : 'hover:bg-white/5 text-white/70'}`}
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevent blur
+                            setCustomerName(c.name);
+                            setCustomerPhone(c.phone || "");
+                            setShowSuggestions(false);
+                            phoneRef.current?.focus();
+                          }}
                           onClick={() => {
                             setCustomerName(c.name);
                             setCustomerPhone(c.phone || "");

@@ -145,8 +145,12 @@ export default function History() {
     const term = searchTerm.toLowerCase().trim();
     const displayNum = formatInvoiceDisplay(inv).toLowerCase();
     const clientName = (inv.customerName || "client passager").toLowerCase();
-    const clientPhone = (inv.customerPhone || "").toLowerCase();
-    const isSearchMatch = displayNum.includes(term) || clientName.includes(term) || clientPhone.includes(term);
+    const clientPhone = (inv.customerPhone || "").toString().toLowerCase(); // Ensure string
+
+    // Improved matching: checks strict inclusion
+    const isSearchMatch =
+      clientName.includes(term) ||
+      clientPhone.includes(term);
     const isToday = new Date(inv.createdAt).toDateString() === new Date().toDateString();
     const isDette = (inv.totalAmount - (inv.amountPaid || 0)) > 0;
 
