@@ -130,6 +130,13 @@ export default function Products() {
   // --- AJOUT DE PRODUIT ---
   const addProduct = async (e) => {
     e.preventDefault();
+
+    // Validation stricte
+    if (!newProduct.name.trim()) return toast.error("Le nom est obligatoire !");
+    if (newProduct.stock === "" || newProduct.stock === null) return toast.error("La quantité est obligatoire !");
+    if (isNaN(newProduct.stock)) return toast.error("Quantité invalide !");
+    if (Number(newProduct.stock) < 0) return toast.error("La quantité ne peut pas être négative !");
+
     const loading = toast.loading("Ajout en cours...");
 
     // Nettoyage des données (trim code-barres)
