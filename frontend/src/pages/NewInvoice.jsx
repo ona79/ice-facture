@@ -253,6 +253,13 @@ export default function NewInvoice() {
     if (items.length === 0) return toast.error("Panier vide");
     if (!customerName.trim()) return toast.error("NOM DU CLIENT OBLIGATOIRE");
 
+    // Validation des prix
+    const hasInvalidPrice = items.some(i => i.price <= 0);
+    if (hasInvalidPrice) {
+      toast.error("VEUILLEZ RENSEIGNER TOUS LES PRIX DANS LE PANIER");
+      return;
+    }
+
     const finalPaid = amountPaid === "" ? total : parseFloat(amountPaid);
 
     if (finalPaid > total) {
@@ -603,7 +610,7 @@ export default function NewInvoice() {
                             value={item.price === 0 && !item.isPriceSet ? "" : item.price}
                             onChange={(e) => updatePrice(item.productId, e.target.value)}
                             placeholder="PRIX UNIT."
-                            className={`w-full bg-black/40 border ${!item.isPriceSet ? 'border-orange-500/30' : 'border-white/5'} rounded-lg lg:rounded-xl px-2 py-1.5 lg:px-4 lg:py-2.5 text-[11px] lg:text-[13px] font-black italic text-white outline-none focus:border-ice-400 transition-all text-center placeholder:text-[8px] lg:placeholder:text-[10px] placeholder:font-black group-hover/price:border-white/20`}
+                            className={`w-full bg-black/40 border ${item.price <= 0 ? 'border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/5'} rounded-lg lg:rounded-xl px-2 py-1.5 lg:px-4 lg:py-2.5 text-[11px] lg:text-[13px] font-black italic text-white outline-none focus:border-ice-400 transition-all text-center placeholder:text-[8px] lg:placeholder:text-[10px] placeholder:font-black group-hover/price:border-white/20`}
                             autoFocus={!item.isPriceSet}
                           />
                         </div>
