@@ -66,102 +66,104 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     setLoading(true);
-    // --- 1. RÉCUPÉRATION DES FACTURES (CRITIQUE) ---
-    let invoices = [];
     try {
-      const resInv = await axios.get(`${API_URL}/api/invoices`, config);
-      invoices = resInv.data;
-      setAllInvoices(invoices);
-      const sortedInvoices = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setRecentInvoices(sortedInvoices.slice(0, 3));
-    } catch (err) {
-      console.error("Erreur Invoices:", err);
-      toast.error("Erreur de chargement des ventes");
-    }
+      // --- RÉCUPÉRATION PARALLÈLE DES DONNÉES ---
+      const [resInv, resExp, resProfile, resProducts] = await Promise.allSettled([
+        axios.get(`${API_URL}/api/invoices`, config),
+        axios.get(`${API_URL}/api/expenses`, config),
+        axios.get(`${API_URL}/api/auth/profile`, config),
+        axios.get(`${API_URL}/api/products`, config)
+      ]);
 
-    // --- 2. LOGIQUE STATISTIQUES AVANCÉES (DÉPEND DES FACTURES) ---
-    const today = new Date().toISOString().split('T')[0];
-    const todaySales = invoices
-      .filter(inv => inv.createdAt.startsWith(today))
-      .reduce((sum, inv) => sum + inv.totalAmount, 0);
+      // --- 1. TRAITEMENT DES FACTURES ---
+      let invoices = [];
+      if (resInv.status === 'fulfilled') {
+        invoices = resInv.value.data;
+        setAllInvoices(invoices);
+        const sortedInvoices = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setRecentInvoices(sortedInvoices.slice(0, 3));
+      } else {
+        toast.error("Erreur de chargement des ventes");
+      }
 
-    const productMap = {};
-    invoices.forEach(inv => {
-      inv.items.forEach(item => {
-        productMap[item.name] = (productMap[item.name] || 0) + item.quantity;
+      // --- 2. TRAITEMENT DES STATISTIQUES (Optimisé) ---
+      const today = new Date().toISOString().split('T')[0];
+      let todaySales = 0;
+      const productMap = {};
+      const clientMap = {};
+      let totalSales = 0;
+
+      invoices.forEach(inv => {
+        totalSales += inv.totalAmount;
+        if (inv.createdAt.startsWith(today)) {
+          todaySales += inv.totalAmount;
+        }
+
+        inv.items.forEach(item => {
+          productMap[item.name] = (productMap[item.name] || 0) + item.quantity;
+        });
+
+        const name = inv.customerName || "Passager";
+        if (name.toUpperCase() !== "PASSAGER") {
+          if (!clientMap[name]) clientMap[name] = { spent: 0, debt: 0 };
+          clientMap[name].spent += inv.totalAmount;
+          clientMap[name].debt += (inv.totalAmount - (inv.amountPaid || 0));
+        }
       });
-    });
-    const topProducts = Object.entries(productMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
 
-    const clientMap = {};
-    invoices.forEach(inv => {
-      const name = inv.customerName || "Passager";
-      if (name.toUpperCase() !== "PASSAGER") {
-        if (!clientMap[name]) clientMap[name] = { spent: 0, debt: 0 };
-        clientMap[name].spent += inv.totalAmount;
-        clientMap[name].debt += (inv.totalAmount - (inv.amountPaid || 0));
+      const topProducts = Object.entries(productMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+      const topClients = Object.entries(clientMap)
+        .sort(([, a], [, b]) => {
+          const aHasDebt = a.debt > 0;
+          const bHasDebt = b.debt > 0;
+          if (aHasDebt !== bHasDebt) return aHasDebt ? 1 : -1;
+          if (aHasDebt && bHasDebt) return a.debt - b.debt;
+          return b.spent - a.spent;
+        })
+        .map(([name, data]) => [name, data.spent])
+        .slice(0, 3);
+
+      // --- 3. TRAITEMENT DES DÉPENSES ---
+      let totalExpenses = 0;
+      if (resExp.status === 'fulfilled') {
+        totalExpenses = resExp.value.data.reduce((sum, exp) => sum + exp.amount, 0);
       }
-    });
 
-    const topClients = Object.entries(clientMap)
-      .sort(([, a], [, b]) => {
-        const aHasDebt = a.debt > 0;
-        const bHasDebt = b.debt > 0;
-        if (aHasDebt !== bHasDebt) return aHasDebt ? 1 : -1;
-        if (aHasDebt && bHasDebt) return a.debt - b.debt;
-        return b.spent - a.spent;
-      })
-      .map(([name, data]) => [name, data.spent])
-      .slice(0, 3);
+      setStats({
+        totalSales,
+        totalExpenses,
+        netProfit: totalSales - totalExpenses,
+        count: invoices.length,
+        todaySales,
+        topProducts,
+        topClients
+      });
 
-    const totalSales = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
-
-    // --- 3. RÉCUPÉRATION DES DÉPENSES (OPTIONNEL) ---
-    let totalExpenses = 0;
-    try {
-      const resExp = await axios.get(`${API_URL}/api/expenses`, config);
-      const expenses = resExp.data;
-      totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-    } catch (err) {
-      console.warn("Expenses non disponibles (probable déploiement en cours)");
-    }
-
-    setStats({
-      totalSales,
-      totalExpenses,
-      netProfit: totalSales - totalExpenses,
-      count: invoices.length,
-      todaySales,
-      topProducts,
-      topClients
-    });
-
-    // --- 4. RÉCUPÉRATION DU PROFIL ---
-    try {
-      const resProfile = await axios.get(`${API_URL}/api/auth/profile`, config);
-      if (resProfile.data) {
-        if (resProfile.data.shopName) {
-          setCurrentShopName(resProfile.data.shopName);
-          localStorage.setItem('shopName', resProfile.data.shopName);
+      // --- 4. TRAITEMENT DU PROFIL ---
+      if (resProfile.status === 'fulfilled' && resProfile.value.data) {
+        const profile = resProfile.value.data;
+        if (profile.shopName) {
+          setCurrentShopName(profile.shopName);
+          localStorage.setItem('shopName', profile.shopName);
         }
-        if (resProfile.data.role) {
-          localStorage.setItem('role', resProfile.data.role);
+        if (profile.role) {
+          localStorage.setItem('role', profile.role);
         }
       }
-    } catch (err) {
-      console.error("Erreur Profile:", err);
-    }
 
-    // --- 5. RÉCUPÉRATION DES PRODUITS (ALERTES STOCK) ---
-    try {
-      const resProducts = await axios.get(`${API_URL}/api/products`, config);
-      const allProducts = resProducts.data;
-      setProducts(allProducts);
-      setLowStockProducts(allProducts.filter(p => p.stock <= 5));
+      // --- 5. TRAITEMENT DES PRODUITS ---
+      if (resProducts.status === 'fulfilled') {
+        const allProducts = resProducts.value.data;
+        setProducts(allProducts);
+        setLowStockProducts(allProducts.filter(p => p.stock <= 5));
+      }
+
     } catch (err) {
-      console.error("Erreur Products:", err);
+      console.error("Erreur globale fetchData:", err);
+      toast.error("Erreur de synchronisation des données");
     } finally {
       setLoading(false);
     }

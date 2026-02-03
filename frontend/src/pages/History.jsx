@@ -5,7 +5,7 @@ import {
   FileText, Trash2, X, Lock, Eye, Banknote, MessageCircle, ListFilter, Clock, User, Printer, FileDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { generatePDF } from '../utils/generatePDF';
 import { IceInput } from '../components/IceInput';
@@ -352,31 +352,82 @@ export default function History() {
         </div>
       )}
 
-      {modalDetail.show && (
-        <div onClick={() => setModalDetail({ show: false })} className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-md p-8 rounded-[3rem] border-white/10 relative shadow-2xl">
-            <button onClick={() => setModalDetail({ show: false })} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
-            <h3 className="text-xl font-black italic uppercase text-ice-400 mb-6">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
-              {modalDetail.invoice.items.map((item, i) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-white/5">
-                  <div>
-                    <p className="text-xs font-black uppercase text-white">{item.name}</p>
-                    <p className="text-[10px] text-white/40">{item.quantity} x {item.price.toLocaleString()} F</p>
-                  </div>
-                  <p className="text-sm font-black text-ice-400">{(item.price * item.quantity).toLocaleString()} F</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
-              <p className="text-2xl font-black italic text-ice-400">{modalDetail.invoice.totalAmount.toLocaleString()} F</p>
-              <button onClick={() => generatePDF({ ...modalDetail.invoice, invoiceNumber: formatInvoiceDisplay(modalDetail.invoice) })} className="px-6 py-3 bg-ice-400 text-black rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 shdow-lg shadow-ice-400/20">
-                <Printer size={16} /> Imprimer
+      <AnimatePresence>
+        {modalDetail.show && (
+          <motion.div
+            onClick={() => setModalDetail({ show: false })}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          >
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-card w-full max-w-md p-6 rounded-[2rem] border-white/10 relative shadow-2xl"
+            >
+              <button
+                onClick={() => setModalDetail({ show: false })}
+                className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"
+              >
+                <X size={20} />
               </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+              <div className="mb-6">
+                <h3 className="text-xl font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
+                <div className="flex flex-col gap-1 mt-1">
+                  <p className="text-[10px] font-black uppercase text-white/70 tracking-[0.1em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+                  {modalDetail.invoice.customerPhone && (
+                    <p className="text-[9px] font-bold text-ice-400/60 uppercase">Tél: {modalDetail.invoice.customerPhone}</p>
+                  )}
+                  <p className="text-[8px] font-medium text-white/30 uppercase tracking-widest">
+                    {new Date(modalDetail.invoice.createdAt).toLocaleString('fr-FR', {
+                      day: '2-digit', month: '2-digit', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] max-h-[40vh] overflow-y-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-white/5 text-[9px] font-black uppercase text-ice-400/50 sticky top-0 backdrop-blur-md z-10">
+                    <tr>
+                      <th className="p-3 text-left">Article</th>
+                      <th className="p-3 text-center">Qté</th>
+                      <th className="p-3 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-xs font-bold uppercase tracking-tight">
+                    {modalDetail.invoice.items.map((item, idx) => (
+                      <tr key={idx} className="border-t border-white/5 hover:bg-white/[0.02]">
+                        <td className="p-3 max-w-[120px] truncate">{item.name}</td>
+                        <td className="p-3 text-center">{item.quantity}</td>
+                        <td className="p-3 text-right">{(item.price * item.quantity).toLocaleString()} F</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-end">
+                <div className="text-left">
+                  <p className="text-[8px] font-black uppercase text-white/20 mb-1">Total Facture</p>
+                  <p className="text-3xl font-black italic text-ice-400 leading-none">{modalDetail.invoice.totalAmount.toLocaleString()} F</p>
+                </div>
+                <button
+                  onClick={() => generatePDF({ ...modalDetail.invoice, invoiceNumber: formatInvoiceDisplay(modalDetail.invoice) })}
+                  className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-black uppercase text-[10px] hover:scale-105 transition-all shadow-xl"
+                >
+                  <Printer size={16} /> Imprimer
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {modalPay.show && (
         <div onClick={() => setModalPay({ show: false })} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
