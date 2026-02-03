@@ -93,19 +93,19 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
-      <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-2 md:p-4 bg-[#060b13] font-sans">
+      <div className="glass-card p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
 
-        <div className="text-center mb-10">
-          <div className="inline-block p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-4">
-            <LogIn size={32} />
+        <div className="text-center mb-6 md:mb-10">
+          <div className="inline-block p-3 md:p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-2 md:mb-4">
+            <LogIn size={24} className="md:w-8 md:h-8" />
           </div>
-          <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter">Connexion</h1>
-          <p className="text-ice-100/40 text-[9px] font-bold uppercase tracking-[0.3em] mt-2 italic">kassa vous souhaite une bonne experience</p>
+          <h1 className="text-2xl md:text-3xl font-black italic text-white uppercase tracking-tighter">Connexion</h1>
+          <p className="text-ice-100/40 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] mt-1 md:mt-2 italic">kassa vous souhaite une bonne experience</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 md:space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 md:gap-y-6">
 
             {/* CHAMP EMAIL */}
             <div className="relative">
@@ -157,7 +157,7 @@ export default function Login() {
           </div>
 
           <div className="flex flex-col items-center pt-2">
-            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs flex items-center justify-center gap-2 group">
+            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-3 md:py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs flex items-center justify-center gap-2 group">
               Se connecter <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
 

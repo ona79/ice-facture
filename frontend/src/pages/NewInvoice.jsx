@@ -36,7 +36,9 @@ export default function NewInvoice() {
   const [isProfileComplete, setIsProfileComplete] = useState(true);
   const [shopName, setShopName] = useState(localStorage.getItem('shopName') || "MA BOUTIQUE");
   const [shopPhone, setShopPhone] = useState("");
+  const [shopAddress, setShopAddress] = useState("");
   const [footerMessage, setFooterMessage] = useState("");
+  const customerSuggestionsRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' or 'cart'
 
@@ -66,6 +68,7 @@ export default function NewInvoice() {
       .then(res => {
         if (res.data.shopName) setShopName(res.data.shopName);
         if (res.data.phone) setShopPhone(res.data.phone);
+        if (res.data.address) setShopAddress(res.data.address);
         if (res.data.footerMessage) setFooterMessage(res.data.footerMessage);
 
         if (!res.data.address || !res.data.phone) {
@@ -85,6 +88,14 @@ export default function NewInvoice() {
     axios.get(`${API_URL}/api/invoices/customers`, config)
       .then(res => setCustomers(res.data))
       .catch(err => console.error("Erreur clients:", err));
+
+    const handleClickOutside = (event) => {
+      if (customerSuggestionsRef.current && !customerSuggestionsRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Recalcul du total
@@ -102,7 +113,11 @@ export default function NewInvoice() {
 
   const addItem = (productId) => {
     const product = products.find(p => p._id === productId);
-    if (!product || product.stock <= 0) return toast.error("Rupture de stock");
+    if (!product || product.stock <= 0) {
+      toast.error(`STOCK ÉPUISÉ : ${product?.name || 'Produit'}`);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Vibration d'erreur
+      return;
+    }
 
     const existing = items.find(i => i.productId === productId);
     if (existing) {
@@ -307,15 +322,14 @@ export default function NewInvoice() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="p-4 max-w-7xl mx-auto min-h-screen text-white font-sans"
+      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans overflow-x-hidden relative"
     >
       {/* HIDDEN RECEIPT COMPONENT */}
-      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopPhone={shopPhone} footerMessage={footerMessage} />
+      <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopAddress={shopAddress} shopPhone={shopPhone} footerMessage={footerMessage} />
 
-      {/* SUCCESS MODAL OVERLAY */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
-          <div className="bg-white/10 border border-white/20 p-8 rounded-[2.5rem] max-w-md w-full text-center relative shadow-[0_0_50px_rgba(0,242,255,0.2)]">
+        <div onClick={() => setShowSuccessModal(false)} className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white/10 border border-white/20 p-8 rounded-[2.5rem] max-w-md w-full text-center relative shadow-[0_0_50px_rgba(0,242,255,0.2)]">
             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
               <CheckCircle size={40} className="text-white" />
             </div>
@@ -350,11 +364,6 @@ export default function NewInvoice() {
           </div>
         </div>
       )}
-      <div className="flex justify-between items-center mb-6">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-white/30 font-black uppercase text-[10px] hover:text-white transition-colors">
-          <ArrowLeft size={14} /> Annuler
-        </button>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 lg:pb-0">
         {/* CATALOGUE */}
@@ -365,7 +374,7 @@ export default function NewInvoice() {
               <input
                 type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-[11px] font-black uppercase"
+                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pl-12 pr-4 outline-none focus:border-ice-400 text-[10px] font-black uppercase tracking-widest transition-all placeholder:text-white/10"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -377,30 +386,33 @@ export default function NewInvoice() {
             </div>
             <button
               onClick={startScanning}
-              className="bg-ice-400 text-ice-900 p-4 rounded-2xl active:scale-90 transition-all shadow-lg"
+              className="bg-ice-400 text-ice-900 p-3 rounded-2xl active:scale-90 transition-all shadow-lg"
             >
               <Scan size={20} />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
             {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(p => (
               <button
                 key={p._id}
                 onClick={() => addItem(p._id)}
-                onMouseDown={(e) => e.preventDefault()} // Keep keyboard open
-                className={`p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex justify-between items-center hover:border-ice-400/50 transition-all ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95'}`}
+                onMouseDown={(e) => e.preventDefault()}
+                className={`p-3 lg:p-5 rounded-[1.2rem] lg:rounded-[2rem] bg-white/[0.02] border border-white/5 flex flex-col justify-between items-start hover:border-ice-400/40 hover:bg-white/[0.04] transition-all duration-500 overflow-hidden relative group lg:min-h-[120px] ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95 shadow-xl hover:shadow-[0_0_20px_rgba(0,242,255,0.05)]'}`}
                 disabled={p.stock <= 0}
               >
-                <div className="text-left">
-                  <p className="font-black text-[11px] uppercase tracking-tight">{p.name}</p>
-                  <p className="text-[10px] text-ice-400 font-black mt-1">
-                    <span className={`ml-2 ${p.stock <= 5 ? 'text-red-500 animate-blink' : 'text-white/20'}`}>
-                      ({p.stock} STOCK)
-                    </span>
-                  </p>
+                <div className="flex justify-between w-full mb-2 lg:mb-3">
+                  <div className={`p-2 lg:p-3 rounded-xl transition-all duration-500 group-hover:scale-110 ${p.stock <= 5 ? 'bg-red-500/10 text-red-500' : 'bg-ice-400/10 text-ice-400'}`}>
+                    <ShoppingCart size={16} className="lg:w-[18px] lg:h-[18px]" />
+                  </div>
+                  <span className={`text-[7px] lg:text-[8px] font-black uppercase px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md tracking-tighter ${p.stock <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/5 text-white/40'}`}>
+                    {p.stock} EN STOCK
+                  </span>
                 </div>
-                <Plus size={16} className="text-ice-400" />
+                <p className="font-black text-[11px] lg:text-[13px] uppercase italic tracking-tighter text-left leading-none group-hover:text-ice-400 transition-colors uppercase">{p.name}</p>
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Plus size={40} className="text-white lg:w-[48px] lg:h-[48px]" />
+                </div>
               </button>
             ))}
           </div>
@@ -411,7 +423,7 @@ export default function NewInvoice() {
           {/* Mobile Back Button */}
           <button
             onClick={() => setActiveTab('catalog')}
-            className="lg:hidden p-4 flex items-center gap-2 text-ice-400 font-black uppercase text-[10px]"
+            className="lg:hidden p-4 flex items-center gap-2 text-ice-400 font-black uppercase text-[10px] border-b border-white/5 bg-white/[0.01]"
           >
             <ArrowLeft size={14} /> Retour au catalogue
           </button>
@@ -427,216 +439,177 @@ export default function NewInvoice() {
             </div>
           )}
 
-          <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-            <h2 className="font-black text-ice-400 text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
-              <ShoppingCart size={16} /> Panier ({items.length})
+          <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+            <h2 className="font-black text-ice-400 text-[10px] uppercase tracking-[0.2em] flex items-center gap-1.5 italic">
+              <ShoppingCart size={14} className="drop-shadow-[0_0_10px_rgba(0,242,255,0.5)]" /> Panier
             </h2>
+            <span className="bg-white/5 px-1.5 py-0.5 rounded-full text-[7px] font-black text-white/40 uppercase tracking-widest">{items.length} ART.</span>
           </div>
 
 
-          {/* CONTROL SECTION (Moved to Top) */}
-          <div className="p-4 bg-white/[0.03] border-b border-white/10 space-y-3">
+          {/* CONTROL SECTION (Ultra-Compact) */}
+          <div className="p-2 lg:p-3 bg-white/[0.03] border-b border-white/10 space-y-1.5">
             {/* INFOS CLIENT */}
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)] gap-2">
-              <div className="space-y-1">
-                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic">
-                  Client {customers.length > 0 ? `(${customers.length} ENREGISTRÉS)` : "(LETTRES SEUL.)"}
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="NOM..."
-                    value={customerName}
-                    onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
-                      setCustomerName(val.replace(/[^a-zA-Z\sÀ-ÿ]/g, ''));
-
-                      if (val.trim().length > 0) {
-                        const filtered = customers.filter(c =>
-                          c.name && c.name.toString().toUpperCase().includes(val.toUpperCase())
-                        );
-                        setFilteredCustomers(filtered);
-                        setShowSuggestions(filtered.length > 0);
-                        setActiveSuggestionIndex(-1);
-                      } else {
-                        setShowSuggestions(false);
-                      }
-                    }}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[10px] font-black uppercase outline-none focus:border-ice-400/50"
-                    ref={nameRef}
-                    onKeyDown={(e) => {
-                      if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        if (activeSuggestionIndex < filteredCustomers.length - 1) {
-                          setActiveSuggestionIndex(activeSuggestionIndex + 1);
-                        }
-                      } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        if (activeSuggestionIndex > 0) {
-                          setActiveSuggestionIndex(activeSuggestionIndex - 1);
-                        }
-                      } else if (e.key === 'Enter') {
-                        if (showSuggestions && activeSuggestionIndex !== -1) {
-                          e.preventDefault();
-                          const selected = filteredCustomers[activeSuggestionIndex];
-                          setCustomerName(selected.name);
-                          setCustomerPhone(selected.phone || "");
-                          setShowSuggestions(false);
-                          phoneRef.current?.focus();
-                        } else if (customerName.trim()) {
-                          // Si un nom est saisi mais pas de suggestion active, on passe au tel
-                          e.preventDefault();
-                          setShowSuggestions(false);
-                          phoneRef.current?.focus();
-                        }
-                      } else if (e.key === 'Escape') {
-                        setShowSuggestions(false);
-                      }
-                    }}
-                    onBlur={() => {
-                      // On attend un peu pour permettre le clic sur une suggestion
-                      setTimeout(() => setShowSuggestions(false), 200);
-                    }}
-                  />
-                  {showSuggestions && filteredCustomers.length > 0 && (
-                    <div className="absolute z-[400] top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
-                      {filteredCustomers.map((c, index) => (
-                        <div
-                          key={index}
-                          className={`p-3 text-[10px] font-black uppercase cursor-pointer transition-colors ${index === activeSuggestionIndex ? 'bg-ice-400 text-ice-900' : 'hover:bg-white/5 text-white/70'}`}
-                          onMouseDown={(e) => {
-                            e.preventDefault(); // Prevent blur
-                            setCustomerName(c.name);
-                            setCustomerPhone(c.phone || "");
-                            setShowSuggestions(false);
-                            phoneRef.current?.focus();
-                          }}
-                          onClick={() => {
-                            setCustomerName(c.name);
-                            setCustomerPhone(c.phone || "");
-                            setShowSuggestions(false);
-                            phoneRef.current?.focus();
-                          }}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span>{c.name}</span>
-                            <span className="text-[8px] opacity-50">{c.phone}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <PhoneInput
-                  label="WhatsApp (Client)"
-                  value={customerPhone}
-                  onChange={(val) => setCustomerPhone(val)}
-                  ref={phoneRef}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      amountRef.current?.focus();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* PAIEMENT & VALIDATION (Compacté) */}
-            <div className="flex items-center gap-3 bg-black/20 p-3 rounded-[1.5rem] border border-white/5">
-              <div className="w-24 space-y-1">
-                <label className="text-[7px] font-black uppercase text-white/30 px-1 italic leading-none block">Encaissé</label>
+            <div className="grid grid-cols-[1fr_1.5fr] gap-1.5 px-0.5">
+              <div className="relative">
                 <input
                   type="text"
-                  placeholder="0"
-                  value={amountPaid}
+                  placeholder="NOM CLIENT..."
+                  value={customerName}
                   onChange={(e) => {
-                    let val = e.target.value.replace(/\D/g, '');
-                    if (val === "") { setAmountPaid(""); return; }
-                    if (parseInt(val, 10) > total) {
-                      setAmountPaid(total.toString());
-                      toast.error(`MAX: ${total} F`);
-                    } else { setAmountPaid(val); }
+                    const val = e.target.value.toUpperCase();
+                    setCustomerName(val.replace(/[^a-zA-Z\sÀ-ÿ]/g, ''));
+                    if (val.trim().length > 0) {
+                      const filtered = customers.filter(c => c.name && c.name.toString().toUpperCase().includes(val.toUpperCase()));
+                      setFilteredCustomers(filtered);
+                      setShowSuggestions(filtered.length > 0);
+                      setActiveSuggestionIndex(-1);
+                    } else { setShowSuggestions(false); }
                   }}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-black outline-none focus:border-ice-400/50 text-orange-500"
-                  ref={amountRef}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg p-1.5 lg:p-2 text-[9px] lg:text-[10px] font-black uppercase outline-none focus:border-ice-400/50 placeholder:text-white/5"
+                  ref={nameRef}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'ArrowDown') {
                       e.preventDefault();
-                      handleCheckout();
-                    }
+                      if (activeSuggestionIndex < filteredCustomers.length - 1) setActiveSuggestionIndex(activeSuggestionIndex + 1);
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      if (activeSuggestionIndex > 0) setActiveSuggestionIndex(activeSuggestionIndex - 1);
+                    } else if (e.key === 'Enter') {
+                      if (showSuggestions && activeSuggestionIndex !== -1) {
+                        e.preventDefault();
+                        const selected = filteredCustomers[activeSuggestionIndex];
+                        setCustomerName(selected.name);
+                        setCustomerPhone(selected.phone || "");
+                        setShowSuggestions(false);
+                        phoneRef.current?.focus();
+                      } else if (customerName.trim()) {
+                        e.preventDefault();
+                        setShowSuggestions(false);
+                        phoneRef.current?.focus();
+                      }
+                    } else if (e.key === 'Escape') { setShowSuggestions(false); }
                   }}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
+                {showSuggestions && filteredCustomers.length > 0 && (
+                  <div ref={customerSuggestionsRef} className="absolute z-[400] top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
+                    {filteredCustomers.map((c, index) => (
+                      <div
+                        key={index}
+                        className={`p-2 text-[9px] font-black uppercase cursor-pointer transition-colors ${index === activeSuggestionIndex ? 'bg-ice-400 text-ice-900' : 'hover:bg-white/5 text-white/70'}`}
+                        onMouseDown={(e) => {
+                          e.preventDefault(); setCustomerName(c.name); setCustomerPhone(c.phone || ""); setShowSuggestions(false); phoneRef.current?.focus();
+                        }}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span>{c.name}</span>
+                          <span className="text-[7.5px] opacity-40">{c.phone}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex-1 text-right pr-2">
-                <div className="flex flex-col items-end">
-                  <p className="text-[8px] font-black uppercase text-white/30 leading-none mb-1">Total</p>
-                  <p className="text-xl font-black italic text-ice-400 tracking-tighter leading-none whitespace-nowrap">
-                    {Math.round(total).toLocaleString()} F
+              <PhoneInput
+                compact
+                hideLabel
+                placeholder="WHATSAPP..."
+                value={customerPhone}
+                onChange={(val) => setCustomerPhone(val)}
+                ref={phoneRef}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); amountRef.current?.focus(); }
+                }}
+              />
+            </div>
+
+            {/* PAIEMENT & VALIDATION (Ultra-Compact) */}
+            <div className="flex items-center gap-1.5 lg:gap-3 bg-black/40 p-1.5 lg:p-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-inner">
+              <div className="flex-1 flex items-center gap-1.5 lg:gap-3 px-1">
+                <div className="flex flex-col">
+                  <span className="text-[6.5px] lg:text-[8px] font-black uppercase text-white/20 italic leading-none">A Payer</span>
+                  <p className="text-lg lg:text-2xl font-black italic text-ice-400 tracking-tighter leading-none whitespace-nowrap">
+                    {Math.round(total).toLocaleString()} <span className="text-[9px] lg:text-[11px] not-italic opacity-40">F</span>
                   </p>
-                  {amountPaid !== "" && parseInt(amountPaid, 10) < total && (
-                    <p className="text-[7px] font-black text-orange-500 uppercase mt-0.5 italic animate-pulse">
-                      Restant: {(total - parseInt(amountPaid, 10)).toLocaleString()} F
-                    </p>
-                  )}
+                </div>
+                <div className="w-px h-5 lg:h-8 bg-white/10 mx-0.5" />
+                <div className="flex-1 group">
+                  <input
+                    type="text"
+                    placeholder="ENCAISSÉ..."
+                    value={amountPaid}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, '');
+                      if (val === "") { setAmountPaid(""); return; }
+                      if (parseInt(val, 10) > total) {
+                        setAmountPaid(total.toString());
+                        toast.error(`MAX: ${total} F`);
+                      } else { setAmountPaid(val); }
+                    }}
+                    className="w-full bg-transparent border-none p-0 text-[13px] lg:text-[16px] font-black outline-none focus:ring-0 text-orange-400 placeholder:text-white/5 tracking-wider"
+                    ref={amountRef}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); handleCheckout(); }
+                    }}
+                  />
                 </div>
               </div>
 
               <button
                 onClick={handleCheckout}
                 disabled={items.length === 0 || !isProfileComplete}
-                className={`px-4 py-3.5 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 shadow-lg transition-all ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 active:scale-95'}`}
+                className={`h-10 lg:h-12 px-4 lg:px-6 rounded-lg lg:rounded-xl font-black uppercase text-[9px] lg:text-[11px] flex items-center justify-center gap-1.5 shadow-lg transition-all duration-500 ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/10 cursor-not-allowed' : 'bg-ice-400 text-ice-900 active:scale-95 hover:bg-white hover:text-black'}`}
               >
-                <CheckCircle size={14} /> {isProfileComplete ? "Valider" : "Erreur"}
+                <CheckCircle size={14} className="lg:w-[16px] lg:h-[16px]" /> {isProfileComplete ? "Confirmer" : "Erreur"}
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-white/20 italic">
-                <ShoppingCart size={48} className="mb-4 opacity-50" />
+                <ShoppingCart size={40} className="mb-3 opacity-50" />
                 <p className="text-xs uppercase font-bold tracking-widest">Votre panier est vide</p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="text-[9px] uppercase font-black text-white/30 border-b border-white/10">
-                    <th className="py-2 pl-2">Produit</th>
-                    <th className="py-2 text-center">Qté</th>
-                    <th className="py-2 w-32">Prix</th>
-                    <th className="py-2 text-right pr-2">Total</th>
+                  <tr className="text-[8px] uppercase font-black text-white/30 border-b border-white/10">
+                    <th className="py-1.5 pl-1">Produit</th>
+                    <th className="py-1.5 text-center">Qté</th>
+                    <th className="py-1.5 w-28">Prix</th>
+                    <th className="py-1.5 text-right pr-1">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-white/[0.03]">
                   {items.map(item => (
-                    <tr key={item.productId} className="group hover:bg-white/5 transition-colors">
-                      <td className="py-2 pl-2 max-w-[100px]">
-                        <div className="font-black text-[10px] uppercase truncate">{item.name}</div>
+                    <tr key={item.productId} className="group hover:bg-white/[0.02] transition-all duration-300">
+                      <td className="py-1 lg:py-4 pl-1 lg:pl-4 max-w-[100px] lg:max-w-none">
+                        <div className="font-black text-[10px] lg:text-[13px] uppercase italic tracking-tighter leading-none text-white/90 truncate">{item.name}</div>
                       </td>
-                      <td className="py-2 text-center">
-                        <div className="flex items-center justify-center bg-black/40 rounded-lg p-1 w-fit mx-auto">
-                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-1 hover:text-white text-white/50 transition-colors"><Minus size={10} /></button>
-                          <span className="text-[10px] font-black w-6 text-center">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-1 hover:text-white text-white/50 transition-colors"><Plus size={10} /></button>
+                      <td className="py-1 lg:py-4 text-center">
+                        <div className="flex items-center justify-center bg-black/40 rounded-lg lg:rounded-xl p-0.5 lg:p-1.5 w-fit mx-auto border border-white/5 overflow-hidden group-hover:border-white/20 transition-all">
+                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-0.5 lg:p-1 hover:text-white text-white/20 transition-colors"><Minus size={10} className="lg:w-3.5 lg:h-3.5" /></button>
+                          <span className="text-[10px] lg:text-[13px] font-black w-6 lg:w-10 text-center text-ice-400">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-0.5 lg:p-1 hover:text-white text-white/20 transition-colors"><Plus size={10} className="lg:w-3.5 lg:h-3.5" /></button>
                         </div>
                       </td>
-                      <td className="py-2">
-                        <input
-                          type="number"
-                          value={item.price === 0 && !item.isPriceSet ? "" : item.price}
-                          onChange={(e) => updatePrice(item.productId, e.target.value)}
-                          placeholder="0 F"
-                          className={`w-full bg-black/40 border ${!item.isPriceSet ? 'border-orange-500/50 animate-pulse' : 'border-white/10'} rounded-lg px-3 py-2 text-[11px] font-bold text-white outline-none focus:border-ice-400 focus:bg-black/60 transition-all`}
-                          autoFocus={!item.isPriceSet}
-                        />
+                      <td className="py-1 lg:py-4">
+                        <div className="relative group/price">
+                          <input
+                            type="number"
+                            value={item.price === 0 && !item.isPriceSet ? "" : item.price}
+                            onChange={(e) => updatePrice(item.productId, e.target.value)}
+                            placeholder="PRIX UNIT."
+                            className={`w-full bg-black/40 border ${!item.isPriceSet ? 'border-orange-500/30' : 'border-white/5'} rounded-lg lg:rounded-xl px-2 py-1.5 lg:px-4 lg:py-2.5 text-[11px] lg:text-[13px] font-black italic text-white outline-none focus:border-ice-400 transition-all text-center placeholder:text-[8px] lg:placeholder:text-[10px] placeholder:font-black group-hover/price:border-white/20`}
+                            autoFocus={!item.isPriceSet}
+                          />
+                        </div>
                       </td>
-                      <td className="py-2 pr-2 text-right">
-                        <div className="text-[10px] font-black text-ice-400">{(item.price * item.quantity).toLocaleString()} F</div>
+                      <td className="py-1 lg:py-4 pr-2 lg:pr-6 text-right">
+                        <div className="text-[11px] lg:text-[16px] font-black italic text-ice-400 leading-none">{(item.price * item.quantity).toLocaleString()} <span className="text-[9px] not-italic opacity-30 ml-0.5">F</span></div>
                       </td>
                     </tr>
                   ))}
@@ -669,8 +642,8 @@ export default function NewInvoice() {
       </div>
       {/* SCANNER OVERLAY */}
       {showScanner && (
-        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
+        <div onClick={stopScanning} className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
             <button
               onClick={stopScanning}
               className="absolute top-4 right-4 text-white/50 hover:text-white bg-black/50 rounded-full p-2"

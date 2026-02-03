@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck } from 'lucide-react';
+import { UserPlus, AlertCircle, Store, Mail, Phone, Lock, ShieldCheck, MapPin, MessageSquare } from 'lucide-react';
 import { IceInput } from '../components/IceInput';
 import { PhoneInput } from '../components/PhoneInput';
 import { COUNTRY_CODES } from '../utils/countryCodes';
@@ -16,7 +16,9 @@ export default function Register() {
     email: '',
     password: '',
     confirmPassword: '',
-    phone: ''
+    phone: '',
+    address: '',
+    footerMessage: ''
   });
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [errors, setErrors] = useState({});
@@ -25,6 +27,8 @@ export default function Register() {
   const phoneRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmRef = useRef(null);
+  const addressRef = useRef(null);
+  const footerRef = useRef(null);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
@@ -36,6 +40,8 @@ export default function Register() {
   const validate = () => {
     let tempErrors = {};
     if (!formData.shopName.trim()) tempErrors.shopName = "Le nom est requis.";
+    if (!formData.address.trim()) tempErrors.address = "L'adresse est requise.";
+    if (!formData.footerMessage.trim()) tempErrors.footerMessage = "Le message est requis.";
 
     // Validation téléphone par pays
     if (!formData.phone) {
@@ -127,22 +133,22 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#060b13] font-sans">
-      <div className="glass-card p-8 md:p-12 rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-2 md:p-4 bg-[#060b13] font-sans">
+      <div className="glass-card p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
 
-        <div className="text-center mb-10">
-          <div className="inline-block p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-4">
-            <UserPlus size={32} />
+        <div className="text-center mb-6 md:mb-10">
+          <div className="inline-block p-3 md:p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-2 md:mb-4">
+            <UserPlus size={24} className="md:w-8 md:h-8" />
           </div>
-          <h1 className="text-3xl font-black italic text-white uppercase tracking-tighter">Inscription</h1>
-          <p className="text-ice-100/40 text-[9px] font-bold uppercase tracking-[0.3em] mt-2 italic">kassa vous souhaite une belle experience</p>
+          <h1 className="text-2xl md:text-3xl font-black italic text-white uppercase tracking-tighter">Inscription</h1>
+          <p className="text-ice-100/40 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] mt-1 md:mt-2 italic">kassa vous souhaite une belle experience</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 md:gap-y-6">
 
             {/* COLONNE GAUCHE */}
-            <div className="space-y-5">
+            <div className="space-y-4 md:space-y-5">
               <div className="relative">
                 <IceInput
                   label="Boutique"
@@ -190,7 +196,7 @@ export default function Register() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      passwordRef.current?.focus();
+                      addressRef.current?.focus();
                     }
                   }}
                 />
@@ -198,7 +204,45 @@ export default function Register() {
             </div>
 
             {/* COLONNE DROITE */}
-            <div className="space-y-5">
+            <div className="space-y-4 md:space-y-5">
+              <div className="relative">
+                <IceInput
+                  label="Adresse de résidence"
+                  icon={<MapPin size={16} />}
+                  placeholder="Dakar, Sénégal..."
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  ref={addressRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      footerRef.current?.focus();
+                    }
+                  }}
+                  required
+                />
+                {errors.address && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.address}</p>}
+              </div>
+
+              <div className="relative">
+                <IceInput
+                  label="Message Pied de Page"
+                  icon={<MessageSquare size={16} />}
+                  placeholder="Merci de votre visite !"
+                  value={formData.footerMessage}
+                  onChange={(e) => setFormData({ ...formData, footerMessage: e.target.value })}
+                  ref={footerRef}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      passwordRef.current?.focus();
+                    }
+                  }}
+                  required
+                />
+                {errors.footerMessage && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.footerMessage}</p>}
+              </div>
+
               <div className="relative">
                 <IceInput
                   label="Mot de passe"
@@ -206,6 +250,7 @@ export default function Register() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Ex: Kassa2026"
                   autoComplete="new-password"
                   ref={passwordRef}
                   onKeyDown={(e) => {
@@ -215,16 +260,20 @@ export default function Register() {
                     }
                   }}
                 />
+                <p className="text-[7px] md:text-[8px] text-ice-100/30 uppercase font-black mt-1.5 ml-1 italic tracking-widest">
+                  Condition : Mini 6 caractères (Lettres + Chiffres)
+                </p>
                 {errors.password && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.password}</p>}
               </div>
 
               <div className="relative">
                 <IceInput
-                  label="Confirmation"
-                  icon={<ShieldCheck size={16} />}
+                  label="Confirmer mot de passe"
+                  icon={<Lock size={16} />}
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  placeholder="Répétez votre mot de passe"
                   autoComplete="new-password"
                   ref={confirmRef}
                   onKeyDown={(e) => {
@@ -234,21 +283,26 @@ export default function Register() {
                     }
                   }}
                 />
+                {formData.confirmPassword && formData.password === formData.confirmPassword ? (
+                  <p className="text-[7px] md:text-[8px] text-green-400 uppercase font-black mt-1.5 ml-1 italic tracking-widest animate-pulse flex items-center gap-1">
+                    <ShieldCheck size={10} /> Les mots de passe correspondent
+                  </p>
+                ) : formData.confirmPassword ? (
+                  <p className="text-[7px] md:text-[8px] text-red-400 uppercase font-black mt-1.5 ml-1 italic tracking-widest">
+                    Les mots de passe ne correspondent pas
+                  </p>
+                ) : null}
                 {errors.confirmPassword && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.confirmPassword}</p>}
-              </div>
-
-              <div className="hidden md:block p-4 bg-white/5 rounded-2xl border border-white/5">
-                <p className="text-[8px] text-ice-100/30 uppercase font-black leading-relaxed">Sécurité : Utilisez un mélange de lettres et de chiffres (au moins 6 car.).</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col items-center pt-4">
-            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs">
+          <div className="flex flex-col items-center pt-2 md:pt-4">
+            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-3 md:py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs">
               Valider l'inscription →
             </button>
 
-            <p className="mt-6 text-[9px] text-ice-100/30 font-bold uppercase tracking-widest">
+            <p className="mt-4 md:mt-6 text-[9px] text-ice-100/30 font-bold uppercase tracking-widest">
               Déjà membre ? <Link to="/login" className="text-ice-400 ml-1 hover:text-white underline underline-offset-4">Connexion</Link>
             </p>
           </div>

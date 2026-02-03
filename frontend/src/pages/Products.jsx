@@ -4,8 +4,9 @@ import axios from 'axios';
 import { ArrowLeft, Plus, Trash2, Package, Lock, Unlock, AlertCircle, X, Scan } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ProductSkeleton, Skeleton } from '../components/Skeleton';
+import { motion } from 'framer-motion';
 
-// Correction : Remplace bien par ton URL réelle si le .env ne charge pas
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Products() {
@@ -14,17 +15,18 @@ export default function Products() {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   const [accessPassword, setAccessPassword] = useState('');
-  // State pour la suppression sécurisée
   const [modalDelete, setModalDelete] = useState({ show: false, id: null, name: '' });
   const [deletePassword, setDeletePassword] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef(null);
 
   const navigate = useNavigate();
   const nameRef = useRef(null);
   const stockRef = useRef(null);
   const [showScanner, setShowScanner] = useState(false);
   const scannerRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
-  // Helper pour le son
   const beep = () => {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -76,80 +78,82 @@ export default function Products() {
     }
   };
 
-  // Header de sécurité avec Token
   const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   });
 
-  // Validations du formulaire
-  // Validations du formulaire
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/products`, getAuthHeader());
+      setProducts(res.data);
+    } catch (err) {
+      console.error("Erreur fetch products:", err);
+      toast.error("Erreur de chargement des produits");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isNameInvalid = newProduct.name !== "" && /^\d+$/.test(newProduct.name);
   const isStockInvalid = newProduct.stock !== "" && (isNaN(newProduct.stock) || Number(newProduct.stock) < 0);
-  // Prix n'est plus requis
   const isFormValid = newProduct.name && newProduct.stock && !isNameInvalid && !isStockInvalid;
 
   useEffect(() => {
     if (isUnlocked) fetchProducts();
   }, [isUnlocked]);
 
-  const fetchProducts = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/products`, getAuthHeader());
-      setProducts(res.data);
-    } catch (err) {
-      toast.error("Erreur de chargement des produits");
-    }
-  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  // --- GESTION DU DÉVERROUILLAGE (CORRIGÉ) ---
   const handleUnlock = async (e) => {
     e.preventDefault();
     if (!accessPassword) return toast.error("Entrez un mot de passe");
 
-    const loading = toast.loading("Vérification...");
+    const loadingToast = toast.loading("Vérification...");
     try {
-      // On envoie le password nettoyé (.trim())
-      const res = await axios.post(
+      await axios.post(
         `${API_URL}/api/auth/verify-password`,
         { password: accessPassword.trim() },
         getAuthHeader()
       );
 
-      // Si le serveur répond 200 ou success:true
       setIsUnlocked(true);
-      toast.dismiss(loading);
+      toast.dismiss(loadingToast);
       toast.success("Catalogue déverrouillé");
     } catch (err) {
-      toast.dismiss(loading);
-      // On affiche l'erreur 400 ou 401 renvoyée par ton backend
+      toast.dismiss(loadingToast);
       toast.error(err.response?.data?.msg || "Mot de passe incorrect");
       setAccessPassword('');
     }
   };
 
-  // --- AJOUT DE PRODUIT ---
   const addProduct = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
-    // Validation stricte
     if (!newProduct.name.trim()) return toast.error("Le nom est obligatoire !");
     if (newProduct.stock === "" || newProduct.stock === null) return toast.error("La quantité est obligatoire !");
     if (isNaN(newProduct.stock)) return toast.error("Quantité invalide !");
     if (Number(newProduct.stock) < 0) return toast.error("La quantité ne peut pas être négative !");
 
-    const loading = toast.loading("Ajout en cours...");
-
-    // Nettoyage des données (trim code-barres)
+    const loadingToast = toast.loading("Ajout en cours...");
     const productToSend = { ...newProduct, barcode: newProduct.barcode.trim() };
 
     try {
       await axios.post(`${API_URL}/api/products`, productToSend, getAuthHeader());
-      toast.dismiss(loading);
+      toast.dismiss(loadingToast);
       toast.success("Produit ajouté !");
       setNewProduct({ name: '', stock: '', barcode: '' });
       fetchProducts();
     } catch (err) {
-      toast.dismiss(loading);
+      toast.dismiss(loadingToast);
       toast.error(err.response?.data?.error || "Erreur lors de l'ajout");
     }
   };
@@ -161,72 +165,88 @@ export default function Products() {
 
   const handleFinalDelete = async (e) => {
     e.preventDefault();
-    const loading = toast.loading("Suppression...");
+    const loadingToast = toast.loading("Suppression...");
     try {
       await axios.delete(`${API_URL}/api/products/${modalDelete.id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         data: { password: deletePassword }
       });
-      toast.dismiss(loading);
+      toast.dismiss(loadingToast);
       toast.success("Produit supprimé");
       setModalDelete({ show: false, id: null, name: '' });
       fetchProducts();
     } catch (err) {
-      toast.dismiss(loading);
+      toast.dismiss(loadingToast);
       toast.error(err.response?.data?.msg || "Mot de passe incorrect");
     }
   };
 
-  // --- ECRAN DE VERROUILLAGE ---
   if (!isUnlocked) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black p-4 font-sans">
-        <div className="glass-card w-full max-w-sm p-10 rounded-[2.5rem] border-white/10 text-center shadow-2xl bg-white/5 backdrop-blur-md">
-          <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6 shadow-inner"><Lock size={40} /></div>
-          <h2 className="text-xl font-black uppercase italic mb-2 text-white tracking-tighter">Catalogue Protégé</h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest mb-8 leading-relaxed">Saisir votre mot de passe</p>
+      <div className="flex items-center justify-center min-h-screen bg-[#09090b] p-4 font-sans relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-ice-400/5 blur-[120px] rounded-full pointer-events-none" />
 
-          <form onSubmit={handleUnlock} className="space-y-4">
-            <div className="relative">
+        <div className="glass-card w-full max-w-sm p-8 rounded-[3rem] border-white/5 text-center shadow-2xl bg-white/[0.03] backdrop-blur-2xl relative z-10 border border-white/10">
+          <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl w-fit mx-auto mb-6 shadow-inner border border-ice-400/20">
+            <Lock size={36} className="drop-shadow-[0_0_12px_rgba(0,242,255,0.5)]" />
+          </div>
+          <h2 className="text-2xl font-black uppercase italic mb-1 text-white tracking-tighter leading-none">Catalogue</h2>
+          <p className="text-[8px] text-ice-400/60 font-black uppercase tracking-[0.2em] mb-8 italic">Accès hautement sécurisé</p>
+
+          <form onSubmit={handleUnlock} className="space-y-3">
+            <div className="relative group">
               <input
                 autoFocus
                 type="password"
-                placeholder="Mot de passe..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-ice-400 text-center transition-all placeholder:text-white/20 font-bold tracking-widest"
+                placeholder="PASSWORD..."
+                className="w-full bg-black/40 border border-white/10 rounded-xl py-4 px-6 text-white outline-none focus:border-ice-400/50 text-center transition-all placeholder:text-white/10 font-black tracking-[0.4em] group-hover:border-white/20 text-xs"
                 style={{ colorScheme: 'dark' }}
                 value={accessPassword}
                 onChange={(e) => setAccessPassword(e.target.value)}
                 autoComplete="new-password"
               />
             </div>
-            <button type="submit" className="w-full py-4 bg-ice-400 text-ice-900 rounded-2xl font-black uppercase text-xs shadow-lg shadow-ice-400/20 active:scale-95 transition-all">
+            <button type="submit" className="w-full py-4 bg-ice-400 text-ice-900 rounded-xl font-black uppercase text-[10px] shadow-lg shadow-ice-400/10 active:scale-95 transition-all hover:bg-white hover:text-black duration-500">
               Déverrouiller
             </button>
-            <button type="button" onClick={() => navigate('/dashboard')} className="text-[10px] font-bold text-white/20 uppercase hover:text-white transition-colors block mx-auto mt-4">Retour</button>
+            <button type="button" onClick={() => navigate('/dashboard')} className="text-[8px] font-black text-white/20 uppercase hover:text-white tracking-[0.15em] transition-colors block mx-auto mt-4 italic">Retour Dashboard</button>
           </form>
         </div>
       </div>
     );
   }
 
-  // --- INVENTAIRE ---
   return (
-    <div className="p-4 max-w-5xl mx-auto min-h-screen text-white font-sans">
-      <div className="flex justify-between items-center mb-8">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-ice-100/50 font-bold uppercase text-[10px] tracking-widest">
-          <ArrowLeft size={14} /> Retour Dashboard
-        </button>
+    <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans">
+      <div className="flex justify-end items-center mb-8">
         <div className="flex items-center gap-2 text-green-500 font-black text-[10px] uppercase italic">
           <Unlock size={12} /> Accès Autorisé
         </div>
       </div>
 
-      <h1 className="text-2xl font-black italic mb-8 uppercase tracking-widest text-white">Inventaire</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pt-4">
+        <div className="text-left">
+          <h1 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none">
+            Stock <span className="text-pink-500">/ Produits</span>
+          </h1>
+          <p className="text-white/20 text-[9px] font-black uppercase tracking-[0.2em] mt-1 italic">Gestion et inventaire des articles</p>
+        </div>
 
-      {/* MODAL SUPPRESSION SÉCURISÉE */}
+        <div className="flex gap-3 w-full md:w-auto">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/dashboard')}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/10 hover:bg-pink-500 hover:text-white px-5 py-3 rounded-2xl border border-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
+          >
+            <ArrowLeft size={16} /> Retour
+          </motion.button>
+        </div>
+      </div>
+
       {modalDelete.show && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border-white/10 shadow-2xl relative">
+        <div onClick={() => setModalDelete({ show: false })} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border-white/10 shadow-2xl relative">
             <button onClick={() => setModalDelete({ show: false })} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
             <div className="flex flex-col items-center text-center">
               <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-6"><Trash2 size={32} /></div>
@@ -254,136 +274,172 @@ export default function Products() {
       )}
 
       {localStorage.getItem('role') === 'admin' && (
-        <div className="glass-card p-6 rounded-[2rem] border-white/5 mb-8 shadow-xl bg-white/5">
-          <form onSubmit={addProduct} className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1.5fr_auto] gap-4 items-end">
-            <div className="relative">
-              <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Désignation</label>
-              <input
-                required
-                type="text"
-                value={newProduct.name}
-                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white uppercase placeholder:normal-case`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    stockRef.current?.focus();
-                  }
-                }}
-                ref={nameRef}
-                placeholder="Nom du produit..."
-                autoComplete="off"
-              />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+          <div className="md:col-span-2 glass-card p-6 rounded-[2.5rem] border-white/5 bg-white/[0.03] shadow-2xl relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-6 px-2">
+              <Plus size={16} className="text-pink-500" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-500 italic">Ajouter un Article</h3>
+            </div>
 
-              {/* Custom Suggestions for Mobile & PC */}
-              {newProduct.name.length > 0 && products.some(p => p.name.toUpperCase().includes(newProduct.name.toUpperCase()) && p.name.toUpperCase() !== newProduct.name.toUpperCase()) && (
-                <div className="absolute z-[50] left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
-                  {products
-                    .filter(p => p.name.toUpperCase().includes(newProduct.name.toUpperCase()))
-                    .slice(0, 5)
-                    .map((p) => (
-                      <div
-                        key={p._id}
-                        className="p-3 text-[10px] font-black uppercase cursor-pointer hover:bg-white/5 text-white/70 border-b border-white/5 last:border-0"
-                        onMouseDown={(e) => {
-                          e.preventDefault(); // Mobile fix
-                          setNewProduct({ ...newProduct, name: p.name });
-                        }}
-                      >
-                        {p.name}
-                      </div>
-                    ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <p className="text-[8px] font-black uppercase text-white/20 ml-2 tracking-widest">Désignation</p>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-white/5 rounded-lg text-pink-500/50 group-focus-within:text-pink-500 transition-colors">
+                    <Package size={14} />
+                  </div>
+                  <input
+                    ref={nameRef}
+                    type="text"
+                    placeholder="EX: GLACE VANILLE"
+                    value={newProduct.name}
+                    onChange={(e) => {
+                      setNewProduct(prev => ({ ...prev, name: e.target.value.toUpperCase() }));
+                      if (e.target.value.length > 1) setShowSuggestions(true);
+                    }}
+                    className={`w-full bg-white/5 border ${isNameInvalid ? 'border-red-500/50' : 'border-white/10'} rounded-2xl py-3.5 pl-14 pr-4 text-xs font-black uppercase tracking-widest outline-none focus:border-pink-500/50 transition-all placeholder:text-white/5`}
+                  />
+                  {showSuggestions && newProduct.name.length > 0 && products.some(p => p.name.includes(newProduct.name)) && (
+                    <div ref={suggestionsRef} className="absolute z-[150] left-0 right-0 mt-1.5 bg-[#0d0d0f]/95 border border-white/10 rounded-2xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto backdrop-blur-xl">
+                      {products
+                        .filter(p => p.name.includes(newProduct.name))
+                        .slice(0, 5)
+                        .map((p) => (
+                          <div
+                            key={p._id}
+                            className="p-3 text-[9px] font-black uppercase cursor-pointer hover:bg-pink-500 hover:text-white transition-colors text-white/60 border-b border-white/5 last:border-0"
+                            onMouseDown={() => {
+                              setNewProduct({ ...newProduct, name: p.name });
+                              setShowSuggestions(false);
+                            }}
+                          >
+                            {p.name}
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="relative">
-              <label className="text-[10px] uppercase font-black text-white/20 ml-2 italic">Quantité</label>
-              <input
-                required
-                type="text"
-                value={newProduct.stock}
-                onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500' : 'border-white/10'} rounded-2xl py-3 px-4 outline-none focus:border-ice-400 text-white`}
-                placeholder="0"
-                ref={stockRef}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addProduct(e);
-                  }
-                }}
-              />
-            </div>
-
-            {/* CODE BARRES */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Code-barres (Optionnel)</label>
-              <div className="relative">
-                <input
-                  type="text" placeholder="Scanner ou saisir..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 focus:border-ice-400 outline-none transition-all text-sm font-bold"
-                  value={newProduct.barcode}
-                  onChange={(e) => setNewProduct({ ...newProduct, barcode: e.target.value })}
-                />
-                <button
-                  type="button"
-                  onClick={startScanning}
-                  className="absolute left-1 top-1/2 -translate-y-1/2 p-2 text-white/20 hover:text-ice-400 transition-colors"
-                >
-                  <Scan size={18} />
-                </button>
+              <div className="space-y-1.5">
+                <p className="text-[8px] font-black uppercase text-white/20 ml-2 tracking-widest">Quantité Initiale</p>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-white/5 rounded-lg text-pink-500/50 group-focus-within:text-pink-500 transition-colors">
+                    <Plus size={14} />
+                  </div>
+                  <input
+                    ref={stockRef}
+                    type="number"
+                    placeholder="QUANTITÉ"
+                    value={newProduct.stock}
+                    onChange={(e) => setNewProduct(prev => ({ ...prev, stock: e.target.value }))}
+                    className={`w-full bg-white/5 border ${isStockInvalid ? 'border-red-500/50' : 'border-white/10'} rounded-2xl py-3.5 pl-14 pr-4 text-xs font-black uppercase tracking-widest outline-none focus:border-pink-500/50 transition-all placeholder:text-white/5`}
+                  />
+                </div>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={!isFormValid}
-              className={`px-8 py-3.5 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all active:scale-95 whitespace-nowrap ${isFormValid ? 'bg-ice-400 text-ice-900 shadow-ice-400/20' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
-            >
-              Enregistrer
-            </button>
-          </form>
+            <div className="flex gap-2 mt-6">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={addProduct}
+                disabled={!isFormValid}
+                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.5rem] font-black uppercase text-xs tracking-widest transition-all duration-500 shadow-xl ${isFormValid ? 'bg-pink-500 text-white hover:bg-white hover:text-pink-500 shadow-pink-500/20' : 'bg-white/5 text-white/10 cursor-not-allowed'}`}
+              >
+                <Plus size={18} /> Enregistrer
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={startScanning}
+                className="w-16 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-[1.5rem] text-pink-500 transition-all shadow-xl"
+              >
+                <Scan size={20} />
+              </motion.button>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 rounded-3xl border-pink-500/10 bg-pink-500/[0.02] flex flex-col justify-center items-center text-center">
+            <div className="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center mb-2 text-pink-500">
+              <Package size={24} />
+            </div>
+            <p className="text-[8px] font-black uppercase tracking-widest text-pink-500/50">Total Articles</p>
+            {loading ? <Skeleton width="40px" height="20px" className="mt-1" /> : <p className="text-2xl font-black italic text-pink-500">{products.length}</p>}
+          </div>
         </div>
       )}
 
-      <div className="space-y-2 pb-10">
-        {products.length === 0 ? (
-          <p className="text-center text-white/20 py-10 uppercase text-xs font-bold italic tracking-widest italic">Aucun produit en stock</p>
-        ) : (
-          products.map((p) => (
-            <div key={p._id} className="glass-card p-4 rounded-2xl flex justify-between items-center border-white/5 hover:bg-white/5 transition-all bg-white/5">
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-ice-400/10 text-ice-400 rounded-lg"><Package size={18} /></div>
-                <div>
-                  <p className="font-bold text-sm uppercase">{p.name}</p>
-                  <p className="text-[10px] text-ice-400 opacity-50">Produit variable</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-[8px] uppercase text-white/20 italic">Quantité</p>
-                  <div className="flex items-center gap-6">
-                    <p className="font-black text-sm text-ice-400">{p.stock} Unités</p>
-                    {localStorage.getItem('role') === 'admin' && (
-                      <button
-                        onClick={() => confirmDeleteProduct(p._id, p.name)}
-                        className="p-2 text-white/10 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
+      {/* PRODUCTS GRID */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-2">
+          <div className="w-1.5 h-4 bg-pink-500 rounded-full" />
+          <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 italic">Liste du Stock</h3>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 pb-10">
+          {loading ? (
+            <>
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+              <ProductSkeleton />
+            </>
+          ) : (
+            products.length > 0 ? (
+              products.map(p => (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ y: -5 }}
+                  key={p._id}
+                  className="p-3 lg:p-5 rounded-[1.2rem] lg:rounded-[2rem] bg-white/[0.02] border border-white/5 flex flex-col justify-between items-start group relative overflow-hidden transition-all duration-500 hover:border-pink-500/30 hover:bg-white/[0.04] lg:min-h-[120px]"
+                >
+                  <div className="flex justify-between w-full mb-2 lg:mb-3">
+                    <div className="p-2 lg:p-2.5 bg-white/5 rounded-xl lg:rounded-2xl text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-all duration-500">
+                      <Package size={14} className="lg:w-[18px] lg:h-[18px]" />
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-black/40 px-2 lg:px-2.5 py-1 rounded-full border border-white/5">
+                      <div className={`w-1 h-1 rounded-full ${p.stock <= 5 ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
+                      <span className={`text-[9px] lg:text-[10px] font-black ${p.stock <= 5 ? 'text-red-400' : 'text-white/60'}`}>{p.stock}</span>
+                    </div>
                   </div>
-                </div>
+
+                  <div className="w-full">
+                    <p className="font-black text-[10px] lg:text-[11px] uppercase tracking-tight text-white mb-0.5 lg:mb-1 truncate group-hover:text-pink-400 transition-colors leading-tight">{p.name}</p>
+                    {p.barcode && <p className="text-[7.5px] lg:text-[8px] font-bold text-white/20 uppercase tracking-[0.1em]">{p.barcode}</p>}
+                  </div>
+
+                  {localStorage.getItem('role') === 'admin' && (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => confirmDeleteProduct(p._id, p.name)}
+                      className="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 transition-all bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg"
+                    >
+                      <Trash2 size={12} />
+                    </motion.button>
+                  )}
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 bg-white/[0.01] rounded-[3rem] border border-dashed border-white/5 text-center">
+                <Package size={40} className="mx-auto text-white/5 mb-4" />
+                <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.2em]">Votre stock est vide</p>
               </div>
-            </div>
-          ))
-        )}
+            )
+          )}
+        </div>
       </div>
-      {/* SCANNER OVERLAY */}
+
       {showScanner && (
-        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
+        <div onClick={stopScanning} className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
             <button
               onClick={stopScanning}
               className="absolute top-4 right-4 text-white/50 hover:text-white bg-black/50 rounded-full p-2"

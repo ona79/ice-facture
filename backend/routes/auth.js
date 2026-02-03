@@ -9,7 +9,7 @@ const { validate, registerSchema, loginSchema } = require('../middleware/validat
 // --- 1. INSCRIPTION (REGISTER) ---
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
-    const { shopName, email, password, phone } = req.body;
+    const { shopName, email, password, phone, address, footerMessage } = req.body;
     const cleanEmail = email.toLowerCase().trim();
 
     // Note: La validation du format (Gmail, téléphone, password) est désormais gérée par Zod via le middleware validate.
@@ -21,7 +21,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     let userPhone = await User.findOne({ phone });
     if (userPhone) return res.status(400).json({ msg: "Ce numéro de téléphone est déjà utilisé" });
 
-    const user = new User({ shopName, email: cleanEmail, password, phone });
+    const user = new User({ shopName, email: cleanEmail, password, phone, address, footerMessage });
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);

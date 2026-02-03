@@ -24,6 +24,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import SalesChart from '../components/SalesChart';
 import { generatePDF } from '../utils/generatePDF';
 import toast from 'react-hot-toast';
+import { CardSkeleton, Skeleton } from '../components/Skeleton';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -42,6 +43,8 @@ export default function Dashboard() {
   });
   const [recentInvoices, setRecentInvoices] = useState([]);
   const [modalDetail, setModalDetail] = useState({ show: false, invoice: null });
+  const [showAnalytics, setShowAnalytics] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const [currentShopName, setCurrentShopName] = useState(localStorage.getItem('shopName') || "Ma Boutique");
   const navigate = useNavigate();
@@ -62,6 +65,7 @@ export default function Dashboard() {
   };
 
   const fetchData = async () => {
+    setLoading(true);
     // --- 1. RÉCUPÉRATION DES FACTURES (CRITIQUE) ---
     let invoices = [];
     try {
@@ -158,6 +162,8 @@ export default function Dashboard() {
       setLowStockProducts(allProducts.filter(p => p.stock <= 5));
     } catch (err) {
       console.error("Erreur Products:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,29 +185,19 @@ export default function Dashboard() {
       animate={{ opacity: 1 }}
       className="pt-28 md:pt-32 pb-12 px-4 md:px-8 max-w-7xl mx-auto min-h-screen text-white font-sans overflow-x-hidden relative"
     >
-      {/* SHOP NAME AT TOP-LEFT WITH ANIMATION */}
-      <motion.div
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="fixed top-4 left-6 md:left-10 z-[110] flex items-center gap-2 md:gap-3 whitespace-nowrap pointer-events-none"
-      >
-        <div className="w-1 h-5 md:h-6 bg-ice-400 rounded-full shadow-[0_0_15px_rgba(0,242,255,0.6)]" />
-        <h2 className="text-sm md:text-lg font-black italic uppercase tracking-tighter text-white/90 drop-shadow-2xl">
-          {currentShopName}
-        </h2>
-      </motion.div>
 
       {/* MODAL DÉTAILS */}
       <AnimatePresence>
         {modalDetail.show && (
           <motion.div
+            onClick={() => setModalDetail({ show: false })}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
           >
             <motion.div
+              onClick={(e) => e.stopPropagation()}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -275,77 +271,204 @@ export default function Dashboard() {
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black italic tracking-tighter uppercase leading-tight">
                 Ventes <span className="text-ice-400">{new Date().getFullYear()}</span>
               </h1>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/settings', { state: { tab: 'support' } })}
                 className="flex items-center gap-1 sm:gap-2 bg-white/10 hover:bg-ice-400 hover:text-ice-900 px-2 sm:px-4 py-2 rounded-2xl border border-white/10 transition-all active:scale-95 group flex-shrink-0"
               >
                 <MessageSquare size={14} className="group-hover:animate-bounce" />
                 <span className="text-[8px] font-black uppercase tracking-widest hidden sm:inline">Aide ?</span>
-              </button>
+              </motion.button>
             </div>
-            <p className="text-white/60 text-sm font-bold uppercase tracking-widest mb-6">
-              Aujourd'hui : <span className="text-white">{formatFCFA(stats.todaySales)}</span>
-            </p>
+
+            {loading ? (
+              <Skeleton width="150px" height="15px" className="mb-6" />
+            ) : (
+              <p className="text-white/60 text-sm font-bold uppercase tracking-widest mb-6">
+                Aujourd'hui : <span className="text-white">{formatFCFA(stats.todaySales)}</span>
+              </p>
+            )}
+
             <div className="flex flex-wrap gap-4">
               <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 min-w-[120px]">
                 <p className="text-[8px] font-black text-white/40 uppercase">Ventes Globales</p>
-                <p className="text-lg font-black text-ice-400">{formatFCFA(stats.totalSales)}</p>
+                {loading ? <Skeleton width="80px" height="20px" className="mt-1" /> : <p className="text-lg font-black text-ice-400">{formatFCFA(stats.totalSales)}</p>}
               </div>
               {localStorage.getItem('role') === 'admin' && (
                 <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 min-w-[120px]">
                   <p className="text-[8px] font-black text-white/40 uppercase">Bénéfice Net</p>
-                  <p className={`text-lg font-black ${stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{formatFCFA(stats.netProfit)}</p>
+                  {loading ? <Skeleton width="80px" height="20px" className="mt-1" /> : <p className={`text-lg font-black ${stats.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>{formatFCFA(stats.netProfit)}</p>}
                 </div>
               )}
               <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 min-w-[80px]">
                 <p className="text-[8px] font-black text-white/40 uppercase">Opérations</p>
-                <p className="text-lg font-black">{stats.count}</p>
+                {loading ? <Skeleton width="40px" height="20px" className="mt-1" /> : <p className="text-lg font-black">{stats.count}</p>}
               </div>
             </div>
           </div>
 
           <div className="w-full md:w-3/5 h-[200px] md:h-[250px]">
-            <SalesChart invoices={allInvoices} />
+            {loading ? <Skeleton width="100%" height="250px" rounded="2.5rem" /> : <SalesChart invoices={allInvoices} />}
           </div>
         </div>
       </div>
 
-      {/* ACTION GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-        <button onClick={() => navigate('/new-invoice')} className="action-btn bg-cyan-600/90 text-white shadow-lg shadow-cyan-900/40">
-          <div className="p-3 bg-white/20 rounded-2xl"><PlusCircle size={24} /></div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Vendre</span>
+      {/* ANALYTICS WIDGETS TOGGLE */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all active:scale-95"
+        >
+          {showAnalytics ? (
+            <>
+              <Eye size={14} className="text-ice-400" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Masquer Top</span>
+            </>
+          ) : (
+            <>
+              <TrendingUp size={14} className="text-ice-400" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Voir Top</span>
+            </>
+          )}
         </button>
+      </div>
 
-        <button onClick={() => navigate('/products')} className="action-btn bg-pink-600/90 text-white shadow-lg shadow-pink-900/40">
-          <div className="p-3 bg-white/20 rounded-2xl relative">
-            <Package size={24} />
+      <AnimatePresence>
+        {showAnalytics && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* TOP PRODUCTS */}
+              <div className="glass-card p-4 rounded-[1.5rem] border-white/5 bg-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Package size={48} />
+                </div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-ice-400 mb-4 italic">Top Produits</h3>
+                <div className="space-y-2">
+                  {stats.topProducts.length > 0 ? (
+                    stats.topProducts.map(([name, count], index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-6 h-6 flex items-center justify-center rounded-full font-black text-[10px] ${index === 0 ? 'bg-yellow-400 text-black' : index === 1 ? 'bg-gray-300 text-black' : 'bg-orange-700 text-white'}`}>
+                            {index + 1}
+                          </div>
+                          <span className="font-bold text-[10px] uppercase text-white/90 truncate max-w-[120px]">{name}</span>
+                        </div>
+                        <span className="font-black text-[10px] text-ice-400 whitespace-nowrap">{count} ventes</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-white/20 text-[9px] italic uppercase text-center py-2">Pas encore de données</p>
+                  )}
+                </div>
+              </div>
+
+              {/* TOP CLIENTS */}
+              <div className="glass-card p-4 rounded-[1.5rem] border-white/5 bg-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Crown size={48} />
+                </div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-400 mb-4 italic">Meilleurs Clients</h3>
+                <div className="space-y-2">
+                  {stats.topClients.length > 0 ? (
+                    stats.topClients.map(([name, amount], index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-6 h-6 flex items-center justify-center rounded-full font-black text-[10px] ${index === 0 ? 'bg-yellow-400 text-black' : index === 1 ? 'bg-gray-300 text-black' : 'bg-orange-700 text-white'}`}>
+                            {index + 1}
+                          </div>
+                          <span className="font-bold text-[10px] uppercase text-white/90 truncate max-w-[120px]">{name}</span>
+                        </div>
+                        <span className="font-black text-[10px] text-pink-400 whitespace-nowrap">{formatFCFA(amount)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-white/20 text-[9px] italic uppercase text-center py-2">Pas encore de données</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ACTION GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-12">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/new-invoice')}
+          className="action-btn bg-white/[0.03] border border-cyan-500/20 text-white hover:bg-cyan-500 hover:text-black hover:border-cyan-400 group transition-all duration-500"
+        >
+          <div className="p-3 bg-cyan-500/10 rounded-2xl group-hover:bg-white/20 transition-all"><PlusCircle size={24} className="text-cyan-400 group-hover:text-black" /></div>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">Vendre</span>
+          <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/products')}
+          className="action-btn bg-white/[0.03] border border-pink-500/20 text-white hover:bg-pink-500 hover:text-white hover:border-pink-400 group transition-all duration-500"
+        >
+          <div className="p-3 bg-pink-500/10 rounded-2xl group-hover:bg-white/20 transition-all relative">
+            <Package size={24} className="text-pink-400 group-hover:text-white" />
             {lowStockProducts.length > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full border-2 border-pink-600 animate-blink" />}
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Stock</span>
-        </button>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">Stock</span>
+          <div className="absolute inset-0 bg-pink-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        </motion.button>
 
-        <button onClick={() => navigate('/history')} className="action-btn bg-purple-600/90 text-white shadow-lg shadow-purple-900/40">
-          <div className="p-3 bg-white/20 rounded-2xl"><FileText size={24} /></div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Factures</span>
-        </button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/history')}
+          className="action-btn bg-white/[0.03] border border-purple-500/20 text-white hover:bg-purple-500 hover:text-white hover:border-purple-400 group transition-all duration-500"
+        >
+          <div className="p-3 bg-purple-500/10 rounded-2xl group-hover:bg-white/20 transition-all"><FileText size={24} className="text-purple-400 group-hover:text-white" /></div>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">Factures</span>
+          <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        </motion.button>
 
         {localStorage.getItem('role') === 'admin' && (
-          <button onClick={() => navigate('/expenses')} className="action-btn bg-red-600/90 text-white shadow-lg shadow-red-900/40">
-            <div className="p-3 bg-white/20 rounded-2xl"><Wallet size={24} /></div>
-            <span className="text-[10px] font-black uppercase tracking-widest">Charges</span>
-          </button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/expenses')}
+            className="action-btn bg-white/[0.03] border border-red-500/20 text-white hover:bg-red-500 hover:text-white hover:border-red-400 group transition-all duration-500"
+          >
+            <div className="p-3 bg-red-500/10 rounded-2xl group-hover:bg-white/20 transition-all"><Wallet size={24} className="text-red-400 group-hover:text-white" /></div>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em]">Charges</span>
+            <div className="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+          </motion.button>
         )}
 
-        <button onClick={() => navigate('/settings')} className="action-btn bg-lime-500/90 text-black shadow-lg shadow-lime-900/40">
-          <div className="p-3 bg-black/10 rounded-2xl"><SettingsIcon size={24} /></div>
-          <span className="text-[10px] font-black uppercase tracking-widest">{localStorage.getItem('role') === 'admin' ? 'Réglages' : 'Compte'}</span>
-        </button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/settings')}
+          className="action-btn bg-white/[0.03] border border-lime-500/20 text-white hover:bg-lime-500 hover:text-black hover:border-lime-400 group transition-all duration-500"
+        >
+          <div className="p-3 bg-lime-500/10 rounded-2xl group-hover:bg-black/10 transition-all"><SettingsIcon size={24} className="text-lime-400 group-hover:text-black" /></div>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">{localStorage.getItem('role') === 'admin' ? 'Réglages' : 'Compte'}</span>
+          <div className="absolute inset-0 bg-lime-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        </motion.button>
 
-        <button onClick={handleLogout} className="action-btn bg-orange-500/90 text-white shadow-lg shadow-orange-900/40 col-span-2 md:col-span-1">
-          <div className="p-3 bg-white/20 rounded-2xl"><LogOut size={24} /></div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Quitter</span>
-        </button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleLogout}
+          className="action-btn bg-white/[0.03] border border-orange-500/20 text-white hover:bg-orange-500 hover:text-white hover:border-orange-400 group transition-all duration-500"
+        >
+          <div className="p-3 bg-orange-500/10 rounded-2xl group-hover:bg-white/20 transition-all"><LogOut size={24} className="text-orange-400 group-hover:text-white" /></div>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">Quitter</span>
+          <div className="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        </motion.button>
       </div>
 
       {/* STOCK ALERTS */}
@@ -384,28 +507,41 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {recentInvoices.map(inv => (
-            <div key={inv._id} className="glass-card p-5 rounded-3xl flex justify-between items-center group">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/5 rounded-2xl text-ice-400 group-hover:bg-ice-400 group-hover:text-black transition-all">
-                  <FileText size={18} />
+          {loading ? (
+            <>
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </>
+          ) : (
+            recentInvoices.map(inv => (
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                key={inv._id}
+                className="glass-card p-5 rounded-3xl flex justify-between items-center group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/5 rounded-2xl text-ice-400 group-hover:bg-ice-400 group-hover:text-black transition-all">
+                    <FileText size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-xs uppercase truncate max-w-[120px]">{inv.invoiceNumber}</p>
+                    <p className="text-[9px] font-bold text-white/30 uppercase">{new Date(inv.createdAt).toLocaleDateString('fr-FR')}</p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <p className="font-black text-xs uppercase truncate max-w-[120px]">{inv.invoiceNumber}</p>
-                  <p className="text-[9px] font-bold text-white/30 uppercase">{new Date(inv.createdAt).toLocaleDateString('fr-FR')}</p>
+                <div className="flex items-center gap-4">
+                  <p className="font-black text-sm text-ice-400">{formatFCFA(inv.totalAmount)}</p>
+                  <button
+                    onClick={() => setModalDetail({ show: true, invoice: inv })}
+                    className="p-2 bg-white/5 text-white/20 rounded-xl hover:text-white transition-all"
+                  >
+                    <Eye size={16} />
+                  </button>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <p className="font-black text-sm text-ice-400">{formatFCFA(inv.totalAmount)}</p>
-                <button
-                  onClick={() => setModalDetail({ show: true, invoice: inv })}
-                  className="p-2 bg-white/5 text-white/20 rounded-xl hover:text-white transition-all"
-                >
-                  <Eye size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
     </motion.div>

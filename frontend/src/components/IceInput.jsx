@@ -6,7 +6,7 @@ export const IceInput = forwardRef(({ label, icon, type, ...props }, ref) => {
   const isPassword = type === 'password';
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-1 w-full">
       <label className="text-sm font-medium text-ice-100/70 ml-1 italic uppercase text-[9px] tracking-widest">{label}</label>
       <div className="relative group">
         {icon && (
@@ -18,7 +18,7 @@ export const IceInput = forwardRef(({ label, icon, type, ...props }, ref) => {
           {...props}
           ref={ref}
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
-          className={`w-full bg-white/5 border border-white/10 rounded-2xl py-4 focus:outline-none focus:border-ice-400 focus:ring-4 focus:ring-ice-400/5 transition-all placeholder:text-white/10 text-sm ${icon ? 'pl-11' : 'pl-5'
+          className={`w-full bg-white/5 border border-white/10 rounded-2xl py-3 md:py-4 focus:outline-none focus:border-ice-400 focus:ring-4 focus:ring-ice-400/5 transition-all placeholder:text-white/10 text-sm ${icon ? 'pl-11' : 'pl-5'
             } ${isPassword ? 'pr-12' : 'pr-5'}`}
         />
         {isPassword && (

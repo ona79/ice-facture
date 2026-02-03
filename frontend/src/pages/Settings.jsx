@@ -310,14 +310,13 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-4 max-w-6xl mx-auto min-h-screen text-white pb-10 font-sans">
-      <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-ice-100/50 mb-8 font-bold uppercase text-[10px] tracking-widest hover:text-ice-400 transition-colors">
-        <ArrowLeft size={14} /> Retour Dashboard
-      </button>
+    <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans">
 
-      <div className="mb-10 text-left">
-        <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Configuration</h1>
-        <p className="text-ice-400 text-[10px] font-black uppercase tracking-[0.3em] mt-1 italic opacity-50">Personnalisation & Sécurité du compte</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-8">
+        <div className="text-left">
+          <h1 className="text-3xl md:text-4xl font-black italic mb-1 uppercase tracking-tighter text-white leading-none">Configuration</h1>
+          <p className="text-ice-400/40 text-[8px] font-black uppercase tracking-[0.2em] italic">Personnalisation & Sécurité du compte</p>
+        </div>
       </div>
 
       {/* TABS FOR ADMIN */}
@@ -348,10 +347,10 @@ export default function Settings() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
           {/* IDENTITÉ BOUTIQUE */}
-          <form onSubmit={handleSaveProfile} className="glass-card p-8 rounded-[2.5rem] space-y-6 border-white/5 shadow-2xl text-left bg-white/5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-ice-400/10 rounded-lg"><Save size={18} className="text-ice-400" /></div>
-              <h2 className="text-sm font-black uppercase italic tracking-widest">Identité Boutique</h2>
+          <form onSubmit={handleSaveProfile} className="glass-card p-5 rounded-[2rem] space-y-4 border-white/5 shadow-xl text-left bg-white/5">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1.5 bg-ice-400/10 rounded-lg"><Save size={16} className="text-ice-400" /></div>
+              <h2 className="text-xs font-black uppercase italic tracking-widest">Identité Boutique</h2>
             </div>
 
             <div className="space-y-4">
@@ -376,9 +375,9 @@ export default function Settings() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-ice-100/40 italic">Adresse de résidence</label>
+                <label className="text-[9px] font-black uppercase tracking-widest ml-1 text-ice-100/40 italic">Adresse de résidence</label>
                 <textarea
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-ice-400 outline-none h-16 resize-none text-sm transition-all text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-ice-400 outline-none h-14 resize-none text-[12px] transition-all text-white"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
@@ -393,10 +392,10 @@ export default function Settings() {
           </form>
 
           {/* SÉCURITÉ MOT DE PASSE */}
-          <form onSubmit={handleChangePassword} className="glass-card p-8 rounded-[2.5rem] space-y-6 border-white/5 shadow-2xl bg-white/5 text-left">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-500/10 rounded-lg"><KeyRound size={18} className="text-red-500" /></div>
-              <h2 className="text-sm font-black uppercase italic tracking-widest text-white">Sécurité du compte</h2>
+          <form onSubmit={handleChangePassword} className="glass-card p-5 rounded-[2rem] space-y-4 border-white/5 shadow-xl bg-white/5 text-left">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="p-1.5 bg-red-500/10 rounded-lg"><KeyRound size={16} className="text-red-500" /></div>
+              <h2 className="text-xs font-black uppercase italic tracking-widest text-white">Sécurité du compte</h2>
             </div>
 
             <div className="space-y-4">
@@ -425,8 +424,8 @@ export default function Settings() {
 
           {/* DANGER ZONE (Uniquement pour Admin) */}
           {!isEmployee && (
-            <div className="lg:col-span-2 mt-12 pt-10 border-t border-white/5 opacity-50 hover:opacity-100 transition-opacity">
-              <div className="glass-card p-8 rounded-[2.5rem] border-red-500/10 bg-red-500/[0.02] flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="lg:col-span-2 mt-6 md:mt-12 pt-6 md:pt-10 border-t border-white/5 opacity-50 hover:opacity-100 transition-opacity">
+              <div className="glass-card p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-red-500/10 bg-red-500/[0.02] flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="text-left">
                   <h3 className="text-red-500 font-black uppercase italic tracking-tighter text-lg leading-tight">Zone de Danger</h3>
                   <p className="text-white/30 text-[10px] font-bold uppercase mt-1">Supprimer définitivement votre compte et toutes ses données (factures, produits...)</p>
@@ -462,7 +461,7 @@ export default function Settings() {
           <div className="space-y-4">
             {employees.length > 0 ? (
               employees.map((emp) => (
-                <div key={emp._id} className="glass-card p-6 rounded-[2rem] border-white/5 bg-white/[0.02] flex justify-between items-center group hover:bg-white/[0.05] transition-all">
+                <div key={emp._id} className="glass-card p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-white/5 bg-white/[0.02] flex justify-between items-center group hover:bg-white/[0.05] transition-all">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-ice-400/10 text-ice-400 rounded-2xl group-hover:bg-ice-400 group-hover:text-ice-900 transition-all">
                       <Users size={20} />
@@ -545,8 +544,8 @@ export default function Settings() {
 
       {/* MODAL DE CONFIRMATION AVEC MOT DE PASSE */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="glass-card w-full max-w-md p-8 rounded-[3rem] border border-white/10 shadow-2xl bg-[#09090b]/80">
+        <div onClick={() => setShowConfirmModal(false)} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-md p-8 rounded-[3rem] border border-white/10 shadow-2xl bg-[#09090b]/80">
             <div className="flex flex-col items-center text-center">
               <div className="p-4 bg-orange-500/10 text-orange-500 rounded-2xl mb-4">
                 <ShieldCheck size={32} />
@@ -588,7 +587,7 @@ export default function Settings() {
       {/* MODAL SUPPRESSION DE COMPTE */}
       {
         showDeleteModal && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div onClick={() => { setShowDeleteModal(false); setDeletePassword(''); }} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
             <div className="glass-card w-full max-w-md p-8 rounded-[3rem] border border-red-500/20 shadow-2xl bg-[#09090b]/90">
               <div className="flex flex-col items-center text-center">
                 <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-4">
@@ -636,8 +635,8 @@ export default function Settings() {
 
       {/* MODAL ADD EMPLOYEE */}
       {showAddEmployee && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div className="glass-card w-full max-w-sm p-8 rounded-[3rem] border-white/10 relative bg-[#09090b]">
+        <div onClick={() => setShowAddEmployee(false)} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[3rem] border-white/10 relative bg-[#09090b]">
             <button onClick={() => setShowAddEmployee(false)} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
             <div className="text-center mb-8">
               <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl inline-block mb-4"><UserPlus size={32} /></div>
@@ -673,8 +672,8 @@ export default function Settings() {
       )}
       {/* MODAL CONFIRMATION SUPPRESSION EMPLOYÉ */}
       {showDeleteEmployeeModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
-          <div className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border border-red-500/20 shadow-2xl bg-[#09090b]/90">
+        <div onClick={() => { setShowDeleteEmployeeModal(false); setEmployeeToDelete(null); }} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border border-red-500/20 shadow-2xl bg-[#09090b]/90">
             <div className="flex flex-col items-center text-center">
               <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-4">
                 <Trash2 size={32} />

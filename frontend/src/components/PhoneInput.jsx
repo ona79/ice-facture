@@ -1,11 +1,26 @@
-import { useState, forwardRef } from 'react';
+import { useState, forwardRef, useRef, useEffect } from 'react';
 import { ChevronDown, MapPin } from 'lucide-react';
 import { COUNTRY_CODES } from '../utils/countryCodes';
 
-export const PhoneInput = forwardRef(({ value, onChange, label, error, onCountryChange, ...props }, ref) => {
+export const PhoneInput = forwardRef(({ value, onChange, label, error, onCountryChange, compact, hideLabel, ...props }, ref) => {
     // État local pour le code pays (par défaut Sénégal +221)
     const [selectedCode, setSelectedCode] = useState(COUNTRY_CODES[0]);
     const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
 
     const handleSelect = (country) => {
         setSelectedCode(country);
@@ -19,20 +34,20 @@ export const PhoneInput = forwardRef(({ value, onChange, label, error, onCountry
     };
 
     return (
-        <div className="flex flex-col gap-1.5 w-full relative">
-            {label && <label className="text-sm font-medium text-ice-100/70 ml-1 italic uppercase text-[9px] tracking-widest">{label}</label>}
+        <div className={`flex flex-col ${compact ? 'gap-0.5' : 'gap-1'} w-full relative`}>
+            {label && !hideLabel && <label className="text-sm font-medium text-ice-100/70 ml-1 italic uppercase text-[9px] tracking-widest leading-none mb-0.5">{label}</label>}
 
-            <div className="flex gap-2">
+            <div className={`flex ${compact ? 'gap-1' : 'gap-2'}`}>
                 {/* SÉLECTEUR DE PAYS */}
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                     <button
                         type="button"
                         onClick={() => setIsOpen(!isOpen)}
-                        className="h-full bg-white/5 border border-white/10 rounded-2xl px-2 flex items-center gap-1 hover:bg-white/10 transition-colors min-w-[80px]"
+                        className={`h-full bg-white/5 border border-white/10 rounded-xl ${compact ? 'px-1.5' : 'px-2'} flex items-center gap-1 hover:bg-white/10 transition-colors ${compact ? 'min-w-[70px]' : 'min-w-[80px]'}`}
                     >
-                        <span className="text-lg">{selectedCode.flag}</span>
-                        <span className="text-sm font-bold text-white">{selectedCode.code}</span>
-                        <ChevronDown size={14} className="text-white/50" />
+                        <span className={`${compact ? 'text-base' : 'text-lg'}`}>{selectedCode.flag}</span>
+                        <span className={`${compact ? 'text-[11px]' : 'text-sm'} font-bold text-white`}>{selectedCode.code}</span>
+                        <ChevronDown size={compact ? 12 : 14} className="text-white/50" />
                     </button>
 
                     {/* DROPDOWN */}
@@ -67,10 +82,10 @@ export const PhoneInput = forwardRef(({ value, onChange, label, error, onCountry
                         ref={ref}
                         type="text"
                         maxLength={selectedCode.digitLength}
-                        placeholder={"X".repeat(selectedCode.digitLength).replace(/(.{3})/g, "$1 ").trim()}
+                        placeholder={props.placeholder || "X".repeat(selectedCode.digitLength).replace(/(.{3})/g, "$1 ").trim()}
                         value={value}
                         onChange={handleTextChange}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-3 py-4 focus:outline-none focus:border-ice-400 focus:ring-4 focus:ring-ice-400/5 transition-all placeholder:text-white/5 text-white font-black tracking-[0.1em] text-sm"
+                        className={`w-full bg-white/5 border border-white/10 rounded-xl ${compact ? 'pl-8 pr-2 py-2 lg:py-2' : 'pl-10 pr-3 py-3 md:py-4'} focus:outline-none focus:border-ice-400 focus:ring-4 focus:ring-ice-400/5 transition-all placeholder:text-white/5 text-white font-black tracking-[0.1em] ${compact ? 'text-[11px]' : 'text-sm'}`}
                     />
                 </div>
             </div>

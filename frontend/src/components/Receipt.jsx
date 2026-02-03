@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-const Receipt = forwardRef(({ invoice, shopName, shopPhone, footerMessage }, ref) => {
+const Receipt = forwardRef(({ invoice, shopName, shopAddress, shopPhone, footerMessage }, ref) => {
     if (!invoice) return null;
 
     const formatDate = (dateString) => {
@@ -45,6 +45,7 @@ const Receipt = forwardRef(({ invoice, shopName, shopPhone, footerMessage }, ref
 
                 <div className="receipt-header text-center">
                     <h2 className="font-bold" style={{ fontSize: '16px', margin: 0 }}>{shopName || "MA BOUTIQUE"}</h2>
+                    {shopAddress && <p style={{ margin: '2px 0', fontSize: '10px', color: '#666' }}>{shopAddress}</p>}
                     {shopPhone && <p style={{ margin: '2px 0', fontSize: '12px', fontWeight: 'bold' }}>Tél: {shopPhone}</p>}
                     <p style={{ margin: '2px 0' }}>TICKET DE CAISSE</p>
                     <p style={{ fontSize: '10px' }}>{formatDate(invoice.createdAt)}</p>

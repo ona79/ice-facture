@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -12,13 +12,97 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
+import Calculator from './components/Calculator';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 // import ChatBot from './components/ChatBot'; // Désactivé temporairement
 
 // L'import de InvoiceDetail a été supprimé ici car le fichier n'existe plus
 
-function App() {
-  // On vérifie le token dynamiquement
+// Composant séparé pour pouvoir utiliser useLocation()
+function MainLayout({ isNavOpen, setIsNavOpen }) {
+  const location = useLocation();
   const isAuthenticated = !!localStorage.getItem('token');
+  const isInvoicePage = location.pathname === '/new-invoice';
+
+  return (
+    <>
+      <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <Routes location={location}>
+            {/* ROUTES PUBLIQUES */}
+            <Route
+              path="/"
+              element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/login"
+              element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/register"
+              element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/forgot-password"
+              element={<ForgotPassword />}
+            />
+            <Route
+              path="/reset-password/:token"
+              element={<ResetPassword />}
+            />
+
+            {/* ROUTES PRIVÉES (TOKEN REQUIS) */}
+            <Route
+              path="/dashboard"
+              element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/products"
+              element={isAuthenticated ? <Products /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/new-invoice"
+              element={isAuthenticated ? <NewInvoice /> : <Navigate to="/login" />}
+            />
+
+            <Route
+              path="/history"
+              element={isAuthenticated ? <History /> : <Navigate to="/login" />}
+            />
+
+            <Route
+              path="/settings"
+              element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/expenses"
+              element={isAuthenticated ? <Expenses /> : <Navigate to="/login" />}
+            />
+
+            {/* REDIRECTION PAR DÉFAUT */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* AI ChatBot - Désactivé temporairement */}
+      {/* {isAuthenticated && <ChatBot />} */}
+      {isAuthenticated && !isInvoicePage && <Calculator isNavOpen={isNavOpen} />}
+    </>
+  );
+}
+
+function App() {
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
     <BrowserRouter>
@@ -51,69 +135,7 @@ function App() {
         }}
       />
 
-      <Navbar />
-
-      <Routes>
-
-        {/* ROUTES PUBLIQUES */}
-        <Route
-          path="/"
-          element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" />}
-        />
-        <Route
-          path="/login"
-          element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
-        />
-        <Route
-          path="/register"
-          element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />}
-        />
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
-        <Route
-          path="/reset-password/:token"
-          element={<ResetPassword />}
-        />
-
-        {/* ROUTES PRIVÉES (TOKEN REQUIS) */}
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/products"
-          element={isAuthenticated ? <Products /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/new-invoice"
-          element={isAuthenticated ? <NewInvoice /> : <Navigate to="/login" />}
-        />
-
-        <Route
-          path="/history"
-          element={isAuthenticated ? <History /> : <Navigate to="/login" />}
-        />
-
-        {/* --- LA ROUTE /invoice/:id A ÉTÉ SUPPRIMÉE ICI --- */}
-        {/* Les détails s'affichent maintenant en modal (petite fenêtre) dans History.jsx */}
-
-        <Route
-          path="/settings"
-          element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/expenses"
-          element={isAuthenticated ? <Expenses /> : <Navigate to="/login" />}
-        />
-
-        {/* REDIRECTION PAR DÉFAUT */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-
-      {/* AI ChatBot - Désactivé temporairement */}
-      {/* {isAuthenticated && <ChatBot />} */}
+      <MainLayout isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
     </BrowserRouter>
   );
 }

@@ -9,6 +9,8 @@ const registerSchema = z.object({
     password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères")
         .regex(/^(?=.*[A-Za-z])(?=.*\d)/, "Le mot de passe doit contenir des lettres et des chiffres"),
     phone: z.string().min(7, "Numéro trop court").max(10, "Numéro trop long"),
+    address: z.string().min(2, "L'adresse est requise"),
+    footerMessage: z.string().min(2, "Le message de pied de page est requis"),
 });
 
 // Schéma pour la connexion

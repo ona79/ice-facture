@@ -10,6 +10,7 @@ import showcase5 from '../assets/showcase5.png';
 import showcase6 from '../assets/showcase6.png';
 import showcase7 from '../assets/showcase7.png';
 import showcase8 from '../assets/showcase8.png';
+import { CardBeam } from '../components/CardBeam';
 
 export default function Landing() {
     const navigate = useNavigate();
@@ -67,10 +68,9 @@ export default function Landing() {
                         }}
                     >
                         {[promo1, promo2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8, promo1, promo2, showcase3, showcase4, showcase5, showcase6, showcase7, showcase8].map((img, idx) => (
-                            <div key={idx} className="min-w-[280px] md:min-w-[320px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-transparent to-transparent opacity-30 group-hover:opacity-0 transition-opacity" />
+                            <CardBeam key={idx} className="min-w-[280px] md:min-w-[320px]">
                                 <img src={img} alt={`App Screen ${idx}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" />
-                            </div>
+                            </CardBeam>
                         ))}
                     </motion.div>
                 </div>

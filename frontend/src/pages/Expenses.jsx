@@ -93,11 +93,8 @@ export default function Expenses() {
     };
 
     return (
-        <div className="p-4 max-w-5xl mx-auto min-h-screen text-white font-sans pt-24">
+        <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans">
             <div className="flex justify-between items-center mb-8">
-                <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-white/20 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all">
-                    <ArrowLeft size={14} /> Retour Dashboard
-                </button>
                 <div className="flex gap-2">
                     <button
                         onClick={exportToExcel}
@@ -114,17 +111,25 @@ export default function Expenses() {
                 </div>
             </div>
 
-            <h1 className="text-3xl font-black italic mb-8 uppercase tracking-tighter">Dépenses & Charges</h1>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-8">
+                <div className="text-left">
+                    <h1 className="text-3xl md:text-4xl font-black italic mb-1 uppercase tracking-tighter text-white leading-none">Charges</h1>
+                    <p className="text-red-500/40 text-[8px] font-black uppercase tracking-[0.2em] italic">Suivi des dépenses & frais fixes</p>
+                </div>
+            </div>
 
             {/* SUMMARY */}
-            <div className="glass-card p-6 rounded-[2.5rem] bg-red-500/[0.03] border-red-500/10 mb-8 flex justify-between items-center">
-                <div>
-                    <p className="text-[10px] font-black uppercase text-red-500/50 mb-1">Dépenses Totales</p>
-                    <h2 className="text-3xl font-black italic text-red-500">
-                        {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()} F
+            <div className="glass-card p-6 rounded-[2rem] bg-red-500/[0.03] border border-red-500/10 mb-8 flex justify-between items-center shadow-xl relative overflow-hidden group">
+                <div className="relative z-10 text-left">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-red-500/50 mb-2 italic">Dépenses Totales</p>
+                    <h2 className="text-3xl font-black italic text-red-500 tracking-tighter leading-none">
+                        {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()} <span className="text-xs not-italic ml-0.5 opacity-50">F</span>
                     </h2>
                 </div>
-                <Wallet size={40} className="text-red-500/20" />
+                <div className="p-4 bg-red-500/10 rounded-xl group-hover:scale-110 transition-transform duration-500">
+                    <Wallet size={32} className="text-red-500/40 drop-shadow-[0_0_12px_rgba(239,68,68,0.3)]" />
+                </div>
+                <div className="absolute inset-0 bg-red-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
 
             {/* LIST */}
@@ -139,18 +144,18 @@ export default function Expenses() {
                             <motion.div
                                 layout
                                 key={e._id}
-                                className="glass-card p-4 rounded-2xl flex justify-between items-center border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all"
+                                className="glass-card p-5 rounded-[2.2rem] border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/20 transition-all duration-500 flex justify-between items-center group shadow-xl"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`p-3 bg-white/5 rounded-xl ${cat.color}`}><Icon size={20} /></div>
-                                    <div>
-                                        <p className="font-black text-xs uppercase">{e.description}</p>
-                                        <p className="text-[10px] text-white/20 font-bold">{new Date(e.date).toLocaleDateString('fr-FR')} • {e.category}</p>
+                                    <div className={`p-3 bg-white/5 rounded-xl transition-all duration-500 group-hover:scale-110 shadow-inner ${cat.color}`}><Icon size={18} /></div>
+                                    <div className="text-left">
+                                        <p className="font-black text-[12px] uppercase italic tracking-tighter text-white/90 leading-none mb-1">{e.description}</p>
+                                        <p className="text-[8px] text-white/20 font-black uppercase tracking-[0.2em] italic">{new Date(e.date).toLocaleDateString('fr-FR')} • {e.category}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-6">
-                                    <p className="font-black text-sm text-red-400">-{e.amount.toLocaleString()} F</p>
-                                    <button onClick={() => handleDeleteExpense(e)} className="p-2 text-white/10 hover:text-red-500 transition-colors">
+                                    <p className="font-black text-lg italic text-red-400 tracking-tighter leading-none">-{e.amount.toLocaleString()} <span className="text-[9px] not-italic opacity-30 ml-0.5">F</span></p>
+                                    <button onClick={() => handleDeleteExpense(e)} className="p-2.5 bg-white/5 text-white/5 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all duration-300">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -164,64 +169,70 @@ export default function Expenses() {
             <AnimatePresence>
                 {showAddModal && (
                     <motion.div
+                        onClick={() => setShowAddModal(false)}
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
                     >
                         <motion.div
+                            onClick={(e) => e.stopPropagation()}
                             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                            className="glass-card w-full max-w-md p-8 rounded-[3rem] border-white/10 relative shadow-2xl bg-[#09090b]"
+                            className="glass-card w-full max-w-md p-10 rounded-[3.5rem] border-white/10 relative shadow-2xl bg-[#09090b] text-center"
                         >
-                            <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
-                            <div className="text-center mb-8">
-                                <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl inline-block mb-4"><Wallet size={32} /></div>
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter">Nouvelle Charge</h3>
+                            <button onClick={() => setShowAddModal(false)} className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors"><X size={24} /></button>
+
+                            <div className="mb-10">
+                                <div className="p-5 bg-red-500/10 text-red-500 rounded-[2rem] inline-block mb-4 shadow-inner border border-red-500/20"><Wallet size={40} /></div>
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Nouvelle Charge</h3>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500/40 italic">Enregistrement financier</p>
                             </div>
 
-                            <form onSubmit={handleAddExpense} className="space-y-5 text-left">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Description</label>
+                            <form onSubmit={handleAddExpense} className="space-y-6 text-left">
+                                <div className="space-y-2 group">
+                                    <label className="text-[9px] font-black uppercase text-white/20 ml-4 italic tracking-widest block">Description du frais</label>
                                     <input
-                                        required type="text" placeholder="EX: LOYER JANVIER..."
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500 text-sm font-bold uppercase transition-all"
+                                        required type="text" placeholder="EX: FACTURE SENELEC JANVIER..."
+                                        className="w-full bg-black/40 border border-white/5 rounded-2xl p-5 outline-none focus:border-red-500/50 text-xs font-black uppercase transition-all group-hover:border-white/10"
                                         value={newExpense.description}
                                         onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Montant (F)</label>
+                                    <div className="space-y-2 group">
+                                        <label className="text-[9px] font-black uppercase text-white/20 ml-4 italic tracking-widest block">Montant (F)</label>
                                         <input
-                                            required type="number" placeholder="50000"
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500 text-sm font-bold transition-all"
+                                            required type="number" placeholder="0"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl p-5 outline-none focus:border-red-500/50 text-xs font-black transition-all group-hover:border-white/10"
                                             value={newExpense.amount}
                                             onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
                                         />
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Catégorie</label>
-                                        <select
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500 text-sm font-bold transition-all appearance-none uppercase text-white"
-                                            value={newExpense.category}
-                                            onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                                        >
-                                            {CATEGORIES.map(c => <option key={c.id} value={c.id} className="bg-[#09090b]">{c.label}</option>)}
-                                        </select>
+                                    <div className="space-y-2 group">
+                                        <label className="text-[9px] font-black uppercase text-white/20 ml-4 italic tracking-widest block">Catégorie</label>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl p-5 outline-none focus:border-red-500/50 text-xs font-black transition-all appearance-none uppercase text-white group-hover:border-white/10"
+                                                value={newExpense.category}
+                                                onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                                            >
+                                                {CATEGORIES.map(c => <option key={c.id} value={c.id} className="bg-[#09090b]">{c.label}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-white/30 ml-2 italic">Date</label>
+                                <div className="space-y-2 group">
+                                    <label className="text-[9px] font-black uppercase text-white/20 ml-4 italic tracking-widest block">Date d'opération</label>
                                     <input
                                         required type="date"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500 text-sm font-bold transition-all"
+                                        className="w-full bg-black/40 border border-white/5 rounded-2xl p-5 outline-none focus:border-red-500/50 text-xs font-black transition-all group-hover:border-white/10 text-white"
                                         value={newExpense.date}
                                         onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
                                     />
                                 </div>
 
-                                <button type="submit" className="w-full py-5 bg-red-500 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-red-500/20 active:scale-95 transition-all mt-4">
-                                    Enregistrer la dépense
+                                <button type="submit" className="w-full py-5 bg-red-500 text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-red-900/40 active:scale-95 transition-all mt-4 hover:bg-white hover:text-black duration-500">
+                                    Enregistrer
                                 </button>
                             </form>
                         </motion.div>
@@ -233,46 +244,50 @@ export default function Expenses() {
             <AnimatePresence>
                 {showDeleteModal && (
                     <motion.div
+                        onClick={() => {
+                            setShowDeleteModal(false);
+                            setExpenseToDelete(null);
+                        }}
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl"
                     >
                         <motion.div
+                            onClick={(e) => e.stopPropagation()}
                             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                            className="glass-card w-full max-w-md p-8 rounded-[3rem] border-white/10 relative shadow-2xl bg-[#09090b]"
+                            className="glass-card w-full max-w-sm p-10 rounded-[3.5rem] border-white/10 relative shadow-2xl bg-[#09090b] text-center"
                         >
-                            <div className="text-center mb-6">
-                                <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl inline-block mb-4">
-                                    <Trash2 size={32} />
+                            <div className="mb-8">
+                                <div className="p-5 bg-red-500/10 text-red-500 rounded-[2rem] inline-block mb-4 shadow-inner">
+                                    <Trash2 size={40} />
                                 </div>
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter mb-2">
-                                    Supprimer cette dépense ?
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-2">
+                                    Supprimer ?
                                 </h3>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 italic">Cette action est irréversible</p>
+
                                 {expenseToDelete && (
-                                    <div className="mt-4 p-4 bg-white/5 rounded-2xl border border-white/10">
-                                        <p className="font-black text-sm uppercase">{expenseToDelete.description}</p>
-                                        <p className="text-xs text-white/40 mt-1">
-                                            {new Date(expenseToDelete.date).toLocaleDateString('fr-FR')} • {expenseToDelete.category}
-                                        </p>
-                                        <p className="font-black text-red-400 mt-2">-{expenseToDelete.amount.toLocaleString()} F</p>
+                                    <div className="mt-8 p-6 bg-white/[0.02] rounded-[2rem] border border-white/5 shadow-inner">
+                                        <p className="font-black text-xs uppercase italic text-white/90 mb-1">{expenseToDelete.description}</p>
+                                        <p className="text-[10px] font-black text-red-500">{expenseToDelete.amount.toLocaleString()} F</p>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-4">
                                 <button
                                     onClick={() => {
                                         setShowDeleteModal(false);
                                         setExpenseToDelete(null);
                                     }}
-                                    className="flex-1 py-4 bg-white/5 border border-white/10 text-white/60 rounded-2xl font-black uppercase text-[11px] hover:bg-white/10 active:scale-95 transition-all"
+                                    className="flex-1 py-5 bg-white/5 border border-white/5 text-white/20 rounded-2xl font-black uppercase text-[10px] hover:bg-white/10 hover:text-white transition-all tracking-widest"
                                 >
-                                    Annuler
+                                    Non
                                 </button>
                                 <button
                                     onClick={confirmDelete}
-                                    className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                                    className="flex-1 py-5 bg-red-500 text-white rounded-2xl font-black uppercase text-[10px] shadow-2xl shadow-red-900/40 active:scale-95 transition-all tracking-widest"
                                 >
-                                    OK
+                                    Oui, OK
                                 </button>
                             </div>
                         </motion.div>
