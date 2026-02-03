@@ -22,7 +22,22 @@ const Calculator = ({ isNavOpen }) => {
 
     const calculate = () => {
         try {
-            const result = eval(equation + input);
+            const parts = equation.trim().split(' ');
+            if (parts.length < 2) return;
+
+            const num1 = parseFloat(parts[0]);
+            const op = parts[1];
+            const num2 = parseFloat(input);
+            let result = 0;
+
+            switch (op) {
+                case '+': result = num1 + num2; break;
+                case '-': result = num1 - num2; break;
+                case '*': result = num1 * num2; break;
+                case '/': result = num2 !== 0 ? num1 / num2 : 'Div/0'; break;
+                default: result = num2;
+            }
+
             setInput(result.toString());
             setEquation('');
         } catch (e) {
