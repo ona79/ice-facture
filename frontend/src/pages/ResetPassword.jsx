@@ -42,16 +42,16 @@ export default function ResetPassword() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
-            <div className="glass-card w-full max-w-md p-10 rounded-[3rem] border border-white/10 shadow-3xl relative overflow-hidden bg-white/5 backdrop-blur-3xl">
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-ice-500/10 rounded-full blur-[100px]"></div>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+            <div className="bg-white w-full max-w-md p-10 rounded-[3rem] border border-slate-100 shadow-3xl relative overflow-hidden">
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-ice-50 rounded-full blur-[100px]"></div>
 
                 <div className="text-left animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="w-16 h-16 bg-red-500/10 rounded-[2rem] flex items-center justify-center text-red-500 mb-6 shadow-xl border border-red-500/20">
+                    <div className="w-16 h-16 bg-red-50 rounded-[2rem] flex items-center justify-center text-red-600 mb-6 shadow-xl border border-red-100 shadow-inner">
                         <KeyRound size={32} />
                     </div>
-                    <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none text-white mb-2">Nouveau Mot de Passe</h1>
-                    <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">Votre compte est presque prêt. Saisissez votre nouvelle clé d'accès sécurisée.</p>
+                    <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none text-slate-900 mb-2">Nouveau Mot de Passe</h1>
+                    <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10 italic">Votre compte est presque prêt. Saisissez votre nouvelle clé d'accès sécurisée.</p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <IceInput
@@ -76,7 +76,7 @@ export default function ResetPassword() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-5 rounded-2xl bg-ice-400 text-ice-900 font-black uppercase text-xs flex items-center justify-center gap-3 shadow-2xl shadow-ice-400/20 active:scale-95 transition-all mt-6 hover:bg-white"
+                            className="w-full py-5 rounded-2xl bg-ice-600 text-white font-black uppercase text-xs flex items-center justify-center gap-3 shadow-2xl shadow-ice-900/10 active:scale-95 transition-all mt-6 hover:bg-slate-900"
                         >
                             {loading ? "Mise à jour..." : <><ShieldCheck size={18} /> Re-sécuriser mon compte</>}
                         </button>

@@ -283,13 +283,13 @@ export default function Settings() {
 
   if (isLocked) {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
-        <div className="glass-card w-full max-w-md p-8 rounded-[3rem] border-white/10 shadow-2xl relative bg-white/5">
-          <button onClick={() => navigate('/dashboard')} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"><X size={20} /></button>
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-50/80 backdrop-blur-md">
+        <div className="bg-white w-full max-w-md p-8 rounded-[3rem] border border-slate-100 shadow-2xl relative">
+          <button onClick={() => navigate('/dashboard')} className="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors"><X size={20} /></button>
           <div className="flex flex-col items-center text-center">
-            <div className="p-5 bg-ice-400/10 text-ice-400 rounded-3xl mb-6 shadow-inner"><Lock size={38} /></div>
-            <h3 className="text-2xl font-black italic uppercase mb-2 tracking-tighter text-white">Accès Restreint</h3>
-            <p className="text-ice-100/50 text-sm mb-8 leading-relaxed">Confirmez votre identité pour modifier les réglages.</p>
+            <div className="p-5 bg-ice-50 text-ice-600 rounded-3xl mb-6 shadow-inner"><Lock size={38} /></div>
+            <h3 className="text-2xl font-black italic uppercase mb-2 tracking-tighter text-slate-900">Accès Restreint</h3>
+            <p className="text-slate-400 text-sm mb-8 leading-relaxed font-bold uppercase tracking-tight">Confirmez votre identité pour modifier les réglages.</p>
             <form onSubmit={handleVerifyAccess} className="w-full space-y-4 text-left">
               <IceInput
                 label="Saisir votre mot de passe"
@@ -299,7 +299,7 @@ export default function Settings() {
                 autoComplete="new-password"
                 required
               />
-              <button type="submit" className="w-full py-5 rounded-2xl bg-ice-400 text-ice-900 font-black uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-ice-400/20 active:scale-95 transition-all">
+              <button type="submit" className="w-full py-5 rounded-2xl bg-ice-600 text-white font-black uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-ice-900/20 active:scale-95 transition-all">
                 <ShieldCheck size={18} /> Déverrouiller
               </button>
             </form>
@@ -310,33 +310,33 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans">
+    <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-8">
         <div className="text-left">
-          <h1 className="text-3xl md:text-4xl font-black italic mb-1 uppercase tracking-tighter text-white leading-none">Configuration</h1>
-          <p className="text-ice-400/40 text-[8px] font-black uppercase tracking-[0.2em] italic">Personnalisation & Sécurité du compte</p>
+          <h1 className="text-3xl md:text-4xl font-black italic mb-1 uppercase tracking-tighter text-slate-900 leading-none">Configuration</h1>
+          <p className="text-slate-300 text-[8px] font-black uppercase tracking-[0.2em] italic">Personnalisation & Sécurité du compte</p>
         </div>
       </div>
 
       {/* TABS FOR ADMIN */}
       {!isEmployee && (
-        <div className="flex gap-4 mb-8 border-b border-white/5">
+        <div className="flex gap-4 mb-8 border-b border-slate-100">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'profile' ? 'text-ice-400 border-b-2 border-ice-400' : 'text-white/20 hover:text-white'}`}
+            className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'profile' ? 'text-ice-600 border-b-2 border-ice-600' : 'text-slate-300 hover:text-slate-900'}`}
           >
             Mon Profil
           </button>
           <button
             onClick={() => setActiveTab('employees')}
-            className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'employees' ? 'text-ice-400 border-b-2 border-ice-400' : 'text-white/20 hover:text-white'}`}
+            className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'employees' ? 'text-ice-600 border-b-2 border-ice-600' : 'text-slate-300 hover:text-slate-900'}`}
           >
             Employés
           </button>
           <button
             onClick={() => setActiveTab('support')}
-            className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'support' ? 'text-ice-400 border-b-2 border-ice-400' : 'text-white/20 hover:text-white'}`}
+            className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'support' ? 'text-ice-600 border-b-2 border-ice-600' : 'text-slate-300 hover:text-slate-900'}`}
           >
             Support
           </button>
@@ -347,10 +347,10 @@ export default function Settings() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
           {/* IDENTITÉ BOUTIQUE */}
-          <form onSubmit={handleSaveProfile} className="glass-card p-5 rounded-[2rem] space-y-4 border-white/5 shadow-xl text-left bg-white/5">
+          <form onSubmit={handleSaveProfile} className="bg-white p-6 rounded-[2rem] space-y-4 border border-slate-100 shadow-xl shadow-blue-900/5 text-left">
             <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-ice-400/10 rounded-lg"><Save size={16} className="text-ice-400" /></div>
-              <h2 className="text-xs font-black uppercase italic tracking-widest">Identité Boutique</h2>
+              <div className="p-1.5 bg-ice-50 rounded-lg"><Save size={16} className="text-ice-600" /></div>
+              <h2 className="text-xs font-black uppercase italic tracking-widest text-slate-900">Identité Boutique</h2>
             </div>
 
             <div className="space-y-4">
@@ -375,9 +375,9 @@ export default function Settings() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase tracking-widest ml-1 text-ice-100/40 italic">Adresse de résidence</label>
+                <label className="text-[9px] font-black uppercase tracking-widest ml-1 text-slate-400 italic font-bold">Adresse de résidence</label>
                 <textarea
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-ice-400 outline-none h-14 resize-none text-[12px] transition-all text-white"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl p-3 focus:border-ice-600 outline-none h-14 resize-none text-[12px] transition-all text-slate-900 font-bold shadow-inner"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
@@ -386,16 +386,16 @@ export default function Settings() {
               <IceInput label="Message pied de page" value={formData.footerMessage} onChange={(e) => setFormData({ ...formData, footerMessage: e.target.value })} />
             </div>
 
-            <button disabled={isSaving} className="w-full bg-ice-400 text-ice-900 font-black py-4 rounded-2xl uppercase text-xs hover:bg-white transition-all shadow-xl shadow-ice-400/20 mt-4 active:scale-95">
+            <button disabled={isSaving} className="w-full bg-ice-600 text-white font-black py-4 rounded-2xl uppercase text-xs hover:bg-slate-900 transition-all shadow-xl shadow-ice-900/10 mt-4 active:scale-95">
               {isSaving ? "Traitement..." : "Enregistrer les infos"}
             </button>
           </form>
 
           {/* SÉCURITÉ MOT DE PASSE */}
-          <form onSubmit={handleChangePassword} className="glass-card p-5 rounded-[2rem] space-y-4 border-white/5 shadow-xl bg-white/5 text-left">
+          <form onSubmit={handleChangePassword} className="bg-white p-6 rounded-[2rem] space-y-4 border border-slate-100 shadow-xl shadow-blue-900/5 text-left">
             <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-red-500/10 rounded-lg"><KeyRound size={16} className="text-red-500" /></div>
-              <h2 className="text-xs font-black uppercase italic tracking-widest text-white">Sécurité du compte</h2>
+              <div className="p-1.5 bg-red-50 text-red-600 rounded-lg"><KeyRound size={16} className="text-red-600" /></div>
+              <h2 className="text-xs font-black uppercase italic tracking-widest text-slate-900">Sécurité du compte</h2>
             </div>
 
             <div className="space-y-4">
@@ -404,7 +404,7 @@ export default function Settings() {
                 {errors.auth && <p className="text-[9px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 italic"><AlertTriangle size={10} /> {errors.auth}</p>}
               </div>
 
-              <div className="h-px bg-white/5 mx-4 my-2"></div>
+              <div className="h-px bg-slate-100 mx-4 my-2"></div>
 
               <div>
                 <IceInput label="Nouveau mot de passe" type="password" value={passData.newPassword} onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })} placeholder="Min 6 car. (lettre+chiffre)" required autoComplete="new-password" />
@@ -417,22 +417,22 @@ export default function Settings() {
               </div>
             </div>
 
-            <button className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black py-4 rounded-2xl uppercase text-[10px] transition-all italic tracking-widest mt-4 active:scale-95">
+            <button className="w-full bg-slate-50 border border-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 font-black py-4 rounded-2xl uppercase text-[10px] transition-all italic tracking-widest mt-4 active:scale-95">
               Mettre à jour la sécurité
             </button>
           </form>
 
           {/* DANGER ZONE (Uniquement pour Admin) */}
           {!isEmployee && (
-            <div className="lg:col-span-2 mt-6 md:mt-12 pt-6 md:pt-10 border-t border-white/5 opacity-50 hover:opacity-100 transition-opacity">
-              <div className="glass-card p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-red-500/10 bg-red-500/[0.02] flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="lg:col-span-2 mt-6 md:mt-12 pt-6 md:pt-10 border-t border-slate-100 opacity-50 hover:opacity-100 transition-opacity">
+              <div className="bg-red-50 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-red-100 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl shadow-red-900/5">
                 <div className="text-left">
-                  <h3 className="text-red-500 font-black uppercase italic tracking-tighter text-lg leading-tight">Zone de Danger</h3>
-                  <p className="text-white/30 text-[10px] font-bold uppercase mt-1">Supprimer définitivement votre compte et toutes ses données (factures, produits...)</p>
+                  <h3 className="text-red-600 font-black uppercase italic tracking-tighter text-lg leading-tight">Zone de Danger</h3>
+                  <p className="text-slate-400 text-[10px] font-bold uppercase mt-1">Supprimer définitivement votre compte et toutes ses données (factures, produits...)</p>
                 </div>
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="px-8 py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                  className="px-8 py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-[10px] hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-red-900/10"
                 >
                   Supprimer mon compte
                 </button>
@@ -446,13 +446,13 @@ export default function Settings() {
         /* SECTION: EMPLOYÉES */
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-xl font-black italic uppercase tracking-tighter">Gestion de l'équipe</h3>
-              <p className="text-[10px] font-black uppercase text-white/20">Ajoutez des comptes pour vos vendeurs</p>
+            <div className="text-left">
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">Gestion de l'équipe</h3>
+              <p className="text-[10px] font-black uppercase text-slate-300">Ajoutez des comptes pour vos vendeurs</p>
             </div>
             <button
               onClick={() => setShowAddEmployee(true)}
-              className="bg-ice-400 text-ice-900 p-3 rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-lg shadow-ice-400/20"
+              className="bg-ice-600 text-white p-3 rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-lg shadow-ice-900/10"
             >
               <UserPlus size={20} />
             </button>
@@ -461,29 +461,29 @@ export default function Settings() {
           <div className="space-y-4">
             {employees.length > 0 ? (
               employees.map((emp) => (
-                <div key={emp._id} className="glass-card p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-white/5 bg-white/[0.02] flex justify-between items-center group hover:bg-white/[0.05] transition-all">
+                <div key={emp._id} className="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 flex justify-between items-center group hover:bg-slate-50 transition-all shadow-sm">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-ice-400/10 text-ice-400 rounded-2xl group-hover:bg-ice-400 group-hover:text-ice-900 transition-all">
+                    <div className="p-3 bg-ice-50 text-ice-600 rounded-2xl group-hover:bg-ice-600 group-hover:text-white transition-all">
                       <Users size={20} />
                     </div>
-                    <div>
-                      <p className="text-xs font-black uppercase text-white">{emp.email}</p>
-                      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{emp.phone}</p>
+                    <div className="text-left">
+                      <p className="text-xs font-black uppercase text-slate-900">{emp.email}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{emp.phone}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => handleDeleteEmployee(emp._id)}
-                    className="p-3 bg-red-500/10 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"
+                    className="p-3 bg-red-50 text-red-600 rounded-xl opacity-0 group-hover:opacity-100 hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-900/5"
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
               ))
             ) : (
-              <div className="glass-card p-10 border-white/5 bg-white/[0.01] rounded-[2.5rem] text-center">
-                <Users size={48} className="mx-auto text-white/10 mb-4" />
-                <p className="text-xs font-black uppercase text-white/30 italic">Aucun employé pour le moment.</p>
-                <p className="text-[9px] font-black uppercase text-white/10 mt-2">Créez des comptes pour vos vendeurs pour qu'ils puissent vous aider.</p>
+              <div className="bg-slate-50 p-10 border border-slate-100 rounded-[2.5rem] text-center shadow-inner">
+                <Users size={48} className="mx-auto text-slate-200 mb-4" />
+                <p className="text-xs font-black uppercase text-slate-300 italic">Aucun employé pour le moment.</p>
+                <p className="text-[9px] font-black uppercase text-slate-200 mt-2">Créez des comptes pour vos vendeurs pour qu'ils puissent vous aider.</p>
               </div>
             )}
           </div>
@@ -492,15 +492,15 @@ export default function Settings() {
 
       {activeTab === 'support' && (
         <div className="max-w-2xl mx-auto py-10 animate-in fade-in slide-in-from-bottom-4">
-          <div className="glass-card p-10 rounded-[3rem] border-white/5 shadow-2xl text-center space-y-8 bg-white/5 backdrop-blur-xl relative overflow-hidden">
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-ice-400/10 blur-[100px] rounded-full" />
+          <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-blue-900/10 text-center space-y-8 relative overflow-hidden">
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-ice-50 blur-[100px] rounded-full" />
 
             <div className="relative">
-              <div className="w-20 h-20 bg-ice-400/10 text-ice-400 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-glow">
+              <div className="w-20 h-20 bg-ice-50 text-ice-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <MessageSquare size={38} />
               </div>
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Besoin d'aide ?</h2>
-              <p className="text-ice-100/50 text-sm font-medium leading-relaxed max-w-sm mx-auto">
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2 text-slate-900">Besoin d'aide ?</h2>
+              <p className="text-slate-400 text-sm font-bold uppercase leading-relaxed max-w-sm mx-auto">
                 Une question ou un problème technique ? <br />
                 Contactez-nous directement pour une assistance rapide.
               </p>
@@ -509,33 +509,33 @@ export default function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
               <a
                 href="tel:+221781901424"
-                className="group p-6 rounded-[2rem] bg-white/[0.03] border border-white/5 hover:border-ice-400/30 hover:bg-ice-400/5 transition-all duration-500 flex flex-col items-center gap-3"
+                className="group p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:border-ice-600/30 hover:bg-white transition-all duration-500 flex flex-col items-center gap-3 shadow-sm hover:shadow-xl"
               >
-                <div className="p-3 bg-ice-400/10 rounded-2xl group-hover:scale-110 transition-transform duration-500">
-                  <Phone size={24} className="text-ice-400" />
+                <div className="p-3 bg-white rounded-2xl group-hover:scale-110 transition-transform duration-500 shadow-sm">
+                  <Phone size={24} className="text-ice-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1 italic">Par Téléphone</p>
-                  <p className="text-sm font-black text-white tracking-tighter">+221 78 190 14 24</p>
+                  <p className="text-[10px] font-black uppercase text-slate-300 tracking-widest mb-1 italic">Par Téléphone</p>
+                  <p className="text-sm font-black text-slate-900 tracking-tighter">+221 78 190 14 24</p>
                 </div>
               </a>
 
               <a
                 href="mailto:kassadiallo603@gmail.com"
-                className="group p-6 rounded-[2rem] bg-white/[0.03] border border-white/5 hover:border-ice-400/30 hover:bg-ice-400/5 transition-all duration-500 flex flex-col items-center gap-3"
+                className="group p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:border-ice-600/30 hover:bg-white transition-all duration-500 flex flex-col items-center gap-3 shadow-sm hover:shadow-xl"
               >
-                <div className="p-3 bg-ice-400/10 rounded-2xl group-hover:scale-110 transition-transform duration-500">
-                  <Mail size={24} className="text-ice-400" />
+                <div className="p-3 bg-white rounded-2xl group-hover:scale-110 transition-transform duration-500 shadow-sm">
+                  <Mail size={24} className="text-ice-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1 italic">Par Email</p>
-                  <p className="text-[9px] font-black text-white truncate max-w-[140px]">kassadiallo603@gmail.com</p>
+                  <p className="text-[10px] font-black uppercase text-slate-300 tracking-widest mb-1 italic">Par Email</p>
+                  <p className="text-[9px] font-black text-slate-900 truncate max-w-[140px]">kassadiallo603@gmail.com</p>
                 </div>
               </a>
             </div>
 
-            <div className="pt-6 border-t border-white/5">
-              <p className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Disponible 7j/7 • Réponse Rapide</p>
+            <div className="pt-6 border-t border-slate-100">
+              <p className="text-[9px] font-black uppercase text-slate-300 tracking-widest italic leading-none">Disponible 7j/7 • Réponse Rapide</p>
             </div>
           </div>
         </div>
@@ -544,18 +544,18 @@ export default function Settings() {
 
       {/* MODAL DE CONFIRMATION AVEC MOT DE PASSE */}
       {showConfirmModal && (
-        <div onClick={() => setShowConfirmModal(false)} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-md p-8 rounded-[3rem] border border-white/10 shadow-2xl bg-[#09090b]/80">
+        <div onClick={() => setShowConfirmModal(false)} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-[3rem] border border-slate-100 shadow-2xl">
             <div className="flex flex-col items-center text-center">
-              <div className="p-4 bg-orange-500/10 text-orange-500 rounded-2xl mb-4">
+              <div className="p-4 bg-orange-50 text-orange-600 rounded-2xl mb-4 shadow-inner">
                 <ShieldCheck size={32} />
               </div>
-              <h3 className="text-xl font-black italic uppercase italic tracking-tighter text-white">Confirmer l'Action</h3>
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2 mb-6">Saisissez votre mot de passe pour valider les changements</p>
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">Confirmer l'Action</h3>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2 mb-6 leading-none">Saisissez votre mot de passe pour valider les changements</p>
 
               <form onSubmit={handleFinalSave} className="w-full space-y-4">
                 <IceInput
-                  label="Vôtre mot de passe"
+                  label="Votre mot de passe"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -566,13 +566,13 @@ export default function Settings() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmModal(false)}
-                    className="flex-1 py-4 rounded-xl border border-white/5 text-white/30 font-black uppercase text-[10px] hover:bg-white/5 transition-all"
+                    className="flex-1 py-4 rounded-xl border border-slate-100 text-slate-300 font-black uppercase text-[10px] hover:bg-slate-50 transition-all"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
-                    className="flex-2 px-8 py-4 rounded-xl bg-orange-500 text-black font-black uppercase text-[10px] shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                    className="flex-2 px-8 py-4 rounded-xl bg-orange-600 text-white font-black uppercase text-[10px] shadow-lg shadow-orange-900/20 active:scale-95 transition-all"
                   >
                     Valider
                   </button>
@@ -587,21 +587,21 @@ export default function Settings() {
       {/* MODAL SUPPRESSION DE COMPTE */}
       {
         showDeleteModal && (
-          <div onClick={() => { setShowDeleteModal(false); setDeletePassword(''); }} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
-            <div className="glass-card w-full max-w-md p-8 rounded-[3rem] border border-red-500/20 shadow-2xl bg-[#09090b]/90">
+          <div onClick={() => { setShowDeleteModal(false); setDeletePassword(''); }} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+            <div className="bg-white w-full max-w-md p-8 rounded-[3rem] border border-red-100 shadow-2xl">
               <div className="flex flex-col items-center text-center">
-                <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-4">
+                <div className="p-4 bg-red-50 text-red-600 rounded-2xl mb-4 shadow-inner">
                   <Trash2 size={32} />
                 </div>
-                <h3 className="text-xl font-black italic uppercase text-red-500 tracking-tighter">Supprimer le Compte ?</h3>
-                <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2 mb-6 leading-relaxed">
+                <h3 className="text-xl font-black italic uppercase text-red-600 tracking-tighter">Supprimer le Compte ?</h3>
+                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2 mb-6 leading-relaxed">
                   Cette action est irréversible. <br />
                   Toutes vos factures et produits seront perdus.
                 </p>
 
                 <form onSubmit={handleDeleteAccount} className="w-full space-y-4">
                   <IceInput
-                    label="Vôtre mot de passe"
+                    label="Votre mot de passe"
                     type="password"
                     value={deletePassword}
                     onChange={(e) => setDeletePassword(e.target.value)}
@@ -611,7 +611,7 @@ export default function Settings() {
                   <div className="flex flex-col gap-3 pt-4">
                     <button
                       type="submit"
-                      className="w-full py-4 rounded-xl bg-red-500 text-white font-black uppercase text-[10px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                      className="w-full py-4 rounded-xl bg-red-600 text-white font-black uppercase text-[10px] shadow-lg shadow-red-900/20 active:scale-95 transition-all"
                     >
                       Confirmer la suppression définitive
                     </button>
@@ -621,7 +621,7 @@ export default function Settings() {
                         setShowDeleteModal(false);
                         setDeletePassword('');
                       }}
-                      className="w-full py-4 rounded-xl border border-white/5 text-white/30 font-black uppercase text-[10px] hover:bg-white/5 transition-all"
+                      className="w-full py-4 rounded-xl border border-slate-100 text-slate-300 font-black uppercase text-[10px] hover:bg-slate-50 transition-all"
                     >
                       Annuler
                     </button>
@@ -635,12 +635,12 @@ export default function Settings() {
 
       {/* MODAL ADD EMPLOYEE */}
       {showAddEmployee && (
-        <div onClick={() => setShowAddEmployee(false)} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[3rem] border-white/10 relative bg-[#09090b]">
-            <button onClick={() => setShowAddEmployee(false)} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
+        <div onClick={() => setShowAddEmployee(false)} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white w-full max-w-sm p-8 rounded-[3rem] border border-slate-100 relative shadow-2xl">
+            <button onClick={() => setShowAddEmployee(false)} className="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors"><X size={20} /></button>
             <div className="text-center mb-8">
-              <div className="p-4 bg-ice-400/10 text-ice-400 rounded-2xl inline-block mb-4"><UserPlus size={32} /></div>
-              <h3 className="text-xl font-black italic uppercase tracking-tighter">Nouveau Vendeur</h3>
+              <div className="p-4 bg-ice-50 text-ice-600 rounded-2xl inline-block mb-4 shadow-inner"><UserPlus size={32} /></div>
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">Nouveau Vendeur</h3>
             </div>
             <form onSubmit={handleCreateEmployee} className="space-y-4">
               <IceInput
@@ -663,7 +663,7 @@ export default function Settings() {
                 onChange={(e) => setEmployeeData({ ...employeeData, password: e.target.value })}
                 required
               />
-              <button type="submit" className="w-full py-4 bg-ice-400 text-ice-900 rounded-2xl font-black uppercase text-[10px] mt-4 shadow-lg active:scale-95 transition-all">
+              <button type="submit" className="w-full py-4 bg-ice-600 text-white rounded-2xl font-black uppercase text-[10px] mt-4 shadow-lg shadow-ice-900/10 active:scale-95 transition-all">
                 Créer le compte
               </button>
             </form>
@@ -672,14 +672,14 @@ export default function Settings() {
       )}
       {/* MODAL CONFIRMATION SUPPRESSION EMPLOYÉ */}
       {showDeleteEmployeeModal && (
-        <div onClick={() => { setShowDeleteEmployeeModal(false); setEmployeeToDelete(null); }} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
-          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[2.5rem] border border-red-500/20 shadow-2xl bg-[#09090b]/90">
+        <div onClick={() => { setShowDeleteEmployeeModal(false); setEmployeeToDelete(null); }} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white w-full max-w-sm p-8 rounded-[2.5rem] border border-red-100 shadow-2xl">
             <div className="flex flex-col items-center text-center">
-              <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-4">
+              <div className="p-4 bg-red-50 text-red-600 rounded-2xl mb-4 shadow-inner">
                 <Trash2 size={32} />
               </div>
-              <h3 className="text-xl font-black italic uppercase text-red-500 tracking-tighter">Supprimer ce vendeur ?</h3>
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2 mb-6 leading-relaxed">
+              <h3 className="text-xl font-black italic uppercase text-red-600 tracking-tighter leading-none">Supprimer ce vendeur ?</h3>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2 mb-6 leading-relaxed">
                 Cet employé ne pourra plus accéder à la caisse.
               </p>
 
@@ -695,7 +695,7 @@ export default function Settings() {
                   />
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-xl bg-red-500 text-white font-black uppercase text-[10px] shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+                    className="w-full py-4 rounded-xl bg-red-600 text-white font-black uppercase text-[10px] shadow-lg shadow-red-900/20 active:scale-95 transition-all"
                   >
                     Confirmer la suppression
                   </button>
@@ -705,7 +705,7 @@ export default function Settings() {
                     setShowDeleteEmployeeModal(false);
                     setEmployeeToDelete(null);
                   }}
-                  className="w-full py-4 rounded-xl border border-white/5 text-white/30 font-black uppercase text-[10px] hover:bg-white/5 transition-all"
+                  className="w-full py-4 rounded-xl border border-slate-100 text-slate-300 font-black uppercase text-[10px] hover:bg-slate-50 transition-all"
                 >
                   Annuler
                 </button>

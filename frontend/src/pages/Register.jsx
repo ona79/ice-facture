@@ -133,15 +133,15 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-2 md:p-4 bg-[#060b13] font-sans">
-      <div className="glass-card p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-2 md:p-4 bg-slate-50 font-sans">
+      <div className="bg-white p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-4xl border border-slate-100 shadow-2xl relative overflow-hidden">
 
         <div className="text-center mb-6 md:mb-10">
-          <div className="inline-block p-3 md:p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-2 md:mb-4">
+          <div className="inline-block p-3 md:p-4 bg-ice-50 text-ice-600 rounded-2xl mb-2 md:mb-4 shadow-inner">
             <UserPlus size={24} className="md:w-8 md:h-8" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-black italic text-white uppercase tracking-tighter">Inscription</h1>
-          <p className="text-ice-100/40 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] mt-1 md:mt-2 italic">kassa vous souhaite une belle experience</p>
+          <h1 className="text-2xl md:text-3xl font-black italic text-slate-900 uppercase tracking-tighter">Inscription</h1>
+          <p className="text-slate-400 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] mt-1 md:mt-2 italic">kassa vous souhaite une belle experience</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-8">
@@ -260,7 +260,7 @@ export default function Register() {
                     }
                   }}
                 />
-                <p className="text-[7px] md:text-[8px] text-ice-100/30 uppercase font-black mt-1.5 ml-1 italic tracking-widest">
+                <p className="text-[7px] md:text-[8px] text-slate-300 uppercase font-black mt-1.5 ml-1 italic tracking-widest">
                   Condition : Mini 6 caractères (Lettres + Chiffres)
                 </p>
                 {errors.password && <p className="text-red-500 text-[8px] font-black mt-1 uppercase italic animate-pulse">{errors.password}</p>}
@@ -298,12 +298,12 @@ export default function Register() {
           </div>
 
           <div className="flex flex-col items-center pt-2 md:pt-4">
-            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-3 md:py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs">
+            <button type="submit" className="btn-primary w-full md:w-72">
               Valider l'inscription →
             </button>
 
-            <p className="mt-4 md:mt-6 text-[9px] text-ice-100/30 font-bold uppercase tracking-widest">
-              Déjà membre ? <Link to="/login" className="text-ice-400 ml-1 hover:text-white underline underline-offset-4">Connexion</Link>
+            <p className="mt-4 md:mt-6 text-[9px] text-slate-300 font-bold uppercase tracking-widest italic">
+              Déjà membre ? <Link to="/login" className="text-ice-600 ml-1 hover:text-slate-900 underline underline-offset-4 transition-colors">Connexion</Link>
             </p>
           </div>
         </form>

@@ -23,7 +23,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     const user = new User({ shopName, email: cleanEmail, password, phone, address, footerMessage });
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
@@ -149,7 +149,7 @@ router.put('/update-password', auth, async (req, res) => {
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ msg: "L'ancien mot de passe est incorrect" });
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     user.password = await bcrypt.hash(newPassword, salt);
 
     await user.save();
@@ -189,7 +189,7 @@ router.post('/create-employee', auth, async (req, res) => {
       footerMessage: admin.footerMessage
     });
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     employee.password = await bcrypt.hash(password, salt);
 
     await employee.save();
@@ -323,7 +323,7 @@ router.post('/reset-password/:token', async (req, res) => {
     }
 
     // Hachage du nouveau mot de passe
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     user.password = await bcrypt.hash(password, salt);
 
     // Nettoyage du token

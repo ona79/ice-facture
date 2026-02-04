@@ -93,15 +93,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-2 md:p-4 bg-[#060b13] font-sans">
-      <div className="glass-card p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-4xl border border-white/5 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-2 md:p-4 bg-slate-50 font-sans">
+      <div className="bg-white p-6 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-4xl border border-slate-100 shadow-2xl relative overflow-hidden">
 
         <div className="text-center mb-6 md:mb-10">
-          <div className="inline-block p-3 md:p-4 bg-ice-400/10 text-ice-400 rounded-2xl mb-2 md:mb-4">
+          <div className="inline-block p-3 md:p-4 bg-ice-50 text-ice-600 rounded-2xl mb-2 md:mb-4 shadow-inner">
             <LogIn size={24} className="md:w-8 md:h-8" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-black italic text-white uppercase tracking-tighter">Connexion</h1>
-          <p className="text-ice-100/40 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] mt-1 md:mt-2 italic">kassa vous souhaite une bonne experience</p>
+          <h1 className="text-2xl md:text-3xl font-black italic text-slate-900 uppercase tracking-tighter">Connexion</h1>
+          <p className="text-slate-400 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] mt-1 md:mt-2 italic">kassa vous souhaite une bonne experience</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 md:space-y-10">
@@ -149,7 +149,7 @@ export default function Login() {
                 </p>
               )}
               <div className="flex justify-end mt-2">
-                <Link to="/forgot-password" size={10} className="text-[9px] text-ice-100/30 font-bold uppercase hover:text-ice-400 transition-colors italic group flex items-center gap-1">
+                <Link to="/forgot-password" size={10} className="text-[9px] text-slate-300 font-bold uppercase hover:text-ice-600 transition-colors italic group flex items-center gap-1">
                   Mot de passe oublié ?
                 </Link>
               </div>
@@ -157,13 +157,13 @@ export default function Login() {
           </div>
 
           <div className="flex flex-col items-center pt-2">
-            <button type="submit" className="w-full md:w-72 bg-ice-400 text-ice-900 font-black py-3 md:py-4 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-400/20 uppercase italic text-xs flex items-center justify-center gap-2 group">
+            <button type="submit" className="btn-primary w-full md:w-72">
               Se connecter <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
 
-            <p className="mt-8 text-[9px] text-ice-100/30 font-bold uppercase tracking-widest">
+            <p className="mt-8 text-[9px] text-slate-300 font-bold uppercase tracking-widest italic">
               Pas de boutique ?
-              <Link to="/register" className="text-ice-400 ml-2 hover:text-white underline underline-offset-4 decoration-ice-400/30">
+              <Link to="/register" className="text-ice-600 ml-2 hover:text-slate-900 underline underline-offset-4 decoration-ice-600/30 transition-colors">
                 Créer un compte
               </Link>
             </p>

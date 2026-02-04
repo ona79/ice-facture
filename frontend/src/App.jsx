@@ -15,7 +15,6 @@ import Landing from './pages/Landing';
 import Calculator from './components/Calculator';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// import ChatBot from './components/ChatBot'; // Désactivé temporairement
 
 // L'import de InvoiceDetail a été supprimé ici car le fichier n'existe plus
 
@@ -94,8 +93,6 @@ function MainLayout({ isNavOpen, setIsNavOpen }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* AI ChatBot - Désactivé temporairement */}
-      {/* {isAuthenticated && <ChatBot />} */}
       {isAuthenticated && !isInvoicePage && <Calculator isNavOpen={isNavOpen} />}
     </>
   );

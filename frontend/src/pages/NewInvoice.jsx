@@ -329,40 +329,40 @@ export default function NewInvoice() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans overflow-x-hidden relative"
+      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans overflow-x-hidden relative"
     >
       {/* HIDDEN RECEIPT COMPONENT */}
       <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopAddress={shopAddress} shopPhone={shopPhone} footerMessage={footerMessage} />
 
       {showSuccessModal && (
-        <div onClick={() => setShowSuccessModal(false)} className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white/10 border border-white/20 p-8 rounded-[2.5rem] max-w-md w-full text-center relative shadow-[0_0_50px_rgba(0,242,255,0.2)]">
+        <div onClick={() => setShowSuccessModal(false)} className="fixed inset-0 z-[300] bg-slate-900/60 backdrop-blur-xl flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white border border-slate-100 p-8 rounded-[2.5rem] max-w-md w-full text-center relative shadow-2xl">
             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
               <CheckCircle size={40} className="text-white" />
             </div>
 
-            <h2 className="text-2xl font-black uppercase text-white mb-2 tracking-tighter">Vente Réussie !</h2>
-            <p className="text-ice-400 font-bold text-lg mb-8">{lastInvoice?.invoiceNumber}</p>
+            <h2 className="text-2xl font-black uppercase text-slate-900 mb-2 tracking-tighter">Vente Réussie !</h2>
+            <p className="text-ice-600 font-bold text-lg mb-8">{lastInvoice?.invoiceNumber}</p>
 
             <div className="grid grid-cols-1 gap-4">
               <button
                 onClick={handlePrint}
-                className="py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl"
+                className="py-4 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl"
               >
-                <div className="bg-black text-white p-1 rounded"><Printer size={16} /></div>
+                <div className="bg-white text-black p-1 rounded"><Printer size={16} /></div>
                 Imprimer Ticket
               </button>
 
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => { setShowSuccessModal(false); /* Stay for next sale */ }}
-                  className="py-4 rounded-xl bg-ice-400/10 text-ice-400 border border-ice-400/30 font-bold uppercase text-xs hover:bg-ice-400/20"
+                  className="py-4 rounded-xl bg-ice-50 text-ice-600 border border-ice-100 font-bold uppercase text-xs hover:bg-ice-100"
                 >
                   <Plus size={16} className="inline mr-1" /> Nouvelle Vente
                 </button>
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="py-4 rounded-xl bg-white/5 text-white/50 border border-white/10 font-bold uppercase text-xs hover:bg-white/10"
+                  className="py-4 rounded-xl bg-slate-50 text-slate-400 border border-slate-100 font-bold uppercase text-xs hover:bg-slate-100"
                 >
                   Quitter
                 </button>
@@ -377,11 +377,11 @@ export default function NewInvoice() {
         <div className={`lg:col-span-7 space-y-4 ${activeTab === 'cart' ? 'hidden lg:block' : ''}`}>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
               <input
                 type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pl-12 pr-4 outline-none focus:border-ice-400 text-[10px] font-black uppercase tracking-widest transition-all placeholder:text-white/10"
+                className="w-full bg-white border border-slate-200 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-xs font-black uppercase tracking-widest transition-all placeholder:text-slate-300 shadow-sm"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -393,7 +393,7 @@ export default function NewInvoice() {
             </div>
             <button
               onClick={startScanning}
-              className="bg-ice-400 text-ice-900 p-3 rounded-2xl active:scale-90 transition-all shadow-lg"
+              className="bg-ice-600 text-white p-3 rounded-2xl active:scale-90 transition-all shadow-lg shadow-blue-900/10"
             >
               <Scan size={20} />
             </button>
@@ -405,20 +405,20 @@ export default function NewInvoice() {
                 key={p._id}
                 onClick={() => addItem(p._id)}
                 onMouseDown={(e) => e.preventDefault()}
-                className={`p-3 lg:p-5 rounded-[1.2rem] lg:rounded-[2rem] bg-white/[0.02] border border-white/5 flex flex-col justify-between items-start hover:border-ice-400/40 hover:bg-white/[0.04] transition-all duration-500 overflow-hidden relative group lg:min-h-[120px] ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95 shadow-xl hover:shadow-[0_0_20px_rgba(0,242,255,0.05)]'}`}
+                className={`p-3 lg:p-5 rounded-[1.2rem] lg:rounded-[2rem] bg-white border border-blue-50 flex flex-col justify-between items-start hover:border-ice-400/40 hover:bg-slate-50 transition-all duration-500 overflow-hidden relative group lg:min-h-[120px] shadow-sm ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95 hover:shadow-xl'}`}
                 disabled={p.stock <= 0}
               >
                 <div className="flex justify-between w-full mb-2 lg:mb-3">
-                  <div className={`p-2 lg:p-3 rounded-xl transition-all duration-500 group-hover:scale-110 ${p.stock <= 5 ? 'bg-red-500/10 text-red-500' : 'bg-ice-400/10 text-ice-400'}`}>
+                  <div className={`p-2 lg:p-3 rounded-xl transition-all duration-500 group-hover:scale-110 ${p.stock <= 5 ? 'bg-red-50 text-red-600' : 'bg-ice-50 text-ice-600'}`}>
                     <ShoppingCart size={16} className="lg:w-[18px] lg:h-[18px]" />
                   </div>
-                  <span className={`text-[7px] lg:text-[8px] font-black uppercase px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md tracking-tighter ${p.stock <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/5 text-white/40'}`}>
+                  <span className={`text-[7px] lg:text-[8px] font-black uppercase px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md tracking-tighter ${p.stock <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400'}`}>
                     {p.stock} EN STOCK
                   </span>
                 </div>
-                <p className="font-black text-[11px] lg:text-[13px] uppercase italic tracking-tighter text-left leading-none group-hover:text-ice-400 transition-colors uppercase">{p.name}</p>
-                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Plus size={40} className="text-white lg:w-[48px] lg:h-[48px]" />
+                <p className="font-black text-[11px] lg:text-[13px] uppercase italic tracking-tighter text-left leading-none group-hover:text-ice-600 transition-colors uppercase text-slate-700">{p.name}</p>
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity text-slate-900">
+                  <Plus size={40} className="text-slate-900 lg:w-[48px] lg:h-[48px]" />
                 </div>
               </button>
             ))}
@@ -426,11 +426,11 @@ export default function NewInvoice() {
         </div>
 
         {/* PANIER */}
-        <div className={`lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl bg-white/[0.02] backdrop-blur-md ${activeTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`lg:col-span-5 flex flex-col h-[75vh] glass-card rounded-[2.5rem] border border-blue-50 overflow-hidden shadow-2xl bg-white/90 backdrop-blur-md ${activeTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Mobile Back Button */}
           <button
             onClick={() => setActiveTab('catalog')}
-            className="lg:hidden p-4 flex items-center gap-2 text-ice-400 font-black uppercase text-[10px] border-b border-white/5 bg-white/[0.01]"
+            className="lg:hidden p-4 flex items-center gap-2 text-ice-600 font-black uppercase text-[10px] border-b border-slate-100 bg-slate-50"
           >
             <ArrowLeft size={14} /> Retour au catalogue
           </button>
@@ -446,16 +446,16 @@ export default function NewInvoice() {
             </div>
           )}
 
-          <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-            <h2 className="font-black text-ice-400 text-[10px] uppercase tracking-[0.2em] flex items-center gap-1.5 italic">
-              <ShoppingCart size={14} className="drop-shadow-[0_0_10px_rgba(0,242,255,0.5)]" /> Panier
+          <div className="px-4 py-2 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+            <h2 className="font-black text-ice-600 text-[10px] uppercase tracking-[0.2em] flex items-center gap-1.5 italic">
+              <ShoppingCart size={14} className="drop-shadow-[0_0_10px_rgba(2,132,199,0.3)]" /> Panier
             </h2>
-            <span className="bg-white/5 px-1.5 py-0.5 rounded-full text-[7px] font-black text-white/40 uppercase tracking-widest">{items.length} ART.</span>
+            <span className="bg-slate-100 px-1.5 py-0.5 rounded-full text-[7px] font-black text-slate-400 uppercase tracking-widest">{items.length} ART.</span>
           </div>
 
 
           {/* CONTROL SECTION (Ultra-Compact) */}
-          <div className="p-2 lg:p-3 bg-white/[0.03] border-b border-white/10 space-y-1.5">
+          <div className="p-2 lg:p-3 bg-white border-b border-slate-100 space-y-1.5">
             {/* INFOS CLIENT */}
             <div className="grid grid-cols-[1fr_1.5fr] gap-1.5 px-0.5">
               <div className="relative">
@@ -473,7 +473,7 @@ export default function NewInvoice() {
                       setActiveSuggestionIndex(-1);
                     } else { setShowSuggestions(false); }
                   }}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg p-1.5 lg:p-2 text-[9px] lg:text-[10px] font-black uppercase outline-none focus:border-ice-400/50 placeholder:text-white/5"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-lg p-1.5 lg:p-2 text-[9px] lg:text-[10px] font-black uppercase outline-none focus:border-ice-400/50 placeholder:text-slate-300 text-slate-700"
                   ref={nameRef}
                   onKeyDown={(e) => {
                     if (e.key === 'ArrowDown') {
@@ -500,11 +500,11 @@ export default function NewInvoice() {
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
                 {showSuggestions && filteredCustomers.length > 0 && (
-                  <div ref={customerSuggestionsRef} className="absolute z-[400] top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
+                  <div ref={customerSuggestionsRef} className="absolute z-[400] top-full left-0 w-full mt-1 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xl max-h-40 overflow-y-auto">
                     {filteredCustomers.map((c, index) => (
                       <div
                         key={index}
-                        className={`p-2 text-[9px] font-black uppercase cursor-pointer transition-colors ${index === activeSuggestionIndex ? 'bg-ice-400 text-ice-900' : 'hover:bg-white/5 text-white/70'}`}
+                        className={`p-2 text-[9px] font-black uppercase cursor-pointer transition-colors ${index === activeSuggestionIndex ? 'bg-ice-600 text-white' : 'hover:bg-slate-50 text-slate-700'}`}
                         onMouseDown={(e) => {
                           e.preventDefault(); setCustomerName(c.name); setCustomerPhone(c.phone || ""); setShowSuggestions(false); phoneRef.current?.focus();
                         }}
@@ -533,15 +533,17 @@ export default function NewInvoice() {
             </div>
 
             {/* PAIEMENT & VALIDATION (Ultra-Compact) */}
-            <div className="flex items-center gap-1.5 lg:gap-3 bg-black/40 p-1.5 lg:p-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-inner">
+            <div className="flex items-center gap-1.5 lg:gap-3 bg-slate-50 p-1.5 lg:p-2.5 rounded-xl lg:rounded-2xl border border-slate-100 shadow-inner">
               <div className="flex-1 flex items-center gap-1.5 lg:gap-3 px-1">
                 <div className="flex flex-col">
-                  <span className="text-[6.5px] lg:text-[8px] font-black uppercase text-white/20 italic leading-none">A Payer</span>
-                  <p className="text-lg lg:text-2xl font-black italic text-ice-400 tracking-tighter leading-none whitespace-nowrap">
-                    {Math.round(total).toLocaleString()} <span className="text-[9px] lg:text-[11px] not-italic opacity-40">F</span>
-                  </p>
+                  <span className="kpi-tertiary text-[6.5px] lg:text-[8px] leading-none">A Payer</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <p className="text-2xl lg:text-3xl font-black text-ice-600 tracking-tighter leading-none whitespace-nowrap">
+                      {Math.round(total).toLocaleString()} <span className="text-[9px] lg:text-[11px] not-italic opacity-40">F</span>
+                    </p>
+                  </div>
                 </div>
-                <div className="w-px h-5 lg:h-8 bg-white/10 mx-0.5" />
+                <div className="w-px h-5 lg:h-8 bg-slate-200 mx-0.5" />
                 <div className="flex-1 group">
                   <input
                     type="text"
@@ -555,7 +557,7 @@ export default function NewInvoice() {
                         toast.error(`MAX: ${total} F`);
                       } else { setAmountPaid(val); }
                     }}
-                    className="w-full bg-transparent border-none p-0 text-[13px] lg:text-[16px] font-black outline-none focus:ring-0 text-orange-400 placeholder:text-white/5 tracking-wider"
+                    className="w-full bg-transparent border-none p-0 text-[13px] lg:text-[16px] font-black outline-none focus:ring-0 text-orange-600 placeholder:text-slate-300 tracking-wider"
                     ref={amountRef}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') { e.preventDefault(); handleCheckout(); }
@@ -567,7 +569,7 @@ export default function NewInvoice() {
               <button
                 onClick={handleCheckout}
                 disabled={items.length === 0 || !isProfileComplete}
-                className={`h-10 lg:h-12 px-4 lg:px-6 rounded-lg lg:rounded-xl font-black uppercase text-[9px] lg:text-[11px] flex items-center justify-center gap-1.5 shadow-lg transition-all duration-500 ${(!isProfileComplete || items.length === 0) ? 'bg-white/5 text-white/10 cursor-not-allowed' : 'bg-ice-400 text-ice-900 active:scale-95 hover:bg-white hover:text-black'}`}
+                className={`h-10 lg:h-12 px-4 lg:px-6 rounded-lg lg:rounded-xl font-black uppercase text-[9px] lg:text-[11px] flex items-center justify-center gap-1.5 shadow-lg transition-all duration-500 ${(!isProfileComplete || items.length === 0) ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-slate-900 text-white active:scale-95 hover:bg-ice-600 shadow-xl'}`}
               >
                 <CheckCircle size={14} className="lg:w-[16px] lg:h-[16px]" /> {isProfileComplete ? "Confirmer" : "Erreur"}
               </button>
@@ -576,31 +578,31 @@ export default function NewInvoice() {
 
           <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
             {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-white/20 italic">
-                <ShoppingCart size={40} className="mb-3 opacity-50" />
-                <p className="text-xs uppercase font-bold tracking-widest">Votre panier est vide</p>
+              <div className="flex flex-col items-center justify-center h-full text-slate-200 italic">
+                <ShoppingCart size={40} className="mb-3 opacity-30" />
+                <p className="text-xs uppercase font-bold tracking-widest text-slate-300">Votre panier est vide</p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="text-[8px] uppercase font-black text-white/30 border-b border-white/10">
+                  <tr className="text-[8px] uppercase font-black text-slate-400 border-b border-slate-100">
                     <th className="py-1.5 pl-1">Produit</th>
                     <th className="py-1.5 text-center">Qté</th>
                     <th className="py-1.5 w-28">Prix</th>
                     <th className="py-1.5 text-right pr-1">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.03]">
+                <tbody className="divide-y divide-slate-50">
                   {items.map(item => (
-                    <tr key={item.productId} className="group hover:bg-white/[0.02] transition-all duration-300">
+                    <tr key={item.productId} className="group hover:bg-slate-50 transition-all duration-300">
                       <td className="py-1 lg:py-4 pl-1 lg:pl-4 max-w-[100px] lg:max-w-none">
-                        <div className="font-black text-[10px] lg:text-[13px] uppercase italic tracking-tighter leading-none text-white/90 truncate">{item.name}</div>
+                        <div className="font-black text-[10px] lg:text-[13px] uppercase italic tracking-tighter leading-none text-slate-700 truncate">{item.name}</div>
                       </td>
                       <td className="py-1 lg:py-4 text-center">
-                        <div className="flex items-center justify-center bg-black/40 rounded-lg lg:rounded-xl p-0.5 lg:p-1.5 w-fit mx-auto border border-white/5 overflow-hidden group-hover:border-white/20 transition-all">
-                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-0.5 lg:p-1 hover:text-white text-white/20 transition-colors"><Minus size={10} className="lg:w-3.5 lg:h-3.5" /></button>
-                          <span className="text-[10px] lg:text-[13px] font-black w-6 lg:w-10 text-center text-ice-400">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-0.5 lg:p-1 hover:text-white text-white/20 transition-colors"><Plus size={10} className="lg:w-3.5 lg:h-3.5" /></button>
+                        <div className="flex items-center justify-center bg-slate-100 rounded-lg lg:rounded-xl p-0.5 lg:p-1.5 w-fit mx-auto border border-slate-200 overflow-hidden group-hover:border-ice-400/30 transition-all">
+                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="p-0.5 lg:p-1 hover:text-slate-900 text-slate-300 transition-colors"><Minus size={10} className="lg:w-3.5 lg:h-3.5" /></button>
+                          <span className="text-[10px] lg:text-[13px] font-black w-6 lg:w-10 text-center text-ice-600">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="p-0.5 lg:p-1 hover:text-slate-900 text-slate-300 transition-colors"><Plus size={10} className="lg:w-3.5 lg:h-3.5" /></button>
                         </div>
                       </td>
                       <td className="py-1 lg:py-4">
@@ -610,13 +612,13 @@ export default function NewInvoice() {
                             value={item.price === 0 && !item.isPriceSet ? "" : item.price}
                             onChange={(e) => updatePrice(item.productId, e.target.value)}
                             placeholder="PRIX UNIT."
-                            className={`w-full bg-black/40 border ${item.price <= 0 ? 'border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.2)]' : 'border-white/5'} rounded-lg lg:rounded-xl px-2 py-1.5 lg:px-4 lg:py-2.5 text-[11px] lg:text-[13px] font-black italic text-white outline-none focus:border-ice-400 transition-all text-center placeholder:text-[8px] lg:placeholder:text-[10px] placeholder:font-black group-hover/price:border-white/20`}
+                            className={`w-full bg-slate-100 border ${item.price <= 0 ? 'border-red-300 shadow-[0_0_10px_rgba(239,68,68,0.1)]' : 'border-slate-100'} rounded-lg lg:rounded-xl px-2 py-1.5 lg:px-4 lg:py-2.5 text-[11px] lg:text-[13px] font-black italic text-slate-700 outline-none focus:border-ice-400 transition-all text-center placeholder:text-[8px] lg:placeholder:text-[10px] placeholder:font-black group-hover/price:border-slate-300`}
                             autoFocus={!item.isPriceSet}
                           />
                         </div>
                       </td>
                       <td className="py-1 lg:py-4 pr-2 lg:pr-6 text-right">
-                        <div className="text-[11px] lg:text-[16px] font-black italic text-ice-400 leading-none">{(item.price * item.quantity).toLocaleString()} <span className="text-[9px] not-italic opacity-30 ml-0.5">F</span></div>
+                        <div className="text-[11px] lg:text-[16px] font-black italic text-ice-600 leading-none">{(item.price * item.quantity).toLocaleString()} <span className="text-[9px] not-italic opacity-30 ml-0.5">F</span></div>
                       </td>
                     </tr>
                   ))}
@@ -630,18 +632,18 @@ export default function NewInvoice() {
       </div>
 
       {/* MOBILE FLOATING FOOTER (Only in Catalog Tab) */}
-      <div className={`fixed bottom-0 left-0 w-full p-4 bg-black/90 backdrop-blur-xl border-t border-white/10 lg:hidden flex justify-between items-center z-50 ${activeTab === 'cart' ? 'hidden' : ''}`}>
+      <div className={`fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-xl border-t border-slate-100 lg:hidden flex justify-between items-center z-50 ${activeTab === 'cart' ? 'hidden' : ''}`}>
         <div className="flex flex-col">
-          <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">Votre Panier</span>
+          <span className="text-[9px] text-slate-400 uppercase font-bold tracking-widest">Votre Panier</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-black text-white">{items.length} <span className="text-[10px] mobile-text">ARTICLES</span></span>
-            <span className="text-[10px] text-ice-400 font-bold">~ {total.toLocaleString()} F</span>
+            <span className="text-xl font-black text-slate-900">{items.length} <span className="text-[10px] mobile-text">ARTICLES</span></span>
+            <span className="text-[10px] text-ice-600 font-bold">~ {total.toLocaleString()} F</span>
           </div>
         </div>
         <button
           onClick={() => setActiveTab('cart')}
           disabled={items.length === 0}
-          className={`px-6 py-3 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 shadow-lg ${items.length === 0 ? 'bg-white/10 text-white/20' : 'bg-ice-400 text-ice-900 shadow-ice-400/20 animate-pulse'}`}
+          className={`px-8 py-4 rounded-xl font-black uppercase text-xs flex items-center gap-2 shadow-lg ${items.length === 0 ? 'bg-slate-100 text-slate-400' : 'bg-ice-600 text-white shadow-blue-900/10 animate-pulse'}`}
         >
           <span>Voir Panier</span>
           <ShoppingCart size={14} />
@@ -649,20 +651,20 @@ export default function NewInvoice() {
       </div>
       {/* SCANNER OVERLAY */}
       {showScanner && (
-        <div onClick={stopScanning} className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white/10 rounded-3xl p-6 border border-white/20 relative overflow-hidden">
+        <div onClick={stopScanning} className="fixed inset-0 z-[200] bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-white rounded-3xl p-6 border border-slate-100 relative overflow-hidden shadow-2xl">
             <button
               onClick={stopScanning}
-              className="absolute top-4 right-4 text-white/50 hover:text-white bg-black/50 rounded-full p-2"
+              className="absolute top-4 right-4 text-slate-300 hover:text-slate-900 bg-slate-100 rounded-full p-2"
             >
               <X size={24} />
             </button>
-            <h3 className="text-center font-black uppercase text-xl mb-6 text-ice-400">Scanner un produit</h3>
-            <div id="reader" className="w-full rounded-2xl overflow-hidden border-2 border-ice-400/30 shadow-[0_0_30px_rgba(0,242,255,0.2)] relative">
+            <h3 className="text-center font-black uppercase text-xl mb-6 text-ice-600">Scanner un produit</h3>
+            <div id="reader" className="w-full rounded-2xl overflow-hidden border-2 border-ice-600/30 shadow-[0_0_30px_rgba(2,132,199,0.1)] relative">
               {/* Flash Overlay */}
               <div className={`absolute inset-0 bg-white/30 z-10 transition-opacity duration-200 pointer-events-none ${scanFlash ? 'opacity-100' : 'opacity-0'}`} />
             </div>
-            <p className="text-center text-white/40 text-xs font-bold uppercase mt-6 tracking-widest">
+            <p className="text-center text-slate-400 text-xs font-bold uppercase mt-6 tracking-widest">
               Mode Rafale Actif ⚡
             </p>
           </div>

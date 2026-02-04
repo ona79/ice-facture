@@ -53,8 +53,8 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                         className="fixed top-4 left-6 md:left-10 z-[110] flex items-center gap-2 md:gap-3 whitespace-nowrap"
                     >
                         <Link to="/dashboard" className="flex items-center gap-2 md:gap-3 group pointer-events-auto">
-                            <div className="w-1 h-5 md:h-6 bg-ice-400 rounded-full shadow-[0_0_15px_rgba(0,242,255,0.6)] group-hover:scale-y-125 transition-transform" />
-                            <h2 className="text-sm md:text-lg font-black italic uppercase tracking-tighter text-white/90 drop-shadow-2xl group-hover:text-ice-400 transition-colors">
+                            <div className="w-1 h-5 md:h-6 bg-ice-600 rounded-full shadow-[0_0_15px_rgba(2,132,199,0.3)] group-hover:scale-y-125 transition-transform" />
+                            <h2 className="text-sm md:text-lg font-black italic uppercase tracking-tighter text-slate-900 drop-shadow-sm group-hover:text-ice-600 transition-colors">
                                 {shopName}
                             </h2>
                         </Link>
@@ -66,7 +66,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
             <div className="fixed top-4 right-4 z-[110] md:hidden flex items-center gap-3">
                 <button
                     onClick={() => setIsNavOpen(!isNavOpen)}
-                    className="p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white shadow-xl active:scale-95 transition-all"
+                    className="p-3 bg-white/80 backdrop-blur-md border border-slate-100 rounded-2xl text-slate-900 shadow-xl active:scale-95 transition-all"
                 >
                     {isNavOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
@@ -81,7 +81,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsNavOpen(false)}
-                            className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-xl md:hidden"
+                            className="fixed inset-0 z-[120] bg-slate-900/40 backdrop-blur-sm md:hidden"
                         />
 
                         {/* DRAWER RENDERER */}
@@ -90,7 +90,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed top-0 bottom-0 left-0 z-[130] w-[80%] max-w-[300px] bg-[#09090b] border-r border-white/5 flex flex-col p-8 rounded-tr-[3.5rem] rounded-br-[3.5rem] shadow-[20px_0_50px_rgba(0,0,0,0.5)] md:hidden"
+                            className="fixed top-0 bottom-0 left-0 z-[130] w-[80%] max-w-[300px] bg-white border-r border-slate-50 flex flex-col p-8 rounded-tr-[3.5rem] rounded-br-[3.5rem] shadow-2xl md:hidden"
                         >
                             {/* SHOP NAME HEADER */}
                             <motion.div
@@ -99,8 +99,8 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                                 transition={{ delay: 0.2 }}
                                 className="flex items-center gap-3 mb-14 mt-4 px-2"
                             >
-                                <div className="w-1.5 h-8 bg-ice-400 rounded-full shadow-[0_0_20px_rgba(0,242,255,0.6)]" />
-                                <h2 className="text-xl font-black italic uppercase tracking-tighter text-white drop-shadow-lg">
+                                <div className="w-1.5 h-8 bg-ice-600 rounded-full shadow-[0_0_20px_rgba(2,132,199,0.3)]" />
+                                <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-900 drop-shadow-sm">
                                     {shopName}
                                 </h2>
                             </motion.div>
@@ -120,7 +120,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                                                 to={item.path}
                                                 onClick={handleLinkClick}
                                                 className={({ isActive }) =>
-                                                    `flex items-center gap-5 px-6 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2rem] transition-all duration-500 font-black uppercase text-[10px] md:text-xs tracking-[0.2em] relative group ${isActive ? 'text-white' : 'text-white/20 hover:text-white/50'}`
+                                                    `flex items-center gap-5 px-6 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2rem] transition-all duration-500 font-black uppercase text-[10px] md:text-xs tracking-[0.2em] relative group ${isActive ? 'text-slate-900' : 'text-slate-300 hover:text-slate-500'}`
                                                 }
                                             >
                                                 {({ isActive }) => (
@@ -128,11 +128,11 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                                                         {isActive && (
                                                             <motion.div
                                                                 layoutId="mobile-active-bg"
-                                                                className="absolute inset-0 bg-gradient-to-r from-ice-400/20 to-transparent rounded-[1.5rem] md:rounded-[2rem] border border-ice-400/30 shadow-[0_0_20px_rgba(0,242,255,0.15)]"
+                                                                className="absolute inset-0 bg-ice-50 rounded-[1.5rem] md:rounded-[2rem] border border-ice-100 shadow-sm"
                                                                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                                                             />
                                                         )}
-                                                        <item.icon size={22} className={`${isActive ? 'text-ice-400' : 'text-white/10 group-hover:text-ice-400/40'} transition-colors relative z-10`} />
+                                                        <item.icon size={22} className={`${isActive ? 'text-ice-600' : 'text-slate-100 group-hover:text-ice-600/40'} transition-colors relative z-10`} />
                                                         <span className="relative z-10">{item.name}</span>
                                                     </>
                                                 )}
@@ -149,14 +149,14 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                                 transition={{ delay: 0.8 }}
                                 className="mt-auto pt-10"
                             >
-                                <div className="p-5 bg-white/[0.01] border border-white/5 rounded-[2.5rem] flex items-center justify-between">
+                                <div className="p-5 bg-slate-50 border border-slate-100 rounded-[2.5rem] flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_12px_#22c55e]' : 'bg-red-500 animate-pulse shadow-[0_0_12px_#ef4444]'}`} />
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                                                 {isOnline ? 'Système En Ligne' : 'Mode Hors-ligne'}
                                             </span>
-                                            <span className="text-[8px] font-bold text-white/20 uppercase">Sync automatique</span>
+                                            <span className="text-[8px] font-bold text-slate-300 uppercase">Sync automatique</span>
                                         </div>
                                     </div>
                                 </div>
@@ -168,13 +168,13 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
 
             {/* BARRE DE NAVIGATION DESKTOP */}
             <nav className="fixed top-4 left-0 right-0 z-50 hidden md:flex justify-center transition-all">
-                <div className="flex bg-[#1a1f26]/80 backdrop-blur-xl rounded-full p-1.5 border border-white/10 gap-0 shadow-2xl items-center">
+                <div className="flex bg-white/80 backdrop-blur-xl rounded-full p-1.5 border border-slate-100 gap-0 shadow-2xl items-center">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) =>
-                                `relative px-8 py-2.5 text-xs font-black transition-all duration-500 rounded-full whitespace-nowrap text-center uppercase tracking-widest ${isActive ? 'text-white' : 'text-white/40 hover:text-white/70'}`
+                                `relative px-8 py-2.5 text-xs font-black transition-all duration-500 rounded-full whitespace-nowrap text-center uppercase tracking-widest ${isActive ? 'text-slate-900' : 'text-slate-300 hover:text-slate-500'}`
                             }
                         >
                             {({ isActive }) => (
@@ -182,7 +182,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                                     {isActive && (
                                         <motion.div
                                             layoutId="nav-pill-desktop"
-                                            className="absolute inset-0 bg-white/10 rounded-full"
+                                            className="absolute inset-0 bg-slate-50 rounded-full"
                                             transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
@@ -192,11 +192,11 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
                         </NavLink>
                     ))}
 
-                    <div className="mx-4 h-4 w-px bg-white/10" />
+                    <div className="mx-4 h-4 w-px bg-slate-100" />
 
                     <div className="group relative pr-4">
                         <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]'}`} />
-                        <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 backdrop-blur-md rounded text-[8px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-tighter">
+                        <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 px-2 py-1 bg-white border border-slate-100 shadow-xl rounded text-[8px] font-black text-slate-900 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-tighter">
                             {isOnline ? 'Connecté' : 'Synchronisation...'}
                         </div>
                     </div>

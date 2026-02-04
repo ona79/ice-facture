@@ -23,7 +23,7 @@ ChartJS.register(
   Filler
 );
 
-export default function SalesChart({ invoices }) {
+export default function SalesChart({ invoices, lightTheme = false }) {
   // 1. On prépare les étiquettes des 7 derniers jours
   const last7Days = [...Array(7)].map((_, i) => {
     const d = new Date();
@@ -36,11 +36,16 @@ export default function SalesChart({ invoices }) {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     const dayString = d.toLocaleDateString('fr-FR');
-    
+
     return invoices
       .filter(inv => new Date(inv.createdAt).toLocaleDateString('fr-FR') === dayString)
       .reduce((sum, inv) => sum + inv.totalAmount, 0);
   });
+
+  const primaryColor = lightTheme ? '#0284c7' : '#22d3ee';
+  const areaColor = lightTheme ? 'rgba(2, 132, 199, 0.1)' : 'rgba(34, 211, 238, 0.1)';
+  const gridColor = lightTheme ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+  const textColor = lightTheme ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.3)';
 
   const data = {
     labels: last7Days,
@@ -49,11 +54,11 @@ export default function SalesChart({ invoices }) {
         fill: true,
         label: 'Ventes (FCFA)',
         data: dailyTotals,
-        borderColor: '#22d3ee', // Couleur Cyan
-        backgroundColor: 'rgba(34, 211, 238, 0.1)',
+        borderColor: primaryColor,
+        backgroundColor: areaColor,
         tension: 0.4,
         pointRadius: 4,
-        pointBackgroundColor: '#22d3ee',
+        pointBackgroundColor: primaryColor,
       },
     ],
   };
@@ -64,6 +69,12 @@ export default function SalesChart({ invoices }) {
     plugins: {
       legend: { display: false },
       tooltip: {
+        backgroundColor: lightTheme ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)',
+        titleColor: lightTheme ? '#0f172a' : '#ffffff',
+        bodyColor: lightTheme ? '#0f172a' : '#ffffff',
+        padding: 12,
+        cornerRadius: 12,
+        displayColors: false,
         callbacks: {
           label: (context) => `${context.raw.toLocaleString('fr-FR')} FCFA`
         }
@@ -72,12 +83,12 @@ export default function SalesChart({ invoices }) {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 10 } }
+        grid: { color: gridColor },
+        ticks: { color: textColor, font: { size: 10 } }
       },
       x: {
         grid: { display: false },
-        ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 10 } }
+        ticks: { color: textColor, font: { size: 10 } }
       }
     }
   };

@@ -147,16 +147,16 @@ export default function History() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-white font-sans"
+      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans"
     >
 
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div className="text-left">
-          <h1 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none">
-            Historique <span className="text-ice-400">/ Ventes</span>
+          <h1 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none text-slate-900">
+            Historique <span className="text-ice-600">/ Ventes</span>
           </h1>
-          <p className="text-ice-400/40 text-[9px] font-black uppercase tracking-[0.2em] mt-1 italic">Journal des transactions passées</p>
+          <p className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mt-1 italic">Journal des transactions passées</p>
         </div>
 
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
@@ -164,16 +164,16 @@ export default function History() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={exportToExcel}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 active:bg-white/20 px-4 py-2.5 rounded-2xl border border-white/5 transition-all text-[9px] font-black uppercase tracking-widest text-white/70"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:bg-slate-100 px-4 py-2.5 rounded-2xl border border-slate-100 transition-all text-[9px] font-black uppercase tracking-widest text-slate-600 shadow-sm shadow-blue-900/5"
           >
-            <Download size={14} className="text-ice-400" /> Excel
+            <Download size={14} className="text-ice-600" /> Excel
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/dashboard')}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/10 hover:bg-ice-400 hover:text-ice-900 active:scale-95 px-4 py-2.5 rounded-2xl border border-white/10 transition-all text-[9px] font-black uppercase tracking-widest"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white hover:bg-ice-600 hover:text-white active:scale-95 px-4 py-2.5 rounded-2xl border border-slate-100 transition-all text-[9px] font-black uppercase tracking-widest text-slate-900 shadow-sm shadow-blue-900/5"
           >
             <ArrowLeft size={14} /> Retour
           </motion.button>
@@ -182,45 +182,45 @@ export default function History() {
 
       {/* QUICK STATS (Ultra-Compact) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-        <div className="glass-card p-3 rounded-2xl bg-white/5 border-white/5">
-          <p className="text-[7px] font-black text-white/20 uppercase tracking-widest mb-1">Total Filtré</p>
-          {loading ? <Skeleton width="60px" height="15px" /> : <p className="text-lg font-black text-ice-400 italic leading-none">{filteredInvoices.length}</p>}
+        <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-lg shadow-blue-900/5">
+          <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Filtré</p>
+          {loading ? <Skeleton width="60px" height="15px" /> : <p className="text-lg font-black text-ice-600 italic leading-none">{filteredInvoices.length}</p>}
         </div>
-        <div className="glass-card p-3 rounded-2xl bg-white/5 border-white/5">
-          <p className="text-[7px] font-black text-white/20 uppercase tracking-widest mb-1">Valeur Totale</p>
-          {loading ? <Skeleton width="80px" height="15px" /> : <p className="text-lg font-black text-white leading-none">{filteredInvoices.reduce((a, b) => a + b.totalAmount, 0).toLocaleString()} <span className="text-[10px] opacity-30">F</span></p>}
+        <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-lg shadow-blue-900/5">
+          <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Valeur Totale</p>
+          {loading ? <Skeleton width="80px" height="15px" /> : <p className="text-lg font-black text-slate-900 leading-none">{filteredInvoices.reduce((a, b) => a + b.totalAmount, 0).toLocaleString()} <span className="text-[10px] opacity-30 italic font-black">F</span></p>}
         </div>
-        <div className="glass-card p-3 rounded-2xl bg-white/5 border-white/5">
-          <p className="text-[7px] font-black text-white/20 uppercase tracking-widest mb-1">Total Encaissé</p>
-          {loading ? <Skeleton width="80px" height="15px" /> : <p className="text-lg font-black text-green-400 leading-none">{filteredInvoices.reduce((a, b) => a + (b.amountPaid || 0), 0).toLocaleString()} <span className="text-[10px] opacity-30">F</span></p>}
+        <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-lg shadow-blue-900/5">
+          <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Encaissé</p>
+          {loading ? <Skeleton width="80px" height="15px" /> : <p className="text-lg font-black text-green-600 leading-none">{filteredInvoices.reduce((a, b) => a + (b.amountPaid || 0), 0).toLocaleString()} <span className="text-[10px] opacity-30 italic font-black">F</span></p>}
         </div>
-        <div className="glass-card p-3 rounded-2xl bg-red-500/5 border-red-500/10">
-          <p className="text-[7px] font-black text-red-500/40 uppercase tracking-widest mb-1">Dettes Clients</p>
-          {loading ? <Skeleton width="80px" height="15px" /> : <p className="text-lg font-black text-red-400 leading-none">{totalDettes.toLocaleString()} <span className="text-[10px] opacity-30">F</span></p>}
+        <div className="bg-red-50 p-3 rounded-2xl border border-red-100 shadow-lg shadow-red-900/5">
+          <p className="text-[7px] font-black text-red-400 uppercase tracking-widest mb-1">Dettes Clients</p>
+          {loading ? <Skeleton width="80px" height="15px" /> : <p className="text-lg font-black text-red-600 leading-none">{totalDettes.toLocaleString()} <span className="text-[10px] opacity-30 italic font-black">F</span></p>}
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2 w-full md:w-auto mb-8">
         <button
           onClick={() => setShowOnlyToday(!showOnlyToday)}
-          className={`action-btn-p px-4 py-2 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-1.5 ${showOnlyToday ? 'bg-ice-400 text-black border-ice-400 shadow-[0_0_15px_rgba(0,242,255,0.2)]' : 'bg-white/[0.03] border-white/10 text-white/40 hover:border-ice-400/40'}`}
+          className={`px-4 py-2 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-1.5 shadow-sm ${showOnlyToday ? 'bg-ice-600 text-white border-ice-600 shadow-ice-900/10' : 'bg-white border-slate-100 text-slate-400 hover:border-ice-400/40'}`}
         >
-          <Clock size={12} className={showOnlyToday ? 'text-black' : 'text-ice-400'} /> Aujourd'hui
+          <Clock size={12} className={showOnlyToday ? 'text-white' : 'text-ice-600'} /> Aujourd'hui
         </button>
         <button
           onClick={() => setShowOnlyDebts(!showOnlyDebts)}
-          className={`action-btn-p px-4 py-2 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-1.5 ${showOnlyDebts ? 'bg-orange-500 text-white border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.2)]' : 'bg-white/[0.03] border-white/10 text-white/40 hover:border-orange-500/40'}`}
+          className={`px-4 py-2 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-1.5 shadow-sm ${showOnlyDebts ? 'bg-orange-500 text-white border-orange-500 shadow-orange-900/10' : 'bg-white border-slate-100 text-slate-400 hover:border-orange-500/40'}`}
         >
-          <ListFilter size={12} className={showOnlyDebts ? 'text-white' : 'text-orange-400'} /> Dettes
+          <ListFilter size={12} className={showOnlyDebts ? 'text-white' : 'text-orange-500'} /> Dettes
         </button>
         <div className="relative flex-1 md:w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={12} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={12} />
           <input
             type="text"
             placeholder="RECHERCHE..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-2 pl-9 text-[9px] font-black uppercase tracking-widest outline-none focus:border-ice-400 transition-all placeholder:text-white/10"
+            className="w-full bg-white border border-slate-100 rounded-xl py-2 pl-9 text-[9px] font-black uppercase tracking-widest outline-none focus:border-ice-400 transition-all placeholder:text-slate-200 text-slate-700 shadow-sm"
           />
         </div>
       </div>
@@ -246,32 +246,32 @@ export default function History() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={inv._id}
-                  className="glass-card p-4 rounded-3xl border border-white/5 bg-white/[0.02] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group"
+                  className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group shadow-sm shadow-blue-900/5 hover:shadow-xl transition-all"
                 >
                   <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="p-3 bg-white/5 rounded-2xl text-ice-400 group-hover:bg-ice-400 group-hover:text-black transition-all">
+                    <div className="p-3 bg-slate-50 rounded-2xl text-ice-600 group-hover:bg-ice-600 group-hover:text-white transition-all">
                       <FileText size={18} />
                     </div>
                     <div className="text-left flex-1">
-                      <h4 className="font-black text-xs uppercase tracking-tight text-white/90 truncate max-w-[150px]">{displayNum}</h4>
+                      <h4 className="font-black text-xs uppercase tracking-tight text-slate-700 truncate max-w-[150px]">{displayNum}</h4>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[8px] font-black uppercase text-white/30 tracking-widest flex items-center gap-1">
+                        <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-1">
                           <User size={8} /> {inv.customerName || "Passager"}
                         </span>
-                        <span className="text-[8px] font-black uppercase text-white/20 tracking-widest flex items-center gap-1">
+                        <span className="text-[8px] font-black uppercase text-slate-300 tracking-widest flex items-center gap-1">
                           <Clock size={8} /> {new Date(inv.createdAt).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between w-full md:w-auto md:gap-8 bg-black/20 p-2 md:p-0 rounded-2xl md:bg-transparent">
+                  <div className="flex items-center justify-between w-full md:w-auto md:gap-8 bg-slate-50 p-2 md:p-0 rounded-2xl md:bg-transparent">
                     <div className="text-right flex flex-col items-end">
-                      <p className="text-lg font-black text-ice-400 italic leading-none">{inv.totalAmount.toLocaleString()} <span className="text-[10px] not-italic opacity-30">F</span></p>
+                      <p className="text-lg font-black text-ice-600 italic leading-none">{inv.totalAmount.toLocaleString()} <span className="text-[10px] not-italic opacity-30 italic font-black">F</span></p>
                       {isDette ? (
                         <span className="text-[8px] font-black uppercase text-red-500 animate-pulse mt-1">Dette: {(inv.totalAmount - (inv.amountPaid || 0)).toLocaleString()} F</span>
                       ) : (
-                        <span className="text-[8px] font-black uppercase text-green-500 mt-1">Soldé</span>
+                        <span className="text-[8px] font-black uppercase text-green-600 mt-1">Soldé</span>
                       )}
                     </div>
 
@@ -280,7 +280,7 @@ export default function History() {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setModalDetail({ show: true, invoice: inv })}
-                        className="p-2.5 bg-white/5 text-white/40 hover:text-ice-400 hover:bg-white/10 rounded-xl transition-all border border-white/5"
+                        className="p-2.5 bg-white text-slate-400 hover:text-ice-600 hover:bg-slate-50 rounded-xl transition-all border border-slate-100 shadow-sm"
                       >
                         <Eye size={16} />
                       </motion.button>
@@ -288,7 +288,7 @@ export default function History() {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => handleWhatsApp(inv)}
-                        className="p-2.5 bg-green-500/10 text-green-500/50 hover:text-green-500 hover:bg-green-500/20 rounded-xl transition-all border border-green-500/10"
+                        className="p-2.5 bg-green-50 text-green-600/50 hover:text-green-600 hover:bg-green-100 rounded-xl transition-all border border-green-100 shadow-sm"
                       >
                         <MessageCircle size={16} />
                       </motion.button>
@@ -297,7 +297,7 @@ export default function History() {
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setModalPay({ show: true, invoice: inv })}
-                          className="p-2.5 bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white rounded-xl transition-all border border-orange-500/20"
+                          className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all border border-orange-100 shadow-sm"
                         >
                           <Banknote size={16} />
                         </motion.button>
@@ -307,7 +307,7 @@ export default function History() {
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setModalDelete({ show: true, id: inv._id, num: displayNum })}
-                          className="p-2.5 bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-red-500/5"
+                          className="p-2.5 bg-red-50 text-red-600/30 hover:text-red-600 hover:bg-red-600 hover:text-white rounded-xl transition-all border border-red-100 shadow-sm"
                         >
                           <Trash2 size={16} />
                         </motion.button>
@@ -318,32 +318,35 @@ export default function History() {
               );
             })
           ) : (
-            <div className="text-center py-20 bg-white/[0.01] rounded-[3rem] border border-dashed border-white/5">
-              <FileText size={40} className="mx-auto text-white/5 mb-4" />
-              <p className="text-white/20 text-xs font-black uppercase tracking-widest">Aucune facture trouvée</p>
+            <div className="text-center py-20 bg-slate-50 rounded-[3rem] border border-dashed border-slate-200">
+              <FileText size={40} className="mx-auto text-slate-200 mb-4" />
+              <p className="text-slate-400 text-xs font-black uppercase tracking-widest">Aucune facture trouvée</p>
             </div>
           )
         )}
       </div>
 
       {modalDelete.show && (
-        <div onClick={() => setModalDelete({ show: false })} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[3rem] border-red-500/20 relative shadow-2xl text-center">
-            <button onClick={() => setModalDelete({ show: false })} className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"><X size={20} /></button>
-            <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl mb-4 inline-block"><Lock size={32} /></div>
-            <h3 className="text-xl font-black italic uppercase mb-2">Confirmer Suppression</h3>
-            <p className="text-[10px] font-black uppercase text-white/20 mb-8">{modalDelete.num}</p>
+        <div onClick={() => setModalDelete({ show: false })} className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white w-full max-w-sm p-8 rounded-[3rem] border border-slate-100 relative shadow-2xl text-center">
+            <button onClick={() => setModalDelete({ show: false })} className="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors"><X size={20} /></button>
+            <div className="p-4 bg-red-50 text-red-600 rounded-2xl mb-4 inline-block"><Lock size={32} /></div>
+            <h3 className="text-xl font-black italic uppercase mb-2 text-slate-900">Confirmer Suppression</h3>
+            <p className="text-[10px] font-black uppercase text-slate-300 mb-8">{modalDelete.num}</p>
             <form onSubmit={handleDeleteInvoice} className="space-y-4">
-              <IceInput
-                label="Mot de passe admin requis"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="text-left mb-4">
+                <p className="text-[10px] font-black uppercase text-slate-400 mb-2 ml-2">Mot de passe admin requis</p>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-slate-900 outline-none focus:border-red-500 transition-all font-black text-center shadow-inner"
+                  required
+                />
+              </div>
               <button
                 type="submit"
-                className="w-full py-5 rounded-2xl font-black bg-red-500 text-white uppercase text-xs active:scale-95 transition-all shadow-lg shadow-red-500/20"
+                className="w-full py-5 rounded-2xl font-black bg-red-600 text-white uppercase text-xs active:scale-95 transition-all shadow-lg shadow-red-900/10"
               >
                 Supprimer Définitivement
               </button>
@@ -359,30 +362,30 @@ export default function History() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
           >
             <motion.div
               onClick={(e) => e.stopPropagation()}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-card w-full max-w-md p-6 rounded-[2rem] border-white/10 relative shadow-2xl"
+              className="bg-white w-full max-w-md p-6 rounded-[2rem] border border-slate-100 relative shadow-2xl"
             >
               <button
                 onClick={() => setModalDetail({ show: false })}
-                className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors"
+                className="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors"
               >
                 <X size={20} />
               </button>
 
               <div className="mb-6">
-                <h3 className="text-xl font-black italic uppercase tracking-tighter text-ice-400">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
+                <h3 className="text-xl font-black italic uppercase tracking-tighter text-ice-600">{formatInvoiceDisplay(modalDetail.invoice)}</h3>
                 <div className="flex flex-col gap-1 mt-1">
-                  <p className="text-[10px] font-black uppercase text-white/70 tracking-[0.1em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
+                  <p className="text-[10px] font-black uppercase text-slate-700 tracking-[0.1em]">{modalDetail.invoice.customerName || "Client Passager"}</p>
                   {modalDetail.invoice.customerPhone && (
-                    <p className="text-[9px] font-bold text-ice-400/60 uppercase">Tél: {modalDetail.invoice.customerPhone}</p>
+                    <p className="text-[9px] font-bold text-ice-600/60 uppercase">Tél: {modalDetail.invoice.customerPhone}</p>
                   )}
-                  <p className="text-[8px] font-medium text-white/30 uppercase tracking-widest">
+                  <p className="text-[8px] font-medium text-slate-400 uppercase tracking-widest">
                     {new Date(modalDetail.invoice.createdAt).toLocaleString('fr-FR', {
                       day: '2-digit', month: '2-digit', year: 'numeric',
                       hour: '2-digit', minute: '2-digit'
@@ -391,18 +394,18 @@ export default function History() {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] max-h-[40vh] overflow-y-auto custom-scrollbar">
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 max-h-[40vh] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-white/5 text-[9px] font-black uppercase text-ice-400/50 sticky top-0 backdrop-blur-md z-10">
+                  <thead className="bg-white text-[9px] font-black uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10 border-b border-slate-100">
                     <tr>
                       <th className="p-3 text-left">Article</th>
                       <th className="p-3 text-center">Qté</th>
                       <th className="p-3 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="text-xs font-bold uppercase tracking-tight">
+                  <tbody className="text-xs font-bold uppercase tracking-tight text-slate-700">
                     {modalDetail.invoice.items.map((item, idx) => (
-                      <tr key={idx} className="border-t border-white/5 hover:bg-white/[0.02]">
+                      <tr key={idx} className="border-t border-slate-100 hover:bg-white transition-colors">
                         <td className="p-3 max-w-[120px] truncate">{item.name}</td>
                         <td className="p-3 text-center">{item.quantity}</td>
                         <td className="p-3 text-right">{(item.price * item.quantity).toLocaleString()} F</td>
@@ -412,14 +415,14 @@ export default function History() {
                 </table>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-end">
+              <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between items-end">
                 <div className="text-left">
-                  <p className="text-[8px] font-black uppercase text-white/20 mb-1">Total Facture</p>
-                  <p className="text-3xl font-black italic text-ice-400 leading-none">{modalDetail.invoice.totalAmount.toLocaleString()} F</p>
+                  <p className="text-[8px] font-black uppercase text-slate-300 mb-1">Total Facture</p>
+                  <p className="text-3xl font-black italic text-ice-600 leading-none">{modalDetail.invoice.totalAmount.toLocaleString()} <span className="text-xs not-italic font-black opacity-30">F</span></p>
                 </div>
                 <button
                   onClick={() => generatePDF({ ...modalDetail.invoice, invoiceNumber: formatInvoiceDisplay(modalDetail.invoice) })}
-                  className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-black uppercase text-[10px] hover:scale-105 transition-all shadow-xl"
+                  className="flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-full font-black uppercase text-xs hover:scale-105 transition-all shadow-xl"
                 >
                   <Printer size={16} /> Imprimer
                 </button>
@@ -430,17 +433,27 @@ export default function History() {
       </AnimatePresence>
 
       {modalPay.show && (
-        <div onClick={() => setModalPay({ show: false })} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
-          <div onClick={(e) => e.stopPropagation()} className="glass-card w-full max-w-sm p-8 rounded-[3rem] border-orange-500/20 relative shadow-2xl bg-black">
-            <button onClick={() => setModalPay({ show: false })} className="absolute top-6 right-6 text-white/20"><X size={20} /></button>
+        <div onClick={() => setModalPay({ show: false })} className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white w-full max-w-sm p-8 rounded-[3rem] border border-orange-100 relative shadow-2xl">
+            <button onClick={() => setModalPay({ show: false })} className="absolute top-6 right-6 text-slate-300"><X size={20} /></button>
             <div className="text-center mb-6">
-              <div className="p-4 bg-orange-500/10 text-orange-500 rounded-2xl inline-block mb-3"><Banknote size={32} /></div>
-              <h3 className="text-xl font-black italic uppercase">{modalPay.invoice.customerName || 'Client'}</h3>
-              <p className="text-white/40 text-[10px] uppercase font-black tracking-widest mt-2 italic">Reste : <span className="text-orange-500">{(modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0)).toLocaleString()} F</span></p>
+              <div className="p-4 bg-orange-50 text-orange-600 rounded-2xl inline-block mb-3 shadow-inner"><Banknote size={32} /></div>
+              <h3 className="text-xl font-black italic uppercase text-slate-900">{modalPay.invoice.customerName || 'Client'}</h3>
+              <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mt-2 italic">Reste : <span className="text-orange-600 font-black">{(modalPay.invoice.totalAmount - (modalPay.invoice.amountPaid || 0)).toLocaleString()} F</span></p>
             </div>
             <form onSubmit={handleSettleDebt} className="space-y-4">
-              <IceInput type="number" value={modalPay.amount} onChange={(e) => setModalPay({ ...modalPay, amount: e.target.value })} placeholder="MONTANT À PAYER..." required />
-              <button type="submit" className="w-full py-5 bg-orange-500 text-white rounded-2xl font-black uppercase text-[12px] shadow-lg shadow-orange-500/30 active:scale-95 transition-all">Enregistrer le paiement</button>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase text-slate-400 ml-2">Montant à payer</p>
+                <input
+                  type="number"
+                  value={modalPay.amount}
+                  onChange={(e) => setModalPay({ ...modalPay, amount: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 text-slate-900 outline-none focus:border-orange-500 transition-all font-black text-center shadow-inner"
+                  placeholder="EX: 5000"
+                  required
+                />
+              </div>
+              <button type="submit" className="w-full py-5 bg-orange-600 text-white rounded-2xl font-black uppercase text-[12px] shadow-lg shadow-orange-900/10 active:scale-95 transition-all">Enregistrer le paiement</button>
             </form>
           </div>
         </div>

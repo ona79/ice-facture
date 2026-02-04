@@ -9,27 +9,33 @@ body {
 }
 
 body {
-  @apply bg-[#05070a] text-white min-h-screen font-sans antialiased;
-  background-image: radial-gradient(circle at 50% -20%, #1a2a47 0%, #05070a 80%);
+  @apply bg-[#f8fafc] text-[#0f172a] min-h-screen font-sans antialiased;
+  background-image: radial-gradient(circle at 50% -20%, #e2e8f0 0%, #f8fafc 80%);
   background-attachment: fixed;
   overflow-x: hidden;
+  font-size: 15px;
+  /* Augmentation de la taille de base pour meilleure lisibilité */
   /* Prevent pull-to-refresh on mobile */
   overscroll-behavior: none;
 }
 
-/* Carte Glassmorphism Premium */
+/* Carte Glassmorphism Premium - Mode Clair */
 .glass-card {
-  @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 shadow-2xl;
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgb(219, 234, 254);
+  box-shadow: 0 8px 32px rgba(148, 163, 184, 0.1);
 }
 
-/* Boutons d'action style eFootball */
+/* Boutons d'action style eFootball - Mode Clair */
 .action-btn {
-  @apply flex flex-col items-center justify-center gap-2 p-4 rounded-3xl transition-all duration-300 relative overflow-hidden;
+  @apply flex flex-col items-center justify-center gap-2 p-4 rounded-3xl transition-all duration-300 relative overflow-hidden bg-white shadow-sm border border-slate-100;
 }
 
 .action-btn::after {
   content: '';
-  @apply absolute inset-0 opacity-0 transition-opacity duration-300 bg-white/10;
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300 bg-slate-500/5;
 }
 
 .action-btn:hover::after {
@@ -50,11 +56,11 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-white/5 rounded-full;
+  @apply bg-slate-200 rounded-full;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/20;
+  @apply bg-slate-300;
 }
 
 /* Animations d'entrée */
@@ -68,6 +74,87 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ========================================
+   SYSTÈME DE HIÉRARCHIE VISUELLE (3 NIVEAUX)
+   ======================================== */
+
+/* NIVEAU 1 : PRIMAIRE (Décisionnel - KPI critiques) */
+.kpi-primary {
+  @apply text-3xl font-black text-slate-900 leading-tight;
+}
+
+.kpi-primary-lg {
+  @apply text-4xl font-black text-slate-900 leading-tight;
+}
+
+/* NIVEAU 2 : SECONDAIRE (Contextuel - Labels importants) */
+.kpi-secondary {
+  @apply text-base font-bold text-slate-700;
+}
+
+/* NIVEAU 3 : TERTIAIRE (Métadonnées - Infos secondaires) */
+.kpi-tertiary {
+  @apply text-xs font-medium text-slate-500 uppercase;
+}
+
+.kpi-unit {
+  @apply text-sm font-medium text-slate-500;
+}
+
+/* ========================================
+   COMPOSANTS STANDARDISÉS
+   ======================================== */
+
+/* BOUTONS */
+.btn-primary {
+  @apply px-8 py-4 bg-ice-600 text-white text-sm font-black uppercase rounded-2xl hover:scale-105 transition-all shadow-xl shadow-ice-900/10 min-h-[48px] flex items-center justify-center gap-2;
+}
+
+.btn-secondary {
+  @apply px-6 py-3 bg-white text-slate-700 text-xs font-bold uppercase rounded-xl border border-slate-200 hover:bg-slate-50 transition-all min-h-[44px] flex items-center justify-center gap-2;
+}
+
+.btn-ghost {
+  @apply px-4 py-2 text-slate-500 text-xs font-medium hover:text-slate-700 transition-colors min-h-[40px];
+}
+
+/* INPUTS */
+.input-standard {
+  @apply py-4 px-4 text-sm font-medium text-slate-900 bg-white border-2 border-slate-200 rounded-xl outline-none transition-all placeholder:text-slate-400;
+}
+
+.input-standard:focus {
+  @apply border-ice-600;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.input-error {
+  @apply border-red-500;
+}
+
+.input-error:focus {
+  @apply border-red-500;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+/* CARDS KPI */
+.card-kpi-primary {
+  @apply bg-white p-6 rounded-2xl border-2 border-ice-100 shadow-lg;
+}
+
+.card-kpi-secondary {
+  @apply bg-white p-4 rounded-xl border border-slate-100 shadow-sm;
+}
+
+/* ESPACEMENT OPTIMISÉ */
+.gap-optimal {
+  @apply gap-6;
+}
+
+.gap-optimal-sm {
+  @apply gap-5;
 }
 
 .animate-slide-up {
