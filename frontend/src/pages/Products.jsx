@@ -97,7 +97,7 @@ export default function Products() {
 
   const isNameInvalid = newProduct.name !== "" && /^\d+$/.test(newProduct.name);
   const isStockInvalid = newProduct.stock !== "" && (isNaN(newProduct.stock) || Number(newProduct.stock) < 0);
-  const isFormValid = newProduct.name && newProduct.stock && !isNameInvalid && !isStockInvalid;
+  const isFormValid = newProduct.name && newProduct.stock && parseInt(newProduct.stock) > 0 && !isNameInvalid && !isStockInvalid;
 
   useEffect(() => {
     if (isUnlocked) fetchProducts();
@@ -274,10 +274,10 @@ export default function Products() {
 
       {localStorage.getItem('role') === 'admin' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          <div className="md:col-span-2 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl relative overflow-hidden">
+          <div className="md:col-span-2 bg-white p-4 rounded-[2.5rem] border border-slate-100 shadow-xl relative overflow-hidden">
             <div className="flex items-center gap-2 mb-6 px-2">
               <Plus size={16} className="text-pink-600" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-600 italic">Ajouter un Article</h3>
+              <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-pink-600 italic">Ajouter un Article</h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -353,19 +353,20 @@ export default function Products() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={startScanning}
-                className="w-16 flex items-center justify-center bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-[1.5rem] text-pink-600 transition-all shadow-sm shadow-blue-900/5"
+                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-[1.5rem] px-4 py-3 text-pink-600 transition-all shadow-sm shadow-blue-900/5"
               >
-                <Scan size={20} />
+                <Scan size={18} />
+                <span className="text-[9px] font-black uppercase tracking-wider">Scanner le code barre</span>
               </motion.button>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-3xl border border-pink-100 bg-pink-50/10 flex flex-col justify-center items-center text-center shadow-lg shadow-pink-900/5">
-            <div className="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center mb-2 text-pink-600">
-              <Package size={24} />
+          <div className="bg-white p-3 rounded-3xl border border-pink-100 bg-pink-50/10 flex flex-col justify-center items-center text-center shadow-lg shadow-pink-900/5">
+            <div className="w-10 h-10 bg-pink-50 rounded-2xl flex items-center justify-center mb-1.5 text-pink-600">
+              <Package size={20} />
             </div>
-            <p className="text-[8px] font-black uppercase tracking-widest text-pink-400">Total Articles</p>
-            {loading ? <Skeleton width="40px" height="20px" className="mt-1" /> : <p className="text-2xl font-black italic text-pink-600">{products.length}</p>}
+            <p className="text-[7px] font-black uppercase tracking-widest text-pink-400">Total Articles</p>
+            {loading ? <Skeleton width="30px" height="18px" className="mt-1" /> : <p className="text-xl font-black italic text-pink-600">{products.length}</p>}
           </div>
         </div>
       )}

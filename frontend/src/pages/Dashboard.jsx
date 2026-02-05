@@ -123,8 +123,8 @@ export default function Dashboard() {
           const aHasDebt = a.debt > 0;
           const bHasDebt = b.debt > 0;
           if (aHasDebt !== bHasDebt) return aHasDebt ? 1 : -1;
-          if (aHasDebt && bHasDebt) return a.debt - b.debt;
-          return b.spent - a.spent;
+          if (aHasDebt && bHasDebt) return b.debt - a.debt; // Plus grande dette en premier
+          return b.spent - a.spent; // Plus gros montant dépensé en premier
         })
         .map(([name, data]) => [name, data.spent])
         .slice(0, 3);
@@ -325,7 +325,7 @@ export default function Dashboard() {
                 </div>
               )}
               <div className="card-kpi-secondary min-w-[100px]">
-                <p className="kpi-tertiary mb-1">Opérations</p>
+                <p className="kpi-tertiary mb-1">Nombre de ventes</p>
                 {loading ? <Skeleton width="40px" height="20px" className="mt-1" /> : <p className="kpi-secondary">{stats.count}</p>}
               </div>
             </div>
