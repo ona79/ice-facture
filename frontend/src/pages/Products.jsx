@@ -216,14 +216,14 @@ export default function Products() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
-      <div className="flex justify-end items-center mb-8">
+    <div className="max-w-7xl mx-auto pt-16 md:pt-20 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
+      <div className="flex justify-end items-center mb-4">
         <div className="flex items-center gap-2 text-green-600 font-black text-[10px] uppercase italic">
           <Unlock size={12} /> Accès Autorisé
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pt-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pt-2">
         <div className="text-left">
           <h1 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none text-slate-900">
             Stock <span className="text-pink-600">/ Produits</span>
@@ -236,7 +236,7 @@ export default function Products() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/dashboard')}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white hover:bg-pink-600 hover:text-white px-6 py-4 rounded-2xl border border-slate-100 transition-all text-xs font-black uppercase tracking-widest shadow-sm shadow-blue-900/5"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white hover:bg-pink-600 hover:text-white px-5 py-2.5 rounded-xl border border-slate-100 transition-all text-xs font-black uppercase tracking-widest shadow-sm shadow-blue-900/5"
           >
             <ArrowLeft size={16} /> Retour
           </motion.button>
@@ -273,18 +273,18 @@ export default function Products() {
       )}
 
       {localStorage.getItem('role') === 'admin' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          <div className="md:col-span-2 bg-white p-4 rounded-[2.5rem] border border-slate-100 shadow-xl relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-6 px-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="md:col-span-2 bg-white p-4 rounded-3xl border border-slate-100 shadow-lg relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-4 px-1">
               <Plus size={16} className="text-pink-600" />
               <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-pink-600 italic">Ajouter un Article</h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <p className="text-[8px] font-black uppercase text-slate-400 ml-2 tracking-widest">Désignation</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <p className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Désignation</p>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-slate-50 rounded-lg text-pink-500/50 group-focus-within:text-pink-600 transition-colors">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 bg-slate-50 rounded text-pink-500/50 group-focus-within:text-pink-600 transition-colors">
                     <Package size={14} />
                   </div>
                   <input
@@ -296,17 +296,17 @@ export default function Products() {
                       setNewProduct(prev => ({ ...prev, name: e.target.value.toUpperCase() }));
                       if (e.target.value.length > 1) setShowSuggestions(true);
                     }}
-                    className={`w-full bg-slate-50 border ${isNameInvalid ? 'border-red-500/50' : 'border-slate-100'} rounded-2xl py-4 pl-14 pr-4 text-sm font-black uppercase tracking-widest outline-none focus:border-pink-500/50 transition-all placeholder:text-slate-300 text-slate-700 shadow-inner`}
+                    className={`w-full bg-slate-50 border ${isNameInvalid ? 'border-red-500/50' : 'border-slate-100'} rounded-xl py-2.5 pl-10 pr-3 text-xs font-black uppercase tracking-widest outline-none focus:border-pink-500/50 transition-all placeholder:text-slate-300 text-slate-700 shadow-inner`}
                   />
                   {showSuggestions && newProduct.name.length > 0 && products.some(p => p.name.includes(newProduct.name)) && (
-                    <div ref={suggestionsRef} className="absolute z-[150] left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto backdrop-blur-xl">
+                    <div ref={suggestionsRef} className="absolute z-[150] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xl max-h-48 overflow-y-auto backdrop-blur-xl">
                       {products
                         .filter(p => p.name.includes(newProduct.name))
                         .slice(0, 5)
                         .map((p) => (
                           <div
                             key={p._id}
-                            className="p-3 text-[9px] font-black uppercase cursor-pointer hover:bg-pink-600 hover:text-white transition-colors text-slate-600 border-b border-slate-50 last:border-0"
+                            className="p-2.5 text-[9px] font-black uppercase cursor-pointer hover:bg-pink-600 hover:text-white transition-colors text-slate-600 border-b border-slate-50 last:border-0"
                             onMouseDown={() => {
                               setNewProduct({ ...newProduct, name: p.name });
                               setShowSuggestions(false);
@@ -320,10 +320,10 @@ export default function Products() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <p className="text-[8px] font-black uppercase text-slate-400 ml-2 tracking-widest">Quantité Initiale</p>
+              <div className="space-y-1">
+                <p className="text-[8px] font-black uppercase text-slate-400 ml-1 tracking-widest">Quantité Initiale</p>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-slate-50 rounded-lg text-pink-500/50 group-focus-within:text-pink-600 transition-colors">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 bg-slate-50 rounded text-pink-500/50 group-focus-within:text-pink-600 transition-colors">
                     <Plus size={14} />
                   </div>
                   <input
@@ -332,57 +332,55 @@ export default function Products() {
                     placeholder="QUANTITÉ"
                     value={newProduct.stock}
                     onChange={(e) => setNewProduct(prev => ({ ...prev, stock: e.target.value }))}
-                    className={`w-full bg-slate-50 border ${isStockInvalid ? 'border-red-500/50' : 'border-slate-100'} rounded-2xl py-4 pl-14 pr-4 text-sm font-black uppercase tracking-widest outline-none focus:border-pink-500/50 transition-all placeholder:text-slate-300 text-slate-700 shadow-inner`}
+                    className={`w-full bg-slate-50 border ${isStockInvalid ? 'border-red-500/50' : 'border-slate-100'} rounded-xl py-2.5 pl-10 pr-3 text-xs font-black uppercase tracking-widest outline-none focus:border-pink-500/50 transition-all placeholder:text-slate-300 text-slate-700 shadow-inner`}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-2 mt-4">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={addProduct}
                 disabled={!isFormValid}
-                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.5rem] font-black uppercase text-xs tracking-widest transition-all duration-500 shadow-lg ${isFormValid ? 'bg-pink-600 text-white hover:bg-slate-900 shadow-pink-900/10' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-black uppercase text-xs tracking-widest transition-all duration-300 shadow-md ${isFormValid ? 'bg-pink-600 text-white hover:bg-slate-900' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
               >
-                <Plus size={18} /> Enregistrer
+                <Plus size={16} /> Enregistrer
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={startScanning}
-                className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-[1.5rem] px-4 py-3 text-pink-600 transition-all shadow-sm shadow-blue-900/5"
+                className="flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-xl px-3 py-2 text-pink-600 transition-all shadow-sm"
               >
-                <Scan size={18} />
-                <span className="text-[9px] font-black uppercase tracking-wider">Scanner le code barre</span>
+                <Scan size={16} />
+                <span className="text-[9px] font-black uppercase tracking-wider">Scanner</span>
               </motion.button>
             </div>
           </div>
 
-          <div className="bg-white p-3 rounded-3xl border border-pink-100 bg-pink-50/10 flex flex-col justify-center items-center text-center shadow-lg shadow-pink-900/5">
-            <div className="w-10 h-10 bg-pink-50 rounded-2xl flex items-center justify-center mb-1.5 text-pink-600">
-              <Package size={20} />
+          <div className="bg-white p-3 rounded-2xl border border-pink-100 bg-pink-50/10 flex flex-col justify-center items-center text-center shadow-md">
+            <div className="w-8 h-8 bg-pink-50 rounded-xl flex items-center justify-center mb-1 text-pink-600">
+              <Package size={18} />
             </div>
             <p className="text-[7px] font-black uppercase tracking-widest text-pink-400">Total Articles</p>
-            {loading ? <Skeleton width="30px" height="18px" className="mt-1" /> : <p className="text-xl font-black italic text-pink-600">{products.length}</p>}
+            {loading ? <Skeleton width="30px" height="18px" className="mt-1" /> : <p className="text-lg font-black italic text-pink-600">{products.length}</p>}
           </div>
         </div>
       )}
 
       {/* PRODUCTS GRID */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 px-2">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 px-1">
           <div className="w-1.5 h-4 bg-pink-600 rounded-full" />
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 italic">Liste du Stock</h3>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 pb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 lg:gap-3 pb-10">
           {loading ? (
             <>
-              <ProductSkeleton />
-              <ProductSkeleton />
               <ProductSkeleton />
               <ProductSkeleton />
               <ProductSkeleton />
@@ -396,23 +394,23 @@ export default function Products() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ y: -5 }}
+                  whileHover={{ y: -3 }}
                   key={p._id}
-                  className="p-3 lg:p-5 rounded-[1.2rem] lg:rounded-[2rem] bg-white border border-blue-50 flex flex-col justify-between items-start group relative overflow-hidden transition-all duration-500 hover:border-pink-500/30 hover:shadow-xl lg:min-h-[120px] shadow-sm shadow-blue-900/5"
+                  className="p-2.5 lg:p-3 rounded-xl lg:rounded-2xl bg-white border border-blue-50 flex flex-col justify-between items-start group relative overflow-hidden transition-all duration-300 hover:border-pink-500/30 hover:shadow-md lg:min-h-[85px] shadow-sm"
                 >
-                  <div className="flex justify-between w-full mb-2 lg:mb-3">
-                    <div className="p-2 lg:p-2.5 bg-slate-50 rounded-xl lg:rounded-2xl text-pink-600 group-hover:bg-pink-600 group-hover:text-white transition-all duration-500">
-                      <Package size={14} className="lg:w-[18px] lg:h-[18px]" />
+                  <div className="flex justify-between w-full mb-1.5">
+                    <div className="p-1.5 bg-slate-50 rounded-lg text-pink-600 group-hover:bg-pink-600 group-hover:text-white transition-all">
+                      <Package size={14} />
                     </div>
-                    <div className="flex items-center gap-1.5 bg-slate-50 px-2 lg:px-2.5 py-1 rounded-full border border-slate-100">
+                    <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
                       <div className={`w-1 h-1 rounded-full ${p.stock <= 5 ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
-                      <span className={`text-[9px] lg:text-[10px] font-black ${p.stock <= 5 ? 'text-red-500' : 'text-slate-400'}`}>{p.stock}</span>
+                      <span className={`text-[9px] font-black ${p.stock <= 5 ? 'text-red-500' : 'text-slate-400'}`}>{p.stock}</span>
                     </div>
                   </div>
 
                   <div className="w-full">
-                    <p className="font-black text-[10px] lg:text-[11px] uppercase tracking-tight text-slate-700 mb-0.5 lg:mb-1 truncate group-hover:text-pink-600 transition-colors leading-tight">{p.name}</p>
-                    {p.barcode && <p className="text-[7.5px] lg:text-[8px] font-bold text-slate-300 uppercase tracking-[0.1em]">{p.barcode}</p>}
+                    <p className="font-black text-[10px] lg:text-[11px] uppercase tracking-tight text-slate-700 mb-0.5 truncate group-hover:text-pink-600 transition-colors leading-tight">{p.name}</p>
+                    {p.barcode && <p className="text-[7.5px] font-bold text-slate-300 uppercase tracking-[0.1em]">{p.barcode}</p>}
                   </div>
 
                   {localStorage.getItem('role') === 'admin' && (

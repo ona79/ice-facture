@@ -147,7 +147,7 @@ export default function History() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans"
+      className="max-w-7xl mx-auto pt-16 md:pt-20 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans"
     >
 
 

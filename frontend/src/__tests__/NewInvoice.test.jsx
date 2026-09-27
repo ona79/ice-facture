@@ -75,18 +75,22 @@ describe('NewInvoice', () => {
         // In desktop view (default test env?), cart IS visible.
 
         // Fill customer info
-        const nameInput = screen.getByPlaceholderText('NOM...');
+        const nameInput = screen.getByPlaceholderText('NOM CLIENT...');
         fireEvent.change(nameInput, { target: { value: 'Moussa' } });
 
         // Click Validate
-        const validateBtn = screen.getByText('Valider');
+        const validateBtn = screen.getByText('Confirmer');
         fireEvent.click(validateBtn);
 
         await waitFor(() => {
             expect(axios.post).toHaveBeenCalled();
             expect(toast.success).toHaveBeenCalled();
-            expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+            expect(screen.getByText('Vente Réussie !')).toBeInTheDocument();
         });
+
+        const quitterBtn = screen.getByText('Quitter');
+        fireEvent.click(quitterBtn);
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
 
     it('handles offline checkout correctly', async () => {
@@ -102,17 +106,20 @@ describe('NewInvoice', () => {
         await waitFor(() => expect(screen.getByText('Produit Test')).toBeInTheDocument());
         fireEvent.click(screen.getByText('Produit Test'));
 
-        const nameInput = screen.getByPlaceholderText('NOM...');
+        const nameInput = screen.getByPlaceholderText('NOM CLIENT...');
         fireEvent.change(nameInput, { target: { value: 'Moussa Offline' } });
 
-        const validateBtn = screen.getByText('Valider');
+        const validateBtn = screen.getByText('Confirmer');
         fireEvent.click(validateBtn);
 
         await waitFor(() => {
             // Should NOT call axios post
             expect(axios.post).not.toHaveBeenCalled();
-            // Should navigate
-            expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
-        }, { timeout: 2000 }); // Wait longer for premium effects delay
+            expect(screen.getByText('Vente Réussie !')).toBeInTheDocument();
+        }, { timeout: 2000 });
+
+        const quitterBtn = screen.getByText('Quitter');
+        fireEvent.click(quitterBtn);
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
 });

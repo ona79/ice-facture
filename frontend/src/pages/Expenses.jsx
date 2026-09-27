@@ -93,8 +93,8 @@ export default function Expenses() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
-            <div className="flex justify-between items-center mb-8">
+        <div className="max-w-7xl mx-auto pt-16 md:pt-20 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
+            <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-2">
                     <button
                         onClick={exportToExcel}
@@ -104,30 +104,30 @@ export default function Expenses() {
                     </button>
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="bg-red-600 text-white px-6 py-2 rounded-full font-black uppercase text-[10px] shadow-lg shadow-red-900/10 active:scale-95 transition-all flex items-center gap-2"
+                        className="bg-red-600 text-white px-5 py-2 rounded-full font-black uppercase text-[10px] shadow-md shadow-red-900/10 active:scale-95 transition-all flex items-center gap-2"
                     >
                         <Plus size={16} /> Ajouter une charge
                     </button>
                 </div>
             </div>
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-6">
                 <div className="text-left">
-                    <h1 className="text-3xl md:text-4xl font-black italic mb-1 uppercase tracking-tighter text-slate-900 leading-none">Charges</h1>
+                    <h1 className="text-2xl md:text-3xl font-black italic mb-1 uppercase tracking-tighter text-slate-900 leading-none">Charges</h1>
                     <p className="text-red-600/40 text-[8px] font-black uppercase tracking-[0.2em] italic">Suivi des dépenses & frais fixes</p>
                 </div>
             </div>
 
             {/* SUMMARY */}
-            <div className="bg-red-50 p-6 rounded-[2rem] border border-red-100 mb-8 flex justify-between items-center shadow-xl shadow-red-900/5 relative overflow-hidden group">
+            <div className="bg-red-50 p-4 rounded-2xl border border-red-100 mb-6 flex justify-between items-center shadow-md relative overflow-hidden group">
                 <div className="relative z-10 text-left">
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400 mb-2 italic">Dépenses Totales</p>
-                    <h2 className="text-3xl font-black italic text-red-600 tracking-tighter leading-none">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400 mb-1 italic">Dépenses Totales</p>
+                    <h2 className="text-2xl font-black italic text-red-600 tracking-tighter leading-none">
                         {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()} <span className="text-xs not-italic ml-0.5 opacity-30 italic font-black">F</span>
                     </h2>
                 </div>
-                <div className="p-4 bg-white/60 backdrop-blur-md rounded-xl group-hover:scale-110 transition-transform duration-500 shadow-sm border border-red-100/50">
-                    <Wallet size={32} className="text-red-500/60 drop-shadow-[0_0_12px_rgba(239,68,68,0.2)]" />
+                <div className="p-3 bg-white/60 backdrop-blur-md rounded-xl group-hover:scale-110 transition-transform duration-500 shadow-sm border border-red-100/50">
+                    <Wallet size={24} className="text-red-500/60 drop-shadow-[0_0_12px_rgba(239,68,68,0.2)]" />
                 </div>
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>

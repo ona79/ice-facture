@@ -192,7 +192,7 @@ export default function Dashboard() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="pt-28 md:pt-32 pb-12 px-4 md:px-8 max-w-7xl mx-auto min-h-screen text-slate-900 font-sans overflow-x-hidden relative"
+      className="pt-16 md:pt-20 pb-12 px-4 md:px-8 max-w-7xl mx-auto min-h-screen text-slate-900 font-sans overflow-x-hidden relative"
     >
 
       {/* MODAL DÉTAILS */}
@@ -271,31 +271,31 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* HERO SECTION - Sales Chart */}
-      <div className="relative mb-8 rounded-[2.5rem] overflow-hidden group shadow-xl shadow-blue-900/5">
+      <div className="relative mb-6 rounded-3xl overflow-hidden group shadow-lg shadow-blue-900/5">
         <div className="absolute inset-0 bg-gradient-to-r from-slate-50 to-white opacity-100" />
 
-        <div className="relative z-10 pt-6 pb-8 md:pt-10 md:pb-12 px-4 sm:px-8 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
+        <div className="relative z-10 p-4 sm:p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
           <div className="max-w-md text-left w-full md:w-auto">
             <div className="flex justify-between items-start mb-2 gap-2">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black italic tracking-tighter uppercase leading-tight text-slate-900">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-tight text-slate-900">
                 Ventes <span className="text-ice-600">{new Date().getFullYear()}</span>
               </h1>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/settings', { state: { tab: 'support' } })}
-                className="flex items-center gap-1 sm:gap-2 bg-slate-100 hover:bg-ice-600 hover:text-white px-2 sm:px-4 py-2 rounded-2xl border border-slate-200 transition-all active:scale-95 group flex-shrink-0"
+                className="flex items-center gap-1 sm:gap-2 bg-slate-100 hover:bg-ice-600 hover:text-white px-2 sm:px-3 py-1.5 rounded-xl border border-slate-200 transition-all active:scale-95 group flex-shrink-0"
               >
-                <MessageSquare size={14} className="group-hover:animate-bounce" />
+                <MessageSquare size={13} className="group-hover:animate-bounce" />
                 <span className="text-[8px] font-black uppercase tracking-widest hidden sm:inline">Aide ?</span>
               </motion.button>
             </div>
 
             {loading ? (
-              <Skeleton width="150px" height="15px" className="mb-8" />
+              <Skeleton width="150px" height="15px" className="mb-4" />
             ) : (
-              <div className="mb-8">
-                <p className="kpi-tertiary mb-2">Aujourd'hui</p>
+              <div className="mb-4">
+                <p className="kpi-tertiary mb-1">Aujourd'hui</p>
                 <div className="flex items-baseline gap-2">
                   <p className="kpi-primary-lg">{stats.todaySales.toLocaleString()}</p>
                   <span className="kpi-unit">F</span>
@@ -303,9 +303,9 @@ export default function Dashboard() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-optimal">
-              <div className="card-kpi-secondary min-w-[140px]">
-                <p className="kpi-tertiary mb-1">Ventes Globales</p>
+            <div className="flex flex-wrap gap-2">
+              <div className="card-kpi-secondary min-w-[120px] p-2.5">
+                <p className="kpi-tertiary mb-0.5">Ventes Globales</p>
                 {loading ? <Skeleton width="80px" height="20px" className="mt-1" /> : (
                   <div className="flex items-baseline gap-1.5">
                     <p className="kpi-secondary">{stats.totalSales.toLocaleString()}</p>
@@ -314,8 +314,8 @@ export default function Dashboard() {
                 )}
               </div>
               {localStorage.getItem('role') === 'admin' && (
-                <div className="card-kpi-secondary min-w-[140px]">
-                  <p className="kpi-tertiary mb-1">Bénéfice Net</p>
+                <div className="card-kpi-secondary min-w-[120px] p-2.5">
+                  <p className="kpi-tertiary mb-0.5">Bénéfice Net</p>
                   {loading ? <Skeleton width="80px" height="20px" className="mt-1" /> : (
                     <div className="flex items-baseline gap-1.5">
                       <p className={`kpi-secondary ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{stats.netProfit.toLocaleString()}</p>
@@ -324,15 +324,15 @@ export default function Dashboard() {
                   )}
                 </div>
               )}
-              <div className="card-kpi-secondary min-w-[100px]">
-                <p className="kpi-tertiary mb-1">Nombre de ventes</p>
+              <div className="card-kpi-secondary min-w-[90px] p-2.5">
+                <p className="kpi-tertiary mb-0.5">Ventes</p>
                 {loading ? <Skeleton width="40px" height="20px" className="mt-1" /> : <p className="kpi-secondary">{stats.count}</p>}
               </div>
             </div>
           </div>
 
-          <div className="w-full md:w-3/5 h-[200px] md:h-[250px]">
-            {loading ? <Skeleton width="100%" height="250px" rounded="2.5rem" /> : <SalesChart invoices={allInvoices} lightTheme={true} />}
+          <div className="w-full md:w-3/5 h-[210px] md:h-[230px]">
+            {loading ? <Skeleton width="100%" height="230px" rounded="1.5rem" /> : <SalesChart invoices={allInvoices} lightTheme={true} />}
           </div>
         </div>
       </div>
@@ -421,7 +421,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* ACTION GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 md:gap-3 mb-6">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

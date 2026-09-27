@@ -44,8 +44,8 @@ export default function SalesChart({ invoices, lightTheme = false }) {
 
   const primaryColor = lightTheme ? '#0284c7' : '#22d3ee';
   const areaColor = lightTheme ? 'rgba(2, 132, 199, 0.1)' : 'rgba(34, 211, 238, 0.1)';
-  const gridColor = lightTheme ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)';
-  const textColor = lightTheme ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.3)';
+  const gridColor = lightTheme ? 'rgba(148, 163, 184, 0.25)' : 'rgba(255, 255, 255, 0.15)';
+  const textColor = lightTheme ? '#64748b' : 'rgba(255, 255, 255, 0.6)';
 
   const data = {
     labels: last7Days,
@@ -80,6 +80,14 @@ export default function SalesChart({ invoices, lightTheme = false }) {
         }
       }
     },
+    layout: {
+      padding: {
+        top: 8,
+        bottom: 8,
+        left: 4,
+        right: 4
+      }
+    },
     scales: {
       y: {
         beginAtZero: true,
@@ -94,7 +102,7 @@ export default function SalesChart({ invoices, lightTheme = false }) {
   };
 
   return (
-    <div className="h-64 w-full">
+    <div className="h-full w-full min-h-[180px]">
       <Line data={data} options={options} />
     </div>
   );

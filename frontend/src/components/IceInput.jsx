@@ -18,8 +18,8 @@ export const IceInput = forwardRef(({ label, icon, type, ...props }, ref) => {
           {...props}
           ref={ref}
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
-          className={`w-full bg-slate-50 border border-slate-100 rounded-2xl py-3 md:py-4 focus:outline-none focus:border-ice-500 focus:ring-4 focus:ring-ice-500/5 transition-all placeholder:text-slate-200 text-sm font-black text-slate-700 shadow-inner ${icon ? 'pl-11' : 'pl-5'
-            } ${isPassword ? 'pr-12' : 'pr-5'}`}
+          className={`w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 md:py-3 focus:outline-none focus:border-ice-500 focus:ring-4 focus:ring-ice-500/5 transition-all placeholder:text-slate-200 text-xs md:text-sm font-black text-slate-700 shadow-inner ${icon ? 'pl-10' : 'pl-4'
+            } ${isPassword ? 'pr-10' : 'pr-4'}`}
         />
         {isPassword && (
           <button

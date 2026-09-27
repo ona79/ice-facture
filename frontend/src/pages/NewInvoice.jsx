@@ -86,7 +86,7 @@ export default function NewInvoice() {
 
     // Chargement des clients pour suggestions
     axios.get(`${API_URL}/api/invoices/customers`, config)
-      .then(res => setCustomers(res.data))
+      .then(res => setCustomers(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error("Erreur clients:", err));
 
     const handleClickOutside = (event) => {
@@ -124,7 +124,7 @@ export default function NewInvoice() {
       if (existing.quantity >= product.stock) return toast.error("Stock limite");
       updateQuantity(productId, existing.quantity + 1);
     } else {
-      setItems([...items, { productId: product._id, name: product.name, price: 0, quantity: 1, isPriceSet: false }]);
+      setItems([...items, { productId: product._id, name: product.name, price: product.price || 0, quantity: 1, isPriceSet: !!product.price }]);
     }
 
     // Feedback
@@ -329,7 +329,7 @@ export default function NewInvoice() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans overflow-x-hidden relative"
+      className="max-w-7xl mx-auto pt-16 md:pt-20 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans overflow-x-hidden relative"
     >
       {/* HIDDEN RECEIPT COMPONENT */}
       <Receipt ref={receiptRef} invoice={lastInvoice} shopName={shopName} shopAddress={shopAddress} shopPhone={shopPhone} footerMessage={footerMessage} />
@@ -381,7 +381,7 @@ export default function NewInvoice() {
               <input
                 type="text" placeholder="RECHERCHER UN PRODUIT..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-ice-400 text-xs font-black uppercase tracking-widest transition-all placeholder:text-slate-300 shadow-sm"
+                className="w-full bg-white border border-slate-200 rounded-xl py-2.5 lg:py-3 pl-11 pr-4 outline-none focus:border-ice-400 text-xs font-black uppercase tracking-widest transition-all placeholder:text-slate-300 shadow-sm"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -393,33 +393,30 @@ export default function NewInvoice() {
             </div>
             <button
               onClick={startScanning}
-              className="bg-ice-600 text-white p-3 rounded-2xl active:scale-90 transition-all shadow-lg shadow-blue-900/10"
+              className="bg-ice-600 text-white p-2.5 rounded-xl active:scale-90 transition-all shadow-md"
             >
-              <Scan size={20} />
+              <Scan size={18} />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 lg:gap-3 max-h-[72vh] overflow-y-auto pr-1.5 custom-scrollbar">
             {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(p => (
               <button
                 key={p._id}
                 onClick={() => addItem(p._id)}
                 onMouseDown={(e) => e.preventDefault()}
-                className={`p-3 lg:p-5 rounded-[1.2rem] lg:rounded-[2rem] bg-white border border-blue-50 flex flex-col justify-between items-start hover:border-ice-400/40 hover:bg-slate-50 transition-all duration-500 overflow-hidden relative group lg:min-h-[120px] shadow-sm ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95 hover:shadow-xl'}`}
+                className={`p-2.5 lg:p-3 rounded-xl lg:rounded-2xl bg-white border border-blue-50 flex flex-col justify-between items-start hover:border-ice-400/40 hover:bg-slate-50 transition-all duration-300 overflow-hidden relative group lg:min-h-[85px] shadow-sm ${p.stock <= 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'active:scale-95 hover:shadow-md'}`}
                 disabled={p.stock <= 0}
               >
-                <div className="flex justify-between w-full mb-2 lg:mb-3">
-                  <div className={`p-2 lg:p-3 rounded-xl transition-all duration-500 group-hover:scale-110 ${p.stock <= 5 ? 'bg-red-50 text-red-600' : 'bg-ice-50 text-ice-600'}`}>
-                    <ShoppingCart size={16} className="lg:w-[18px] lg:h-[18px]" />
+                <div className="flex justify-between w-full mb-1.5">
+                  <div className={`p-1.5 rounded-lg transition-all duration-300 group-hover:scale-110 ${p.stock <= 5 ? 'bg-red-50 text-red-600' : 'bg-ice-50 text-ice-600'}`}>
+                    <ShoppingCart size={14} className="lg:w-[15px] lg:h-[15px]" />
                   </div>
-                  <span className={`text-[7px] lg:text-[8px] font-black uppercase px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md tracking-tighter ${p.stock <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400'}`}>
-                    {p.stock} EN STOCK
+                  <span className={`text-[7px] lg:text-[8px] font-black uppercase px-1.5 py-0.5 rounded tracking-tighter ${p.stock <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400'}`}>
+                    {p.stock} STOCK
                   </span>
                 </div>
-                <p className="font-black text-[11px] lg:text-[13px] uppercase italic tracking-tighter text-left leading-none group-hover:text-ice-600 transition-colors uppercase text-slate-700">{p.name}</p>
-                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity text-slate-900">
-                  <Plus size={40} className="text-slate-900 lg:w-[48px] lg:h-[48px]" />
-                </div>
+                <p className="font-black text-[10px] lg:text-[11px] uppercase italic tracking-tighter text-left leading-tight group-hover:text-ice-600 transition-colors text-slate-700">{p.name}</p>
               </button>
             ))}
           </div>
@@ -466,7 +463,7 @@ export default function NewInvoice() {
                   onChange={(e) => {
                     const val = e.target.value.toUpperCase();
                     setCustomerName(val.replace(/[^a-zA-Z\sÀ-ÿ]/g, ''));
-                    if (val.trim().length > 0) {
+                    if (val.trim().length > 0 && Array.isArray(customers)) {
                       const filtered = customers.filter(c => c.name && c.name.toString().toUpperCase().includes(val.toUpperCase()));
                       setFilteredCustomers(filtered);
                       setShowSuggestions(filtered.length > 0);

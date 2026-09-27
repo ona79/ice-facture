@@ -310,18 +310,18 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pt-28 md:pt-32 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
+    <div className="max-w-7xl mx-auto pt-16 md:pt-20 pb-12 px-4 md:px-8 min-h-screen text-slate-900 font-sans">
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-6">
         <div className="text-left">
-          <h1 className="text-3xl md:text-4xl font-black italic mb-1 uppercase tracking-tighter text-slate-900 leading-none">Configuration</h1>
+          <h1 className="text-2xl md:text-3xl font-black italic mb-1 uppercase tracking-tighter text-slate-900 leading-none">Configuration</h1>
           <p className="text-slate-300 text-[8px] font-black uppercase tracking-[0.2em] italic">Personnalisation & Sécurité du compte</p>
         </div>
       </div>
 
       {/* TABS FOR ADMIN */}
       {!isEmployee && (
-        <div className="flex gap-4 mb-8 border-b border-slate-100">
+        <div className="flex gap-4 mb-6 border-b border-slate-100">
           <button
             onClick={() => setActiveTab('profile')}
             className={`pb-4 px-2 uppercase text-[10px] font-black tracking-widest transition-all ${activeTab === 'profile' ? 'text-ice-600 border-b-2 border-ice-600' : 'text-slate-300 hover:text-slate-900'}`}
