@@ -89,14 +89,14 @@ graph TD
     Employee --> UC_ManageDebt
 
     %% Inclusion et Extension
-    UC_POS ..> UC_Scan : <<include>>
-    UC_POS ..> UC_SearchProd : <<include>>
-    UC_POS ..> UC_PrintReceipt : <<extend>>
-    UC_POS ..> UC_GenPDF : <<extend>>
-    UC_POS ..> UC_Calc : <<extend>>
+    UC_POS -. "<<include>>" .-> UC_Scan
+    UC_POS -. "<<include>>" .-> UC_SearchProd
+    UC_POS -. "<<extend>>" .-> UC_PrintReceipt
+    UC_POS -. "<<extend>>" .-> UC_GenPDF
+    UC_POS -. "<<extend>>" .-> UC_Calc
 
-    UC_DeleteProd ..> UC_VerifyAdminPwd : <<include>>
-    UC_AddStock ..> UC_VerifyAdminPwd : <<extend>>
+    UC_DeleteProd -. "<<include>>" .-> UC_VerifyAdminPwd
+    UC_AddStock -. "<<extend>>" .-> UC_VerifyAdminPwd
 
     SystemSync --> UC_OfflineStore
     SystemSync --> UC_AutoSync
